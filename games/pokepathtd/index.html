@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <title>PokéPath TD</title>
+
+    <link rel="icon" type="image/png" href="./icon.png">
+
+    <!-- KEEP YOUR EXISTING STYLES -->
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./src/css/ui.css">
+    <link rel="stylesheet" href="./src/css/scenes.css">
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- SIMPLE HEADER (matches your system style, not game.css fantasy stuff) -->
+    <div class="masthead">
+        <div class="masthead-name">
+            <span>Game</span>
+            PokéPath TD
+        </div>
+
+        <div class="masthead-meta">
+            STRATEGY TD<br>
+            PHASER ENGINE
+        </div>
+    </div>
+
+    <!-- GAME CONTAINER (NO EXTRA WRAPPERS) -->
+    <div style="width:100%; background:black;">
+
+        <div id="view-port">
+            <div id="screen-root">
+                <div id="screen"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- YOUR GAME -->
+<script type="module" src="./src/js/bootstrap.js"></script>
+
+</body>
+</html>

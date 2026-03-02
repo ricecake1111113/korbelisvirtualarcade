@@ -1,0 +1,169 @@
+/* =========================
+   GAME WRAPPER BASE
+========================= */
+
+.game-wrap {
+    border-bottom: 2px solid var(--ink);
+}
+
+.game-frame {
+    width: 100%;
+    background: black;
+}
+
+/* =========================
+   GAME STAGE (KEEP THIS - IT WORKS)
+========================= */
+
+.game-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: black;
+}
+
+/* =========================
+   GAME CONTAINER (IMPORTANT FIX)
+========================= */
+
+#gameContainer {
+    position: absolute !important;
+    inset: 0 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    z-index: 1;
+}
+
+#gameContainer canvas {
+    position: absolute !important;
+    inset: 0 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    display: block !important;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 10px;
+    border-bottom: 2px solid var(--ink);
+    margin-top: 44px;
+}
+
+.game-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.game-icon {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    border: 1px solid #c9bfb0;
+    background: var(--card-bg);
+    padding: 4px;
+    filter: contrast(1.25) saturate(1.15);
+}
+
+.game-title {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(22px, 4vw, 36px);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+.game-subtitle {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--burgundy);
+}
+
+/* =========================
+   DESCRIPTION
+========================= */
+
+.game-desc {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #3a2e28;
+    padding: 10px 18px 12px;
+    border-bottom: 1px solid #c9bfb0;
+    background: var(--card-bg);
+}
+
+/* =========================
+   CONTROLS
+========================= */
+
+.game-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--ink);
+    padding: 6px 12px;
+    border-top: 2px solid var(--burgundy);
+}
+
+.game-controls-left,
+.game-controls-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ctrl-btn {
+    background: none;
+    border: 1.5px solid rgba(246,239,230,0.25);
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ctrl-btn:hover {
+    border-color: var(--burgundy);
+    background: rgba(90,15,27,0.3);
+}
+
+.ctrl-btn img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.game-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 18px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--card-bg);
+}
+
+.game-footer strong {
+    color: var(--ink);
+    font-weight: 700;
+}

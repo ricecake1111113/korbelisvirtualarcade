@@ -1,0 +1,1406 @@
+.game-scene-background {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.6);
+	z-index: 99;
+}
+
+.game-scene-window {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	background-color: #1f2f42;
+	border: 4px solid var(--red);
+	border-radius: 5px;
+	box-shadow: 0 0 20px black;
+}
+
+.game-scene-header {
+	position: absolute;
+	width: 100%;
+	height: 24px;
+	background-color: var(--red);
+}
+
+.game-scene-container {
+	position: absolute;
+	top: 24px;
+	bottom: 0px;
+	width: 100%;
+	box-shadow: inset 1px 1px 1px black, inset -1px -1px 1px black;
+	background-color: #1f2f42;
+}
+
+.game-scene-title {
+	position: absolute;
+	top: 7px;
+	left: 8px;
+	color: var(--white);
+	font-size: 13px;
+	text-shadow: 1px 1px 1px black;
+}
+
+.game-scene-close-button {
+	position: absolute;
+	top: 4px;
+	right: 8px;
+	cursor: pointer;
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	transition: .2s;
+}
+
+.game-scene-close-button:hover {
+	filter: brightness(1.2);
+}
+
+/* PROFILE */
+/* PROFILE */
+/* PROFILE */
+
+.profile-player-container {
+	position: absolute;
+	top: 10px;
+	left: 32px;
+	width: 240px;
+	height: 120px;
+}
+
+.profile-scene-name {
+	position: absolute;
+	bottom: 8px;
+	width: 200px;
+	left: 50%;
+	transform: translate(-50%);
+	color: var(--white);
+	text-align: center;
+	text-transform: uppercase;
+	padding-bottom: 2px;
+	border-bottom: 3px solid var(--red);
+}
+
+.profile-scene-portrait {
+	position: absolute;
+	top: 5px;
+	left: 50%;
+	transform: translate(-50%);
+	height: 80px;
+	width: 80px;
+	background-position: center;
+	filter: drop-shadow(0 0 2px var(--black));
+}
+
+.profile-scene-avatar-arrow-prev, .profile-scene-avatar-arrow-next {
+	position: absolute;
+	top: 14px;
+
+	color: var(--white);
+	text-shadow: 2px 2px 1px black;
+	font-size: 30px;
+	font-weight: bold;
+	line-height: 65px;
+	text-align: center;
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+.profile-scene-avatar-arrow-prev { left: 21px; }
+.profile-scene-avatar-arrow-next { right: 18px; }
+
+.profile-scene-avatar-arrow-prev:hover, .profile-scene-avatar-arrow-next:hover {
+	color: var(--red);
+	filter: brightness(1.2);
+}
+
+.profile-scene-achievements-container {
+	position: absolute;
+	top: 22px;
+	width: 200px;
+
+	right: 48px;
+	justify-content: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+
+	filter: drop-shadow(2px 2px black);
+
+}
+
+.profile-scene-achievement {
+	position: relative;
+	width: 20px;
+	height: 20px;
+	background-size: contain;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+.profile-stats-container {
+	position: absolute;
+	bottom: 20px;
+	left: 45px;
+	right: 45px;
+	display: flex;
+	flex-wrap: wrap;
+	box-shadow: 0 0 2px black;
+}
+
+.profile-stat {
+	position: relative;
+	width: 100%;
+	text-indent: 15px;
+	line-height: 25px;
+	height: 20px;
+	font-size: 9px;
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	display: flex;
+	flex-wrap: wrap;
+	background-color: rgba(0, 0, 0, 0.1);
+	padding-bottom: 1px;
+}
+
+.profile-stat:nth-child(2n) {
+	background-color: rgba(0, 0, 0, 0.2);
+}
+
+.profile-stat-label {
+	position: relative;
+	width: 70%;
+	height: 100%;
+	text-align: left;
+}
+
+.profile-stat-value {
+	position: absolute;
+	width: auto;
+	right: 15px;
+	text-align: right;
+}
+
+
+/* MAPS */
+/* MAPS */
+/* MAPS */
+
+.maps-scene-select {
+	position: absolute;
+	top: 26px;
+	left: 30px;
+	right: 30px;
+	text-align: center;
+	font-size: 20px;
+	color: var(--white);
+	padding-bottom: 3px;
+	border-bottom: 3px solid var(--white);
+}
+
+.maps-scene-route-container {
+	position: absolute;
+	left: 20px;
+	right: 20px;
+	bottom: 20px;
+	
+	display: flex;
+	flex-wrap: wrap;
+	gap: 15px;
+	justify-content: center;
+}
+
+.maps-scene-route {
+	position: relative;
+	width: 120px;
+	height: 78px;
+
+	border: 4px solid #425e7c;
+	border-top: 24px solid #425e7c;
+	border-radius: 4px;
+	background-size: cover;
+	background-position: center;
+	box-shadow: inset 1px 1px 1px black, inset -1px -1px 1px black, 0 0 3px black;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.maps-scene-route:hover {
+	filter: brightness(1.2);
+}
+
+.maps-scene-route-name {
+	position: absolute;
+	width: 100%;
+	top: -17px;
+	font-size: 12px;
+	text-align: center;
+	color: var(--white);
+	text-shadow: 1px 1px black;
+}
+
+.maps-scene-route-requires {
+	position: absolute;
+	top: 28px;
+	left: 50%;
+	transform: translate(-50%);
+
+	color: #ebbe35;
+	text-shadow: 1px 1px 1px black, -1px -1px 1px black;
+}
+
+.maps-scene-route-record-container {
+	position: absolute;
+	left: 50%;
+	transform: translate(-50%);
+	height: 15px;
+	width: 70px;
+	bottom: 0px;
+
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	border-top: 1px solid black;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+
+	text-align: center;
+	color: #ebbe35;
+	text-shadow: 1px 1px  black;
+	background-color: #425e7c;
+}
+
+.maps-scene-route-record {
+	position: absolute;
+	left: 50%;
+	transform: translate(-50%);
+	width: 70px;
+	bottom: -5px;
+	font-size: 12px;
+
+	text-align: center;
+	color: #ebbe35;
+	text-shadow: 1px 1px black;
+}
+
+.msrre {
+	vertical-align: middle;
+	position: relative;
+	top: -4px; 
+	letter-spacing: 1px;
+}
+
+.mcrre {
+	vertical-align: middle;
+	position: relative;
+	top: -3px; 
+	letter-spacing: 1px;
+}
+
+/* POKEMON DATA */
+/* POKEMON DATA */
+/* POKEMON DATA */
+.pokemon-scene-name {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	right: 20px;
+	text-align: center;
+	color: var(--white);
+	font-size: 14px;
+	border-bottom: 2px solid var(--white);
+	padding-bottom: 3px;
+}
+
+.pokemon-scene-arrow-prev, .pokemon-scene-arrow-next {
+	position: absolute;
+	top: 18px;
+	color: var(--white);
+	cursor: pointer;
+}
+
+.pokemon-scene-arrow-prev {
+	left: 40px;
+}
+.pokemon-scene-arrow-next {
+	right: 40px;
+}
+
+.pokemon-scene-arrow-prev:hover, .pokemon-scene-arrow-next:hover {
+	filter: brightness(1.2);
+}
+
+.pokemon-scene-data-container {
+	position: absolute;
+	top: 48px;
+	left: 30px;
+	right: 30px;
+	
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+
+.pokemon-scene-data {
+	position: relative;
+	height: 20px;
+	width: 100%;
+	font-size: 11px;
+	color: var(--white);
+	line-height: 24px;
+	border-bottom: 1px dashed var(--white);
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.pokemon-scene-data-label {
+	position: relative;
+	left: 10px;
+	height: 100%;
+	width: 40%;
+}
+
+.pokemon-scene-data-value {
+	position: relative;
+	right: 10px;
+	height: 100%;
+	width: 60%;
+	text-align: right;
+}
+
+.pokemon-scene-data-value-at {
+	position: relative;
+	right: 10px;
+	height: 100%;
+	width: 54%;
+	text-align: center;
+}
+
+.pokemon-scene-data-arrow-at {
+	position: relative;
+	right: 10px;
+	height: 100%;
+	width: 3%;
+	font-weight: bold;
+	color: var(--red);
+	text-align: center;
+	cursor: pointer;
+}
+
+.pokemon-scene-data-arrow-at:hover {
+	filter: brightness(1.2);
+}
+.pokemon-scene-description {
+	position: absolute;
+	left: 20px;
+	right: 20px;
+	bottom: 50px;
+	height: 85px;
+	font-size: 12px;
+	line-height: 15px;
+	text-align: center;
+	align-content: center;
+	color: var(--white);
+	background-color: rgba(0, 0, 0, 0.2);
+	border-radius: 5px;
+	padding: 10px;
+}
+
+.pokemon-scene-level-up-container {
+	position: absolute;
+	bottom: 10px;
+	left: 70px;
+	right: 70px;
+	height: 30px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+}
+
+.pokemon-scene-level-up {
+	position: relative;
+	width: 100px;
+	height: 26px;
+	padding: 3px 0;
+	background: linear-gradient(240deg,rgba(162, 57, 52, 1) 0%, rgba(163, 54, 53, 1) 100%);
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	font-size: 8px;
+	
+	outline: 1px solid black;
+	text-transform: uppercase;
+	text-align: center;
+	line-height: 14px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.pokemon-scene-level-up:hover {
+	filter: brightness(1.2);
+}
+
+.pokemon-scene-button-dna {
+	position: absolute;
+	bottom: 15px;
+	
+	right: 35px;
+	height: 32px;
+	width: 32px;
+	line-height: 20px;
+
+	image-rendering: pixelated;
+	background-position: bottom;
+	background-repeat: no-repeat;
+
+	font-size: 16px;
+
+	text-transform: uppercase;
+	text-align: center;
+
+	cursor: pointer;
+	transition: .2s;
+}
+
+.pokemon-scene-button-dna:hover {
+	filter: brightness(1.2);
+}
+
+.pokemon-scene-evolution-sprite{
+	position: absolute;
+	bottom: 18px;
+	
+	left: 35px;
+	height: 32px;
+	width: 32px;
+	line-height: 20px;
+
+	image-rendering: pixelated;
+	background-position: bottom;
+	background-repeat: no-repeat;
+
+	font-size: 16px;
+
+	text-transform: uppercase;
+	text-align: center;
+}
+
+.pokemon-scene-evolution-level {
+	position: absolute;
+	width: 200%;
+	left: -50%;
+	bottom: -15px;
+	text-align: center;
+	color: var(--white);
+	font-size: 7px;
+	text-shadow: 1px 1px black;
+}
+/* SHOP */
+/* SHOP */
+/* SHOP */
+
+.shop-scene-prompt {
+	position: absolute;
+	top: 15px;
+	left: 10px;
+	right: 10px;
+	text-align: center;
+	color: var(--white);
+	font-size: 12px;
+	line-height: 18px;
+}
+
+.shop-scene-egg {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-image: url("../assets/images/icons/egg.png");
+	width: 180px;
+	height: 180px;
+	background-size: contain;
+	image-rendering: pixelated;
+}
+
+.shop-scene-purchase {
+	position: absolute;
+	bottom: 15px;
+	left: 50px;
+	right: 50px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	background-color: var(--red);
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.shop-scene-purchase:hover {
+	filter: brightness(1.2);
+}
+
+.dp-scene-prompt {
+	position: absolute;
+	top: 14px;
+	width: 100%;
+	text-align: center;
+	color: var(--white);
+	line-height: 12px;
+	font-size: 10px;
+}
+
+.dp-scene-pokemon-name {
+	position: absolute;
+	top: 42px;
+	width: 100%;
+	text-align: center;
+	font-size: 10px;
+}
+
+.dp-scene-image {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 40px;
+	height: 40px;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+/* BOX */
+/* BOX */
+/* BOX */
+
+.box-scene-unit-selected-name {
+	position: absolute;
+	top: 20px;
+	left: 100px;
+	right: 100px;
+	text-align: center;
+	color: var(--white);
+	font-size: 14px;
+	border-bottom: 2px solid var(--white);
+	padding-bottom: 3px;
+}
+
+.box-scene-favorite-button {
+	position: absolute;
+	top: 10px;
+	right: 50px;
+	width: 30px;
+	height: 30px;
+	font-size: 24px;
+	filter: grayscale(100%);
+	cursor: pointer;
+}
+
+.box-scene-unit-text {
+	position: absolute;
+	left: -10%;
+	bottom: -2px;
+	width: 120%;
+	font-size: 5px;
+	color: var(--white);
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.box-scene-unit-fav {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	font-size: 10px;
+}
+
+
+.box-scene-button-container {
+	position: absolute;
+	top: 55px;
+	left: 10px;
+	right: 10px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+}
+
+.box-scene-button {
+	display: relative;
+	width: 22%;
+	height: 24px;
+
+	text-align: center;
+	line-height: 28px;
+	font-size: 10px;
+	border-radius: 4px;
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	outline: 1px solid black;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.box-scene-button:hover {
+	filter: brightness(1.2);
+}
+
+.box-scene-button:nth-child(1) {
+	background-color: var(--green);
+}
+
+.box-scene-button:nth-child(2) {
+	background-color: var(--red);
+}
+
+.box-scene-button:nth-child(3) {
+	background-color: #2d70e3;
+}
+.box-scene-button:nth-child(4) {
+	background-color: var(--black);
+}
+
+.box-scene-unit-container {
+	position: absolute;
+	bottom: 46px;
+	right: 10px;
+	left: 10px;
+	padding: 10px;
+
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 12px;
+	background-color: rgba(0, 0, 0, 0.3);
+	border-radius: 10px;
+}
+
+.box-scene-unit {
+	position: relative;
+	width: 40px;
+	height: 40px;
+	background-position: center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+.box-scene-unit:hover {
+	filter: drop-shadow(0 0 2px var(--white));
+}
+
+.box-scene-sort-container {
+	position: absolute;
+	bottom: 3px;
+	left: 140px;
+	right: 140px;
+	height: 40px;
+
+	display: flex;
+	flex-wrap: wrap;
+	color: var(--white);
+	font-size: 14px;
+	line-height: 44px;
+	text-shadow: 1px 1px 1px black;
+}
+
+.box-scene-sort-arrow {
+	position: relative;
+	width: 10%;
+	text-align: center;
+	transition: .2s;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.box-scene-sort-arrow:hover {
+	color: var(--red);
+}
+
+.box-scene-sort-value {
+	position: relative;
+	width: 80%;
+	text-align: center;
+}
+
+.box-scene-tab-container {
+	position: absolute;
+	width: 100%;
+	height: 24px;
+	bottom: -24px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+	text-align: space-evenly;
+}
+
+.box-scene-tab {
+	position: relative;
+	width: 18%;
+	height: 100%;
+	background-color: var(--red);
+	color: var(--white);
+	font-size: 10px;
+	text-shadow: 0 0 1px black;
+	border-radius: 0 0 5px 5px;
+	text-align: center;
+	line-height: 26px;
+	cursor: pointer;
+}
+
+.box-scene-tab:hover {
+	filter: brightness(1.1);
+}
+
+/* DEFEAT */
+.defeat-scene-prompt {
+	position: absolute;
+	top: 18px;
+	left: 10px;
+	right: 10px;
+	text-align: center;
+	color: var(--white);
+	font-size: 14px;
+	line-height: 20px;
+	text-shadow: 1px 1px 1px black;
+}
+
+.defeat-scene-image {
+	position: absolute;
+	top: 45%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-image: url("../assets/images/icons/ghost.png");
+	width: 100px;
+	height: 100px;
+	background-size: contain;
+	image-rendering: pixelated;
+}	
+
+.defeat-restart-button, .defeat-retry-button {
+	position: absolute;
+	bottom: 55px;
+	width: 140px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.defeat-restart-button {
+	left: 20px;
+	background-color: var(--red);
+}
+
+.defeat-retry-button {
+	right: 20px;
+	background-color: #2d70e3;
+}
+
+.defeat-restart-button:hover, .defeat-retry-button:hover {
+	filter: brightness(1.2);
+}
+
+.defeat-scene-info {
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
+	right: 10px;
+	text-align: center;
+	color: var(--red);
+	font-size: 10px;
+	line-height: 16px;
+	text-shadow: 1px 1px 1px black;
+}
+
+.final-scene-image {
+	position: absolute;
+	top: 46%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-image: url("../assets/images/icons/ghost.png");
+	width: 100px;
+	height: 100px;
+	background-size: contain;
+	image-rendering: pixelated;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.final-accept-button {
+	position: absolute;
+	bottom: 55px;
+	left: 40px;
+	right: 40px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	background-color: #2d70e3;
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.final-accept-button:hover {
+	filter: brightness(1.2);
+}
+
+.defeat-scene-banette {
+	position: absolute;
+	top: 448px;
+	right: -180px;
+	height: 120px;
+	width: 120px;
+	background-image: url('../assets/images/icons/banette.png');
+	background-size: 100%;
+
+	cursor: pointer;
+	transition: .3s;
+	z-index: -2;
+}
+
+.defeat-scene-banette:hover {
+	top: 382px;
+}
+
+.banette-scene-prompt {
+	position: absolute;
+	top: 20px;
+	left: 10px;
+	right: 10px;
+	text-align: center;
+	line-height: 18px;
+	text-shadow: 1px 1px 1px black;
+	color: var(--white);
+	font-size: 10px;
+	line-height: 16px;
+}
+
+.banette-accept-button {
+	position: absolute;
+	bottom: 15px;
+	left: 40px;
+	right: 40px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	background-color: var(--red);
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.banette-accept-button:hover {
+	filter: brightness(1.2);
+}
+
+
+/* NEW GAME */
+
+.profile-scene-portrait-ng {
+	position: absolute;
+	top: 25px;
+	left: 50%;
+	transform: translate(-50%);
+	height: 80px;
+	width: 80px;
+	background-position: center;
+	filter: drop-shadow(0 0 2px var(--black));
+}
+
+.profile-scene-avatar-arrow-prev-ng, .profile-scene-avatar-arrow-next-ng {
+	position: absolute;
+	top: 34px;
+
+	color: var(--white);
+	text-shadow: 2px 2px 1px black;
+	font-size: 30px;
+	font-weight: bold;
+	line-height: 65px;
+	text-align: center;
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+.profile-scene-avatar-arrow-prev-ng { left: 91px; }
+.profile-scene-avatar-arrow-next-ng { right: 88px; }
+
+.profile-scene-avatar-arrow-prev-ng:hover, .profile-scene-avatar-arrow-next-ng:hover {
+	color: var(--red);
+	filter: brightness(1.2);
+}
+
+.profile-scene-name-ng {
+	position: absolute;
+	top: 115px;
+	width: 200px;
+	left: 50%;
+	transform: translate(-50%);
+	color: var(--white);
+	text-align: center;
+	text-transform: uppercase;
+	padding-bottom: 2px;
+	border-bottom: 3px solid var(--red);
+}
+
+.new-game-flag-container {
+	position: absolute;
+	top: 15px;
+	height: 30px;
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 15px;
+}
+
+.new-game-flag {
+	position: relative;
+	width: 32px;
+	height: 32px;
+	cursor: pointer;
+	transition: .1s;
+	filter: brightness(0.6);
+}
+
+.new-game-flag:hover {
+	filter: brightness(1);
+}
+
+.new-game-flag:nth-child(1) { background-image: url('../assets/images/icons/en.png');}
+.new-game-flag:nth-child(2) { background-image: url('../assets/images/icons/es.png');}
+.new-game-flag:nth-child(3) { background-image: url('../assets/images/icons/fr.png');}
+.new-game-flag:nth-child(4) { background-image: url('../assets/images/icons/pt.png');}
+.new-game-flag:nth-child(5) { background-image: url('../assets/images/icons/it.png');}
+.new-game-flag:nth-child(6) { background-image: url('../assets/images/icons/de.png');}
+.new-game-flag:nth-child(7) { background-image: url('../assets/images/icons/jp.png');}
+.new-game-flag:nth-child(8) { background-image: url('../assets/images/icons/kr.png');}
+
+.new-game-starter-profile-container {
+	position: absolute;
+	width: 100%;
+	top: 35px;
+}
+
+.new-game-starter-name {
+	position: absolute;
+	left: 50%;
+	transform: translate(-50%);
+	bottom: 170px;
+	width: 200px;
+	text-align: center;
+}
+
+.new-game-starter-description {
+	position: absolute;
+	left: 20px;
+	right: 20px;
+	bottom: 60px;
+	height: 50px;
+	font-size: 10px;
+	line-height: 15px;
+	text-align: center;
+}
+
+.new-game-starter-container {
+	position: absolute;
+	bottom: 120px;
+	width: 100%;
+	height: 40px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 50px;
+}
+
+.new-game-starter {
+	position: relative;
+	width: 40px;
+	height: 40px;
+
+	background-position: center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	filter: brightness(0.5);
+	transition: .1s;
+}
+
+.new-game-starter:hover {
+	filter: brightness(1);
+}
+
+
+.new-game-start-button {
+	position: absolute;
+	left: 50%;
+	bottom: 17px;
+	transform: translate(-50%);
+	width: 160px;
+	height: 26px;
+	background-color: var(--red);
+	color: var(--white);
+	text-align: center;
+	outline: 1px solid black;
+	border-radius: 4px;
+	line-height: 30px;
+	font-size: 14px;
+	cursor: pointer;
+	text-shadow: 1px 1px 1px black;
+	transition: .2s;
+}
+
+.new-game-start-button:hover {
+	filter: brightness(1.2);
+}
+
+/* MENU */
+
+.menu-scene-container {
+	position: absolute;
+	top: 20px;
+	left: 15px;
+	right: 15px;
+	bottom: 15px;
+	display: flex;
+	flex-wrap: wrap;
+	overflow-y: auto;
+}
+
+.menu-scene-container::-webkit-scrollbar { width: 16px; }
+.menu-scene-container:-webkit-scrollbar-track { 
+	background: #2a2b2b; 
+	outline: 1px solid black;
+}
+.menu-scene-container::-webkit-scrollbar-thumb { 
+    background: var(--red); 
+    outline: 1px solid black;
+    border-radius: 0;
+}
+
+.menu-scene-section {
+	position: relative;
+	width: 97%;
+}
+
+.menu-scene-section:nth-child(1) {
+	height: 368px;
+}
+
+.menu-scene-section:nth-child(2) {
+	height: 310px;
+}
+
+.menu-scene-section:nth-child(3) {
+	height: 427px;
+}
+
+.menu-scene-section-title {
+	position: absolute;
+	width: 100%;
+	color: var(--white);
+	text-indent: 10px;
+	border-bottom: 4px solid var(--red);
+	padding-bottom: 4px;
+}
+
+.menu-scene-section-content {
+	position: absolute;
+	top: 40px;
+	left: 20px;
+	right: 20px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.menu-scene-row {
+	position: relative;
+	width: 100%;
+	height: 20px;
+	font-size: 14px;
+	line-height: 25px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.menu-scene-label {
+	position: relative;
+	width: 55%;
+	color: var(--white);
+}
+
+.menu-scene-arrow {
+	position: relative;
+	width: 5%;
+	color: var(--white);
+	cursor: pointer;
+	transition: .1s;
+	text-align: center;
+}
+
+.menu-scene-arrow:hover {
+	color: var(--red);
+}
+
+.menu-scene-value {
+	position: relative;
+	width: 35%;
+	text-align: center;
+	color: var(--red);
+}
+
+.menu-scene-value-credits {
+	position: relative;
+	width: 45%;
+	text-align: right;
+	color: var(--red);
+}
+
+.menu-credits-disclaimer {
+	padding-top: 10px;
+	text-align: justify;
+	color: var(--blue);
+	font-size: 10px;
+	line-height: 14px;
+}
+
+
+.menu-scene-import-data, .menu-scene-export-data, .menu-scene-delete-data {
+	position: absolute;
+	width: 45%;
+	height: 30px;
+	color: var(--white);
+	text-shadow: 1px 1px black;
+	line-height: 32px;
+	text-align: center;
+	cursor: pointer;
+	transition: .2s;
+	border-radius: 4px;
+	outline: 1px solid black;
+	font-size: 12px;
+}
+
+.menu-scene-import-data {
+	top: 4px;
+	left: 20px;
+	background-color: var(--green);
+} 
+
+.menu-scene-export-data {
+	top: 4px;
+	right: 20px;
+	background-color: #2d70e3;
+}
+
+.menu-scene-delete-data {
+	top: 50px;
+	left: 50%;
+	transform: translate(-50%);
+	background-color: var(--red);
+}
+
+.menu-scene-delete-data:hover, .menu-scene-import-data:hover, .menu-scene-export-data:hover {
+	filter: brightness(1.2);
+}
+
+.menu-scene-version {
+	position: absolute;
+	right: 0px;
+	top: 70px;
+	font-size: 10px;
+	color: var(--white);
+}
+
+.delete-scene-yes-button, .delete-scene-no-button {	
+	position: absolute;
+	bottom: 15px;
+	width: 170px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	background-color: var(--red);
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.delete-scene-yes-button {
+	left: 20px;
+}
+
+.delete-scene-no-button {
+	right: 20px;
+}
+
+.delete-scene-yes-button:hover, .delete-scene-no-button:hover, .import-scene-button:hover, .export-scene-button:hover {
+	filter: brightness(1.2);
+}
+
+.import-scene-button {
+	position: absolute;
+	bottom: 15px;
+	left: 50%;
+	transform: translate(-50%);
+	width: 320px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	background-color: var(--red);
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.export-scene-button {
+	position: absolute;
+	bottom: 15px;
+
+	width: 180px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	background-color: var(--red);
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.export-scene-button:nth-child(odd) {
+	left: 40px;
+}
+
+.export-scene-button:nth-child(even) {
+	right: 40px;
+}
+
+.import-export-code {
+	position: absolute;
+	bottom: 60px;
+	width: 400px;
+	left: 50%;
+	transform: translate(-50%);
+	padding: 10px;
+	font-size: 10px;
+	color: var(--white);
+	text-align: center;
+	text-transform: uppercase;
+	padding-bottom: 2px;
+	border-bottom: 3px solid var(--red);
+}
+
+.import-scene-message, .export-scene-message {
+	position: absolute;
+	width: 100%;
+	text-align: center;
+	bottom: 90px;
+	font-size: 10px;
+}
+
+.export-scene-message {
+	color: var(--red);
+}
+
+.import-scene-message {
+	color: var(--green);
+}
+/* TUTORIAL */
+
+.tutorial-scene-title {
+	position: absolute;
+	left: 40px;
+	right: 40px;
+	top: 20px;
+	font-size: 20px;
+	text-align: center;
+	color: var(--white);
+	padding-bottom: 3px;
+	border-bottom: 4px solid var(--white);
+}
+
+.tutorial-scene-image {
+	position: absolute;
+	top: 65px;
+	left: 50%;
+	transform: translate(-50%);
+	width: 340px;
+	height: 150px;
+	box-shadow: inset 1px 1px 1px black, inset -1px -1px 1px black;
+	outline: 3px solid var(--red);
+}
+
+.tutorial-scene-index {
+	position: absolute;
+	left: 20px;
+	right: 20px;
+	top: 230px;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: center;
+	line-height: 16px;
+	color: var(--red);
+}
+
+.tutorial-scene-text {
+	position: absolute;
+	left: 20px;
+	right: 20px;
+	top: 253px;
+	font-size: 12px;
+	text-align: center;
+	line-height: 20px;
+	color: var(--white);
+}
+
+.tutorial-scene-prev, .tutorial-scene-next  {	
+	position: absolute;
+	bottom: 15px;
+	width: 170px;
+	height: 24px;
+	text-align: center;
+	line-height: 26px;
+	background-color: var(--red);
+	color: var(--white);
+	text-shadow: 1px 1px 1px black;
+	border-radius: 4px;
+	border: 1px solid black;
+	font-size: 12px;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.tutorial-scene-prev { left: 20px;}
+
+.tutorial-scene-next  {right: 20px;}
+
+.tutorial-scene-prev:hover, .tutorial-scene-next:hover {
+	filter: brightness(1.2);
+}

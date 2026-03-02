@@ -1,6 +1,6 @@
 [
   { "name": "boas.io",      "folder": "games/boas.io",            "section": "games"     },
-  { "name": "Game 2",      "folder": "games/game2",            "section": "games"     },
+  { "name": "PokéPath TD",      "folder": "games/pokepathtd",            "section": "games"     },
   { "name": "Game 3",      "folder": "games/game3",            "section": "games"     },
   { "name": "Retro",       "folder": "games/retro",            "section": "games"     },
   { "name": "Puzzle",      "folder": "games/puzzle",           "section": "games"     },

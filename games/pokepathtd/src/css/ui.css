@@ -1,0 +1,598 @@
+.ui-tiles-count-container {
+	position: absolute;
+	top: 0px;
+	right: 354px;
+
+	width: 160px;
+	
+	z-index: 1;
+
+	color: var(--white);
+	font-size: 8px;
+	line-height: 11px;
+	text-shadow: 1px 1px 0 black;
+	text-align: center;
+
+	display: flex;
+  	justify-content: space-evenly;
+  	align-items: space-evenly;   
+}
+
+.ui-tiles-count {
+	position: relative;
+
+	width: 20%;
+	height: 26px;
+	border-radius: 0 0 5px 5px;
+	outline: 1px solid black;
+	box-shadow: 0 0 5px black;
+
+	line-height: 28px;
+}
+
+.ui-tiles-count:nth-child(1) {
+	background: #6fc7a1;
+}
+.ui-tiles-count:nth-child(2) {
+	background: #409552;
+}
+.ui-tiles-count:nth-child(3) {
+	background: #5ea1d9;
+}
+.ui-tiles-count:nth-child(4) {
+	background: #b89184;
+}
+
+.ui-always-actual-wave {
+	position: absolute;
+	top: 0px;
+	right: 227px;
+	padding: 6px 3px 3px 3px;
+	height: 18px;
+	width: 115px;
+	
+	z-index: 1;
+	
+	background: var(--red);
+	border-radius: 0 0 5px 5px;
+	outline: 1px solid black;
+	box-shadow: 0 0 5px black;
+	color: var(--white);
+	font-size: 8px;
+	line-height: 11px;
+	text-shadow: 1px 1px 0 black;
+	text-align: center;
+
+	display: flex;
+  	justify-content: center;
+  	align-items: center;   
+  	transition: .2s; 
+}
+
+.ui-save-team-button, .ui-import-team-button {
+	position: absolute;
+	top: 0px;
+	padding: 6px 3px 3px 3px;
+	height: 18px;
+	width: 115px;
+	
+	z-index: 1;
+	border-radius: 0 0 5px 5px;
+	outline: 1px solid black;
+	box-shadow: 0 0 5px black;
+	cursor: pointer;
+	color: var(--white);
+	font-size: 10px;
+	line-height: 11px;
+	text-shadow: 1px 1px 0 black;
+	text-align: center;
+
+	display: flex;
+  	justify-content: center;
+  	align-items: center;   
+  	transition: .2s;
+}
+
+.ui-save-team-button {
+	background: var(--green);
+	left: 227px;
+}
+
+.ui-import-team-button {
+	left: 360px;
+	background: #2d70e3;
+}
+
+.ui-save-team-button:hover, .ui-import-team-button:hover {
+	filter: brightness(1.2);
+}
+
+.ui-player-panel, .ui-map-panel {
+	position: absolute;
+	width: 210px;
+	height: 100%;
+
+	background-color: #1f2f42;
+	outline: 1px solid black;
+	z-index: 1;
+}
+
+.ui-player-panel {
+	left: 0px;
+	border-right: 3px solid #425e7c;
+}
+
+.ui-map-panel {
+	right: 0px;
+	border-left: 3px solid #425e7c;
+}
+
+/* PLAYER */
+/* PLAYER */
+/* PLAYER */
+
+.ui-player-portrait {
+	position: absolute;
+	top: 14px;
+	left: 4px;
+	height: 80px;
+	width: 80px;
+	background-position: center;
+	filter: drop-shadow(0 0 2px var(--black));
+}
+
+.ui-player-name {
+	position: absolute;
+	top: 18px;
+	left: 88px;
+	font-size: 13px;
+	color: var(--blue);
+}
+
+.ui-player-stars {
+	position: absolute;
+	top: 36px;
+	left: 86px;
+	font-size: 10px;
+	line-height: 14px;
+	color: #ebbe35;
+}
+
+.ui-player-gold {
+	position: absolute;
+	top: 52px;
+	left: 88px;
+	font-size: 10px;
+	color: var(--green);
+}
+
+.ui-player-health {
+	position: absolute;
+	top: 67px;
+	left: 87px;
+	width: 120px;
+	font-size: 10px;
+	color: var(--red);
+	display: flex;
+	flex-wrap: wrap;
+	
+}
+
+.ui-player-heart-on {
+	position: relative;
+	background-image: url("../assets/images/icons/heart.png");
+	width: 17px;
+	height: 14px;
+	background-size: 90%;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.ui-player-heart-off {
+	position: relative;
+	background-image: url("../assets/images/icons/no-heart.png");
+	width: 17px;
+	height: 14px;
+	background-size: 90%;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+
+.ui-player-limit-line {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	height: 102px;
+	border-right: 1px solid black;
+	border-bottom: 1px solid black;
+}
+
+.ui-pokemon-container {
+	position: absolute;
+	top: 103px;
+	left: -1px;
+	right: -1px;
+	bottom: 3px;
+
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+}
+
+.ui-pokemon {
+	position: relative;
+	width: 49%;
+	height: 20%;
+	background: rgba(0, 0, 0, 0.2);
+	border-right: 1px solid black;
+	border-bottom: 1px solid black;
+}
+
+.ui-pokemon:nth-child(2),
+.ui-pokemon:nth-child(3),
+.ui-pokemon:nth-child(6),
+.ui-pokemon:nth-child(7),
+.ui-pokemon:nth-child(10) {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.ui-pokemon-name {
+	position: absolute;
+	top: 13px;
+	width: 100%;
+	color: #888;
+	text-align: center;
+	font-size: 10px;
+}
+
+.ui-pokemon-level {
+	position: absolute;
+	top: 24px;
+	width: 100%;
+	text-align: center;
+	color: var(--white);
+	font-size: 8px;
+}
+
+.ui-pokemon-sprite {
+	position: absolute;
+	bottom: 35px;
+	left: 50%;
+	transform: translate(-50%);
+	width: 40px;
+	height: 40px;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.ui-pokemon-info, .ui-pokemon-deploy {
+	position: absolute;
+	right: 10px;
+	width: 85px;
+	height: 14px;
+	font-size: 7px;
+	text-align: center;
+	line-height: 18px;
+	color: var(--white);
+	cursor: pointer;
+	outline: 1px solid black;
+	transition: .2s;
+	text-shadow: 1px 1px 0 black;
+	border-radius: 3px;
+}
+
+.ui-pokemon-info {
+	background: #2d70e3;
+	bottom: 24px;
+}
+
+.ui-pokemon-deploy {
+	background: var(--green);
+	bottom: 6px;
+}
+
+.ui-pokemon-deploy:hover, .ui-pokemon-info:hover {
+	filter: brightness(1.2);
+}
+
+.ui-pokemon-stars {
+	position: absolute;
+	width: 100%;
+	bottom: 8px;
+	text-align: center;
+	font-size: 10px;
+	color: #ebbe35;
+	line-height: 14px;
+}
+
+.lock {
+	filter: grayscale(50%);
+	opacity: 0.8;
+	line-height: 66px;
+	font-size: 30px;
+}
+/* MAP */
+/* MAP */
+/* MAP */
+
+.ui-section-container {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+}
+
+.ui-section {
+	position: relative;
+	width: calc(100% / 6);
+	height: 30px;
+
+	border-bottom: 3px solid #425e7c;
+	background-color: #425e7c;
+	cursor: pointer;
+}
+
+.ui-section:hover > .ui-section-img{
+	background-size: 23px;
+}
+
+.ui-section-img {
+	position: absolute;
+	top: 2px;
+	width: 100%;
+	height: 100%;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 20px;
+	transition: .1s;
+	filter: invert(17%) sepia(12%) saturate(1445%) hue-rotate(169deg) brightness(80%) contrast(95%);
+}
+
+.ui-map-name {
+	position: absolute;
+	top: 56px;
+	width: 100%;
+	text-align: center;
+	color: var(--white);
+	font-size: 20px;
+}
+
+.ui-map-wave {
+	position: absolute;
+	top: 82px;
+	width: 100%;
+	text-align: center;
+	color: var(--red);
+	font-size: 16px;
+}
+
+.ui-map-record {
+	position: absolute;
+	top: 106px;
+	width: 100%;
+	text-align: center;
+
+	color: #ebbe35;
+	font-size: 12px;
+}
+
+.ui-map-wave-pokemon-container {
+	position: absolute;
+	top: 128px;
+	left: 10px;
+	right: 10px;
+	height: 34px;
+	background-color: rgba(0, 0, 0, 0.2);
+	border-radius: 5px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.ui-info-name {
+	position: absolute;
+	top: 20px;
+	left: 10px;
+	right: 10px;
+	border-bottom: 2px solid var(--white);
+	padding-bottom: 4px;
+	text-align: center;
+	color: var(--white);
+}
+
+.ui-info-stat-container {
+	position: absolute;
+	top: 58px;
+	left: 20px;
+	right: 20px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.ui-info-stat {
+	width: 100%;
+	color: var(--white);
+	font-size: 10px;
+}
+
+.ui-map-wave-pokemon {
+	position: relative;
+	top: 1px;
+	width: 34px;
+	height: 34px;
+	background-position: center;
+
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+.ui-info-container {
+	position: absolute;
+	top: 176px;
+	bottom: 144px;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.3);
+	outline: 3px solid #425e7c;
+}
+
+.ui-wave-button-background{
+	position: absolute;
+	bottom: 0px;
+	height: 144px;
+	width: 100%;
+	background: #425e7c;
+}
+
+.ui-auto-wave {
+	position: absolute;
+	bottom: 92px;
+	left: 1px;
+	right: 50px;
+	height: 48px;
+
+	background: #2c70e3;
+	color: var(--white);
+	
+	font-size: 16px;
+
+	align-content: center;
+	text-align: center;
+	
+	text-shadow: 1px 1px 1px black;
+	outline: 1px solid black;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.ui-speed-wave {
+	position: absolute;
+	bottom: 92px;
+	width: 47px;
+	right: -2px;
+	height: 48px;
+
+	background: linear-gradient(0deg,rgba(194, 177, 183, 1) 50%, rgba(194, 177, 183, 1) 50%);
+	color: var(--white);
+	
+	font-size: 16px;
+
+	align-content: center;
+	text-align: center;
+	
+	text-shadow: 1px 1px 1px black;
+	outline: 1px solid black;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.ui-next-wave {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	height: 88px;
+
+	background: var(--red);
+	color: var(--white);
+	
+	font-size: 18px;
+	line-height: 24px;
+	align-content: center;
+	text-align: center;
+	
+	text-shadow: 2px 2px 0 black;
+	box-shadow: inset 1px 1px 1px black;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.ui-next-wave:hover, .ui-auto-wave:hover, .ui-speed-wave:hover {
+	filter: brightness(1.2);
+}
+
+.ui-damage-dealt-container {
+	position: absolute;
+	top: 33px;
+	width: 100%;
+	height: 447px;
+	background: #1e2f42;
+	display: flex;
+	flex-wrap: wrap;
+	display: none;
+}
+
+.ui-damage-dealt-unit {
+	position: relative;
+	width: 100%;
+	height: 10%;
+}
+
+.ui-damage-dealt-unit:nth-child(2n) {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.ui-damage-dealt-unit-sprite {
+	position: absolute;
+	
+	left: 10px;
+	bottom: 0px;
+	width: 40px;
+	height: 40px;
+	background-position: center;
+	background-repeat: no-repeat;
+
+}
+
+.ui-damage-dealt-unit-number {
+	position: absolute;
+	left: 65px;
+	right: 10px;
+	top: 14px;
+	color: var(--white);
+	font-size: 10px;
+}
+
+.ui-damage-dealt-unit-bar-container {
+	position: absolute;
+	bottom: 8px;
+	left: 55px;
+	right: 10px;
+	height: 8px;
+	outline: 1px solid black;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+.ui-damage-dealt-unit-bar {
+	position: absolute;
+	height: 100%;
+	transition: .1s;
+}
+
+.ui-damage-dealt-unit-bar-previous {
+	position: absolute;
+	height: 100%;
+}
+
+/* OTHER */
+.wave-completed {
+	position: absolute;
+	top: 40%;
+	width: 100%;
+	transform: translate(0, -50%);
+	color: var(--white);
+	font-size: 48px;
+	line-height: 64px;
+	height: 60px;
+	opacity: 0;
+	transition: opacity 0.5s ease;
+	z-index: 9999;
+	text-align: center;
+	background: radial-gradient(circle, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0) 90%);
+}
+
