@@ -22,7 +22,7 @@
 
     <!-- TOPBAR -->
     <div class="topbar">
-        <a href="../../index.html" class="topbar-left">
+        <a href="../../" class="topbar-left">
             <img src="../../icon.png" class="topbar-icon">
             <div class="topbar-title">Korbeli's Virtual Arcade</div>
         </a>
@@ -82,13 +82,13 @@
         </div>
     </div>
 
-    <!-- GAME FOOTER (RESTORED) -->
+    <!-- GAME FOOTER -->
     <div class="game-footer">
         <span>Last updated: <strong>March 31, 2026</strong></span>
         <span>All rights belong to the original creator.</span>
     </div>
 
-    <!-- SITE FOOTER (RESTORED) -->
+    <!-- SITE FOOTER -->
     <footer class="footer">
         <img src="../../logoblack.png" class="footer-logo">
         <p>All games belong to their respective creators.</p>
@@ -133,8 +133,9 @@ async function buildNav() {
         btn.className = 'dropbtn';
         btn.textContent = s.label + ' ▼';
 
+        // ✅ FIXED: removed index.html redirect
         btn.onclick = () => {
-            window.location.href = '../../index.html#' + s.key + '-section';
+            window.location.href = '../../#' + s.key + '-section';
         };
 
         const content = document.createElement('div');
@@ -142,7 +143,7 @@ async function buildNav() {
 
         sectionItems.forEach(item => {
             const a = document.createElement('a');
-            a.href = '../../' + item.folder + '/index.html';
+            a.href = '../../' + item.folder + '/';
             a.textContent = item.name;
             content.appendChild(a);
         });
