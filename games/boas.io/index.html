@@ -7,16 +7,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boas IO — Korbeli's Virtual Arcade</title>
+
     <link rel="icon" type="image/x-icon" href="../../icon.ico">
     <link rel="stylesheet" href="../../style.css">
     <link rel="stylesheet" href="game.css">
+
     <script src="UnityProgress.js"></script>
     <script src="UnityLoader.js"></script>
     <script src="ui.js"></script>
-    <script>
-        var gameInstance = UnityLoader.instantiate("gameContainer", "build.json", {onProgress: UnityProgress});
-    </script>
 </head>
+
 <body>
 <div class="page">
 
@@ -26,9 +26,7 @@
             <img src="../../icon.png" class="topbar-icon">
             <div class="topbar-title">Korbeli's Virtual Arcade</div>
         </a>
-        <div class="topbar-right" id="topbar-right">
-            <!-- injected by nav.js -->
-        </div>
+        <div class="topbar-right" id="topbar-right"></div>
     </div>
 
     <!-- GAME HEADER -->
@@ -44,26 +42,41 @@
 
     <!-- GAME DESCRIPTION -->
     <div class="game-desc">
-        <!-- Edit the text below to add your description -->
         Boas IO description goes here. Tell players what the game is about.
     </div>
 
-    <!-- GAME CONTAINER -->
+    <!-- GAME WRAP -->
     <div class="game-wrap">
         <div class="game-frame">
-            <div id="gameContainer" class="game-canvas"></div>
+
+            <!-- FIXED GAME STAGE (NO WRAPPERS) -->
+            <div class="game-stage">
+
+                <!-- CLICK TO PLAY OVERLAY -->
+                <div id="loadOverlay" class="game-overlay" onclick="startGame()">
+                    <div class="overlay-content">
+                        <button>▶ Click to Play</button>
+                        <p>Game will load after clicking</p>
+                    </div>
+                </div>
+
+                <!-- UNITY CONTAINER -->
+                <div id="gameContainer"></div>
+
+            </div>
+
         </div>
 
-        <!-- CONTROLS BAR -->
+        <!-- CONTROLS BAR (pause removed) -->
         <div class="game-controls">
             <div class="game-controls-left">
-                <button class="ctrl-btn" id="btn-pause" onclick="togglePause()" title="Pause">
-                    <img src="pause.png" id="pause-icon" alt="Pause">
-                </button>
+
                 <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()" title="Mute">
                     <img src="unmuted.png" id="mute-icon" alt="Mute">
                 </button>
+
             </div>
+
             <div class="game-controls-right">
                 <button class="ctrl-btn" onclick="gameInstance.SetFullscreen(1)" title="Fullscreen">
                     <img src="fullscreen.png" alt="Fullscreen">
@@ -87,83 +100,100 @@
 </div>
 
 <script>
-    // ── Nav dropdown (same logic as index.html) ────────────────────────────────
-    const SECTIONS = [
-        { key: 'games',     label: 'Games'     },
-        { key: 'emulators', label: 'Emulators' },
-        { key: 'music',     label: 'Music'     },
-    ];
+/* NAV */
+const SECTIONS = [
+    { key: 'games', label: 'Games' },
+    { key: 'emulators', label: 'Emulators' },
+    { key: 'music', label: 'Music' },
+];
 
-    async function buildNav() {
-        let items;
-        try {
-            const res = await fetch('../../games.json');
-            items = await res.json();
-        } catch(e) { return; }
+async function buildNav() {
+    let items;
+    try {
+        const res = await fetch('../../games.json');
+        items = await res.json();
+    } catch(e) { return; }
 
-        const grouped = {};
-        SECTIONS.forEach(s => grouped[s.key] = []);
-        items.forEach(item => {
-            if (grouped[item.section] !== undefined) grouped[item.section].push(item);
+    const grouped = {};
+    SECTIONS.forEach(s => grouped[s.key] = []);
+
+    items.forEach(item => {
+        if (grouped[item.section] !== undefined) {
+            grouped[item.section].push(item);
+        }
+    });
+
+    const navEl = document.getElementById('topbar-right');
+
+    SECTIONS.forEach(s => {
+        const sectionItems = grouped[s.key];
+        if (!sectionItems.length) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'dropdown';
+
+        const btn = document.createElement('button');
+        btn.className = 'dropbtn';
+        btn.textContent = s.label + ' ▼';
+        btn.onclick = () => {
+            window.location.href = '../../index.html#' + s.key + '-section';
+        };
+
+        const content = document.createElement('div');
+        content.className = 'dropdown-content';
+
+        sectionItems.forEach(item => {
+            const a = document.createElement('a');
+            a.href = '../../' + item.folder + '/index.html';
+            a.textContent = item.name;
+            content.appendChild(a);
         });
 
-        const navEl = document.getElementById('topbar-right');
-        SECTIONS.forEach(s => {
-            const sectionItems = grouped[s.key];
-            if (!sectionItems || sectionItems.length === 0) return;
+        wrapper.appendChild(btn);
+        wrapper.appendChild(content);
+        navEl.appendChild(wrapper);
+    });
+}
 
-            const wrapper = document.createElement('div');
-            wrapper.className = 'dropdown';
+buildNav();
 
-            const btn = document.createElement('button');
-            btn.className = 'dropbtn';
-            btn.textContent = s.label + ' ▼';
-            btn.addEventListener('click', () => {
-                window.location.href = '../../index.html#' + s.key + '-section';
-            });
+/* UNITY LOAD */
+let gameInstance = null;
+let gameLoaded = false;
 
-            const content = document.createElement('div');
-            content.className = 'dropdown-content';
-            sectionItems.forEach(item => {
-                const a = document.createElement('a');
-                a.href = '../../' + item.folder + '/index.html';
-                a.textContent = item.name;
-                content.appendChild(a);
-            });
+function startGame() {
+    document.getElementById("loadOverlay").style.display = "none";
 
-            wrapper.appendChild(btn);
-            wrapper.appendChild(content);
-            navEl.appendChild(wrapper);
-        });
+    if (!gameLoaded) {
+        gameLoaded = true;
+
+        gameInstance = UnityLoader.instantiate(
+            "gameContainer",
+            "build.json",
+            { onProgress: UnityProgress }
+        );
     }
+}
 
-    buildNav();
+/* MUTE */
+let muted = false;
 
-    // ── Game controls ──────────────────────────────────────────────────────────
-    let paused = false;
-    let muted  = false;
+function toggleMute() {
+    muted = !muted;
 
-    function togglePause() {
-        paused = !paused;
-        try {
-            if (paused) {
-                gameInstance.SendMessage('GameManager', 'PauseGame');
-            } else {
-                gameInstance.SendMessage('GameManager', 'ResumeGame');
-            }
-        } catch(e) {}
-        document.getElementById('pause-icon').src = paused ? 'pause.png' : 'pause.png';
-        document.getElementById('btn-pause').classList.toggle('ctrl-btn--active', paused);
-    }
+    try {
+        gameInstance.SendMessage(
+            'AudioManager',
+            muted ? 'MuteAudio' : 'UnmuteAudio'
+        );
+    } catch(e) {}
 
-    function toggleMute() {
-        muted = !muted;
-        try {
-            gameInstance.SendMessage('AudioManager', muted ? 'MuteAudio' : 'UnmuteAudio');
-        } catch(e) {}
-        document.getElementById('mute-icon').src = muted ? 'muted.png' : 'unmuted.png';
-        document.getElementById('btn-mute').classList.toggle('ctrl-btn--active', muted);
-    }
+    document.getElementById('mute-icon').src =
+        muted ? 'muted.png' : 'unmuted.png';
+
+    document.getElementById('btn-mute')
+        .classList.toggle('ctrl-btn--active', muted);
+}
 </script>
 
 </body>
