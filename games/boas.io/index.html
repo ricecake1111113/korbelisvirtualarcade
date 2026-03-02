@@ -49,10 +49,8 @@
     <div class="game-wrap">
         <div class="game-frame">
 
-            <!-- FIXED GAME STAGE (NO WRAPPERS) -->
             <div class="game-stage">
 
-                <!-- CLICK TO PLAY OVERLAY -->
                 <div id="loadOverlay" class="game-overlay" onclick="startGame()">
                     <div class="overlay-content">
                         <button>▶ Click to Play</button>
@@ -60,14 +58,13 @@
                     </div>
                 </div>
 
-                <!-- UNITY CONTAINER -->
                 <div id="gameContainer"></div>
 
             </div>
 
         </div>
 
-        <!-- CONTROLS BAR (pause removed) -->
+        <!-- CONTROLS -->
         <div class="game-controls">
             <div class="game-controls-left">
 
@@ -85,13 +82,13 @@
         </div>
     </div>
 
-    <!-- GAME FOOTER -->
+    <!-- GAME FOOTER (RESTORED) -->
     <div class="game-footer">
         <span>Last updated: <strong>March 31, 2026</strong></span>
         <span>All rights belong to the original creator.</span>
     </div>
 
-    <!-- SITE FOOTER -->
+    <!-- SITE FOOTER (RESTORED) -->
     <footer class="footer">
         <img src="../../logoblack.png" class="footer-logo">
         <p>All games belong to their respective creators.</p>
@@ -135,6 +132,7 @@ async function buildNav() {
         const btn = document.createElement('button');
         btn.className = 'dropbtn';
         btn.textContent = s.label + ' ▼';
+
         btn.onclick = () => {
             window.location.href = '../../index.html#' + s.key + '-section';
         };
@@ -157,7 +155,7 @@ async function buildNav() {
 
 buildNav();
 
-/* UNITY LOAD */
+/* UNITY */
 let gameInstance = null;
 let gameLoaded = false;
 

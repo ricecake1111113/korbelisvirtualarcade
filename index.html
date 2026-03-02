@@ -1,66 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Game Hub</title>
-<link rel="stylesheet" href="game.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korbeli's Virtual Arcade</title>
+    <link rel="icon" type="image/x-icon" href="icon.ico">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-<!-- MAIN PAGE -->
 <div class="page">
 
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="./" class="topbar-left">
+            <img src="icon.png" class="topbar-icon">
+            <div class="topbar-title">Korbeli's Virtual Arcade</div>
+        </a>
+        <div class="topbar-right" id="topbar-right"></div>
+    </div>
+
+    <!-- RIBBON -->
+    <div class="ribbon">★ Unblocked · No Downloads · Free to Play · No Login Required ★</div>
+
+    <!-- MASTHEAD -->
+    <div class="masthead">
+        <div>
+            <div class="masthead-name">
+                <span>Korbeli's</span>
+                Virtual<br>Arcade
+            </div>
+        </div>
+        <div class="masthead-meta">
+            <div><span class="masthead-badge">Est. 2019</span></div>
+            Experimental &amp; Classic Web Games<br>
+            Emulators &amp; More<br>
+            100% Unblocked
+        </div>
+    </div>
+
+    <!-- NEWS TICKER -->
+    <div class="ticker">
+        <span class="ticker-label">Now Playing</span>
+        <div class="ticker-track">
+            <div class="ticker-items" id="ticker-items"></div>
+        </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero-section">
+        <div class="hero-main">
+            <span class="hero-kicker">Featured</span>
+            <div class="hero-headline">Play Anything.<br>Get Caught<br>By Nobody.</div>
+            <div class="hero-deck">A curated arcade of experimental and classic web games -- no downloads, no logins, no nonsense.</div>
+        </div>
+        <div class="hero-logo-wrap">
+            <img src="logo.png" class="hero-logo">
+        </div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div id="sections-container"></div>
+
+    <!-- UPDATE LOG -->
     <div class="section-header">
-        <div class="section-header-label">FEATURED GAME</div>
+        <span class="section-header-label">Updates</span>
         <div class="section-header-rule"></div>
     </div>
 
-    <!-- GAME TILE -->
-    <div style="padding:20px; text-align:center;">
-        <button class="launch-game-btn" onclick="openGame()">
-            ▶ PLAY GAME
-        </button>
-    </div>
+    <div class="updates-section">
 
-</div>
-
-<!-- GAME MODAL -->
-<div id="gameModal" class="game-modal">
-    <div class="game-box">
-
-        <button class="close-btn" onclick="closeGame()">✕</button>
-
-        <div class="play-overlay" id="overlay">
-            <button class="play-button" onclick="startGame()">START</button>
+        <div class="update-entry">
+            <div class="update-meta">
+                <span class="update-date">Mar 31, 2026</span>
+                <span class="update-tag update-tag--new">New</span>
+            </div>
+            <div class="update-headline">Music section added</div>
+            <div class="update-body">Ported the music section over from the old Google Sites build. More tracks coming.</div>
         </div>
 
-        <iframe id="gameFrame" src=""></iframe>
+        <div class="update-entry">
+            <div class="update-meta">
+                <span class="update-date">Mar 15, 2026</span>
+                <span class="update-tag update-tag--fix">Fix</span>
+            </div>
+            <div class="update-headline">Emulator 2 patched</div>
+            <div class="update-body">Was breaking on certain browsers. Should be working now.</div>
+        </div>
+
+        <div class="update-entry">
+            <div class="update-meta">
+                <span class="update-date">Feb 2, 2026</span>
+                <span class="update-tag update-tag--update">Update</span>
+            </div>
+            <div class="update-headline">Site redesign</div>
+            <div class="update-body">Rebuilt the whole thing from scratch. New look, same games.</div>
+        </div>
+
+        <div class="updates-footer">
+            <button class="updates-toggle" onclick="toggleAllUpdates(this)">
+                View all updates ▼
+            </button>
+        </div>
+
+        <div class="updates-older" id="updates-older">
+            <div class="update-entry">
+                <div class="update-meta">
+                    <span class="update-date">Jan 10, 2026</span>
+                    <span class="update-tag update-tag--new">New</span>
+                </div>
+                <div class="update-headline">Puzzle added</div>
+                <div class="update-body">New puzzle game in the games section.</div>
+            </div>
+
+            <div class="update-entry">
+                <div class="update-meta">
+                    <span class="update-date">Dec 1, 2025</span>
+                    <span class="update-tag update-tag--update">Update</span>
+                </div>
+                <div class="update-headline">Site moved off Google Sites</div>
+                <div class="update-body">Finally got off Google Sites. Hosted properly now.</div>
+            </div>
+        </div>
 
     </div>
+
+    <!-- STORY -->
+    <div class="section-header">
+        <span class="section-header-label">Our Story</span>
+        <div class="section-header-rule"></div>
+    </div>
+
+    <div class="story-section">
+        <div class="story-col story-col--main">
+            <span class="story-kicker">Origin</span>
+            <h2 class="story-headline">One CS Class, One Idea That Stuck.</h2>
+            <p class="story-drop">It started as homework.</p>
+            <p class="story-body">In 7th grade, Eli and Korbyn had a computer science project. Eli built a games site. They put both their names on it, Korbeli, and that was that.</p>
+            <p class="story-body">Korbyn's moved on, but they’re still friends. Eli runs the site now.</p>
+        </div>
+
+        <div class="story-col story-col--side">
+            <div class="story-pullquote">
+                "Eli built it.<br>They put both<br>names on it."
+            </div>
+            <p class="story-body">Eli maintains everything, adds games, fixes bugs, and keeps it running.</p>
+            <p class="story-body">Still free, still unblocked, still going.</p>
+
+            <div class="story-byline">
+                <span>Founded by Korbyn &amp; Eli</span>
+                <span>Maintained by Eli</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <img src="logoblack.png" class="footer-logo">
+        <p>All games belong to their respective creators.</p>
+    </footer>
+
 </div>
 
 <script>
-const GAME_URL = "about:blank"; 
-// ↑ replace with your actual game like:
-// "fnae/index.html" or "https://..."
 
-function openGame() {
-    document.getElementById("gameModal").classList.add("active");
+const SECTIONS = [
+    { key: 'games', label: 'Games' },
+    { key: 'emulators', label: 'Emulators' },
+    { key: 'music', label: 'Music' },
+];
+
+function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 54;
+    window.scrollTo({ top, behavior: 'smooth' });
 }
 
-function closeGame() {
-    document.getElementById("gameModal").classList.remove("active");
-    document.getElementById("gameFrame").src = "";
+function toggleAllUpdates(btn) {
+    const older = document.getElementById('updates-older');
+    const open = older.classList.toggle('updates-older--open');
+    btn.textContent = open ? 'Collapse ▲' : 'View all updates ▼';
 }
 
-function startGame() {
-    const frame = document.getElementById("gameFrame");
-    frame.src = GAME_URL;
-
-    document.getElementById("overlay").style.display = "none";
+function underConstructionSrc() {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+        <rect width="120" height="120" fill="#ede5d8"/>
+        <text x="60" y="48" text-anchor="middle" font-size="32">🚧</text>
+        <text x="60" y="72" text-anchor="middle" font-size="11">UNDER</text>
+        <text x="60" y="86" text-anchor="middle" font-size="11">CONSTRUCTION</text>
+    </svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
+
+function buildCard(item) {
+    const a = document.createElement('a');
+    a.className = 'game-card';
+
+    // 🔥 FIX: no index.html anymore
+    a.href = item.folder + '/';
+
+    const img = document.createElement('img');
+    const iconSrc = item.folder + '/icon.png';
+    img.src = iconSrc;
+    img.alt = item.name;
+
+    img.onerror = function() {
+        this.onerror = null;
+        this.src = underConstructionSrc();
+        a.classList.add('game-card--wip');
+    };
+
+    const label = document.createElement('span');
+    label.className = 'game-card-label';
+    label.textContent = item.name;
+
+    a.appendChild(img);
+    a.appendChild(label);
+    return a;
+}
+
+function buildDropdownLink(item) {
+    const a = document.createElement('a');
+
+    // 🔥 FIX: folder root only
+    a.href = item.folder + '/';
+    a.textContent = item.name;
+
+    return a;
+}
+
+async function build() {
+    let items;
+    try {
+        const res = await fetch('games.json');
+        items = await res.json();
+    } catch (e) {
+        console.error('Could not load games.json:', e);
+        return;
+    }
+
+    const grouped = {};
+    SECTIONS.forEach(s => grouped[s.key] = []);
+    items.forEach(item => {
+        if (grouped[item.section] !== undefined) {
+            grouped[item.section].push(item);
+        }
+    });
+
+    const tickerEl = document.getElementById('ticker-items');
+    const tickerText = items.map(i => i.name).join(' · ');
+    tickerEl.textContent = tickerText + ' · ' + tickerText;
+
+    const navEl = document.getElementById('topbar-right');
+    SECTIONS.forEach(s => {
+        const sectionItems = grouped[s.key];
+        if (!sectionItems?.length) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'dropdown';
+
+        const btn = document.createElement('button');
+        btn.className = 'dropbtn';
+        btn.textContent = s.label + ' ▼';
+        btn.addEventListener('click', () =>
+            scrollToSection(s.key + '-section')
+        );
+
+        const content = document.createElement('div');
+        content.className = 'dropdown-content';
+
+        sectionItems.forEach(item =>
+            content.appendChild(buildDropdownLink(item))
+        );
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(content);
+        navEl.appendChild(wrapper);
+    });
+
+    const container = document.getElementById('sections-container');
+
+    SECTIONS.forEach(s => {
+        const sectionItems = grouped[s.key];
+        if (!sectionItems?.length) return;
+
+        const header = document.createElement('div');
+        header.id = s.key + '-section';
+        header.className = 'section-header';
+        header.innerHTML =
+            `<span class="section-header-label">${s.label}</span>
+             <div class="section-header-rule"></div>`;
+
+        const grid = document.createElement('section');
+        grid.className = 'games-grid';
+
+        sectionItems.forEach(item => grid.appendChild(buildCard(item)));
+
+        container.appendChild(header);
+        container.appendChild(grid);
+    });
+}
+
+build();
+
 </script>
 
 </body>
