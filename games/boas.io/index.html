@@ -68,6 +68,10 @@
         <div class="game-controls">
             <div class="game-controls-left">
 
+                <button class="ctrl-btn" onclick="popOutGame()" title="Pop Out">
+                    <img src="window.png" alt="Pop Out">
+                </button>
+
                 <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()" title="Mute">
                     <img src="unmuted.png" id="mute-icon" alt="Mute">
                 </button>
@@ -97,7 +101,20 @@
 </div>
 
 <script>
-/* NAV */
+/* =========================
+   MODE DETECTION
+========================= */
+
+const IS_POPOUT = window.opener !== null;
+
+/* arcade root (IMPORTANT: change if your folder name differs) */
+const ARCADE_ROOT = window.location.origin + "/korbelisvirtualarcade/";
+
+
+/* =========================
+   NAV (POPOUT SAFE)
+========================= */
+
 const SECTIONS = [
     { key: 'games', label: 'Games' },
     { key: 'emulators', label: 'Emulators' },
@@ -106,24 +123,27 @@ const SECTIONS = [
 
 async function buildNav() {
     let items;
+
     try {
         const res = await fetch('../../games.json');
         items = await res.json();
-    } catch(e) { return; }
+    } catch(e) {
+        return;
+    }
 
     const grouped = {};
     SECTIONS.forEach(s => grouped[s.key] = []);
 
     items.forEach(item => {
-        if (grouped[item.section] !== undefined) {
+        if (grouped[item.section]) {
             grouped[item.section].push(item);
         }
     });
 
     const navEl = document.getElementById('topbar-right');
 
-    SECTIONS.forEach(s => {
-        const sectionItems = grouped[s.key];
+    SECTIONS.forEach(section => {
+        const sectionItems = grouped[section.key];
         if (!sectionItems.length) return;
 
         const wrapper = document.createElement('div');
@@ -131,11 +151,10 @@ async function buildNav() {
 
         const btn = document.createElement('button');
         btn.className = 'dropbtn';
-        btn.textContent = s.label + ' ▼';
+        btn.textContent = section.label + ' ▼';
 
-        // ✅ FIXED: removed index.html redirect
         btn.onclick = () => {
-            window.location.href = '../../#' + s.key + '-section';
+            window.location.href = ARCADE_ROOT + "#" + section.key + "-section";
         };
 
         const content = document.createElement('div');
@@ -143,8 +162,20 @@ async function buildNav() {
 
         sectionItems.forEach(item => {
             const a = document.createElement('a');
-            a.href = '../../' + item.folder + '/';
             a.textContent = item.name;
+
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                if (IS_POPOUT) {
+                    // 🔥 POPOUT = ALWAYS RETURN TO ARCADE ROOT
+                    window.location.href = ARCADE_ROOT;
+                } else {
+                    // normal mode
+                    window.location.href = '../../' + item.folder + '/';
+                }
+            });
+
             content.appendChild(a);
         });
 
@@ -156,7 +187,25 @@ async function buildNav() {
 
 buildNav();
 
-/* UNITY */
+
+/* =========================
+   POP OUT (CLEAN)
+========================= */
+
+function popOutGame() {
+    const base = window.location.pathname;
+    const folder = base.substring(0, base.lastIndexOf('/') + 1);
+
+    const url = window.location.origin + folder + 'index.html';
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+
+/* =========================
+   UNITY
+========================= */
+
 let gameInstance = null;
 let gameLoaded = false;
 
@@ -174,7 +223,11 @@ function startGame() {
     }
 }
 
-/* MUTE */
+
+/* =========================
+   MUTE
+========================= */
+
 let muted = false;
 
 function toggleMute() {

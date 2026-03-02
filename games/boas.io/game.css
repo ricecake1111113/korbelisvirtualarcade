@@ -163,6 +163,9 @@
     border: 1px solid #c9bfb0;
     background: var(--card-bg);
     padding: 4px;
+
+    /* NEW: makes it visually heavier */
+    filter: contrast(1.25) saturate(1.15);
 }
 
 .game-title {
