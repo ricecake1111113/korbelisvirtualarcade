@@ -1,2 +1,2 @@
 # korbelisvirtualarcade
-Part of a 7 year project
+part of a 7 year project
