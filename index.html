@@ -17,14 +17,32 @@
             <div class="topbar-title">Korbeli's Virtual Arcade</div>
         </a>
         <div class="topbar-right">
+
             <div class="dropdown">
-                <button class="dropbtn">Games ▼</button>
+                <button class="dropbtn" onclick="scrollToSection('games-section')">Games ▼</button>
                 <div class="dropdown-content">
                     <a href="games/game1/index.html">Game 1</a>
                     <a href="games/game2/index.html">Game 2</a>
                     <a href="games/game3/index.html">Game 3</a>
                 </div>
             </div>
+
+            <div class="dropdown">
+                <button class="dropbtn" onclick="scrollToSection('emulators-section')">Emulators ▼</button>
+                <div class="dropdown-content">
+                    <a href="emulators/emulator1/index.html">Emulator 1</a>
+                    <a href="emulators/emulator2/index.html">Emulator 2</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="dropbtn" onclick="scrollToSection('music-section')">Music ▼</button>
+                <div class="dropdown-content">
+                    <a href="music/track1/index.html">Track 1</a>
+                    <a href="music/track2/index.html">Track 2</a>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -62,20 +80,19 @@
         <div class="hero-main">
             <span class="hero-kicker">Featured</span>
             <div class="hero-headline">Play Anything.<br>Get Caught<br>By Nobody.</div>
-            <div class="hero-deck">A curated arcade of experimental and classic web games-- no downloads, no logins, no nonsense.</div>
+            <div class="hero-deck">A curated arcade of experimental and classic web games -- no downloads, no logins, no nonsense.</div>
         </div>
         <div class="hero-logo-wrap">
             <img src="logo.png" class="hero-logo">
         </div>
     </div>
 
-    <!-- GAMES SECTION HEADER -->
-    <div class="section-header">
+    <!-- GAMES SECTION -->
+    <div id="games-section" class="section-header">
         <span class="section-header-label">Games</span>
         <div class="section-header-rule"></div>
     </div>
 
-    <!-- GAMES GRID -->
     <section class="games-grid">
         <a class="game-card" href="games/game1/index.html">
             <img src="placeholder.png">
@@ -99,13 +116,12 @@
         </a>
     </section>
 
-    <!-- EMULATORS SECTION HEADER -->
-    <div class="section-header">
+    <!-- EMULATORS SECTION -->
+    <div id="emulators-section" class="section-header">
         <span class="section-header-label">Emulators</span>
         <div class="section-header-rule"></div>
     </div>
 
-    <!-- EMULATORS GRID -->
     <section class="games-grid">
         <a class="game-card" href="emulators/emulator1/index.html">
             <img src="placeholder.png">
@@ -116,6 +132,95 @@
             <span class="game-card-label">Emulator 2</span>
         </a>
     </section>
+
+    <!-- MUSIC SECTION -->
+    <div id="music-section" class="section-header">
+        <span class="section-header-label">Music</span>
+        <div class="section-header-rule"></div>
+    </div>
+
+    <section class="games-grid">
+        <a class="game-card" href="music/track1/index.html">
+            <img src="placeholder.png">
+            <span class="game-card-label">Track 1</span>
+        </a>
+        <a class="game-card" href="music/track2/index.html">
+            <img src="placeholder.png">
+            <span class="game-card-label">Track 2</span>
+        </a>
+    </section>
+
+    <!-- UPDATE LOG -->
+    <div class="section-header">
+        <span class="section-header-label">Updates</span>
+        <div class="section-header-rule"></div>
+    </div>
+
+    <div class="updates-section">
+
+        <!-- =====================================================
+             UPDATE TEMPLATE — copy this block to add a new entry
+             change the date, tag, headline, and body text
+        ====================================================== -->
+        <div class="update-entry">
+            <div class="update-meta">
+                <span class="update-date">Mar 31, 2026</span>
+                <span class="update-tag update-tag--new">New</span>
+            </div>
+            <div class="update-headline">Music section added</div>
+            <div class="update-body">Ported the music section over from the old Google Sites build. More tracks coming.</div>
+        </div>
+        <!-- END TEMPLATE -->
+
+        <div class="update-entry">
+            <div class="update-meta">
+                <span class="update-date">Mar 15, 2026</span>
+                <span class="update-tag update-tag--fix">Fix</span>
+            </div>
+            <div class="update-headline">Emulator 2 patched</div>
+            <div class="update-body">Was breaking on certain browsers. Should be working now.</div>
+        </div>
+
+        <div class="update-entry">
+            <div class="update-meta">
+                <span class="update-date">Feb 2, 2026</span>
+                <span class="update-tag update-tag--update">Update</span>
+            </div>
+            <div class="update-headline">Site redesign</div>
+            <div class="update-body">Rebuilt the whole thing from scratch. New look, same games.</div>
+        </div>
+
+        <!-- VIEW ALL BUTTON -->
+        <div class="updates-footer">
+            <button class="updates-toggle" onclick="toggleAllUpdates(this)">View all updates ▼</button>
+        </div>
+
+        <!-- OLDER ENTRIES — hidden by default, shown when "view all" is clicked -->
+        <div class="updates-older" id="updates-older">
+
+            <div class="update-entry">
+                <div class="update-meta">
+                    <span class="update-date">Jan 10, 2026</span>
+                    <span class="update-tag update-tag--new">New</span>
+                </div>
+                <div class="update-headline">Puzzle added</div>
+                <div class="update-body">New puzzle game in the games section.</div>
+            </div>
+
+            <div class="update-entry">
+                <div class="update-meta">
+                    <span class="update-date">Dec 1, 2025</span>
+                    <span class="update-tag update-tag--update">Update</span>
+                </div>
+                <div class="update-headline">Site moved off Google Sites</div>
+                <div class="update-body">Finally got off Google Sites. Hosted properly now.</div>
+            </div>
+
+            <!-- keep adding update-entry blocks above this comment -->
+
+        </div>
+
+    </div>
 
     <!-- ORIGIN STORY -->
     <div class="section-header">
@@ -151,5 +256,21 @@
     </footer>
 
 </div>
+
+<script>
+    function scrollToSection(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const top = el.getBoundingClientRect().top + window.scrollY - 54;
+        window.scrollTo({ top, behavior: 'smooth' });
+    }
+
+    function toggleAllUpdates(btn) {
+        const older = document.getElementById('updates-older');
+        const open = older.classList.toggle('updates-older--open');
+        btn.textContent = open ? 'Collapse ▲' : 'View all updates ▼';
+    }
+</script>
+
 </body>
 </html>
