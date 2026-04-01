@@ -1,38 +1,170 @@
-<html>
-  <head>
-	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-	<meta http-equiv="Pragma" content="no-cache">
-	<meta http-equiv="Expires" content="0">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Boas IO</title>
-    <link rel="shortcut icon" href="style/favicon.ico">
-    <link rel="stylesheet" href="style/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boas IO — Korbeli's Virtual Arcade</title>
+    <link rel="icon" type="image/x-icon" href="../../icon.ico">
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="game.css">
     <script src="UnityProgress.js"></script>
     <script src="UnityLoader.js"></script>
     <script src="ui.js"></script>
     <script>
-      var gameInstance = UnityLoader.instantiate("gameContainer", "build.json", {onProgress: UnityProgress});
+        var gameInstance = UnityLoader.instantiate("gameContainer", "build.json", {onProgress: UnityProgress});
     </script>
-  </head>
-  <body>
-    <div class="webgl-content">
-      <div id="gameContainer" style="width: 100%; height: 95%; margin: auto;"></div>
-	 <div class="footer">
-	            <div class="webgl-logo"></div>
-	            <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
-	            <div class="title">Boas IO</div>
-	        </div>
+</head>
+<body>
+<div class="page">
 
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="../../index.html" class="topbar-left">
+            <img src="../../icon.png" class="topbar-icon">
+            <div class="topbar-title">Korbeli's Virtual Arcade</div>
+        </a>
+        <div class="topbar-right" id="topbar-right">
+            <!-- injected by nav.js -->
+        </div>
     </div>
-		<script>
-       if (typeof getAdinDomain !== 'undefined') {
-           const bodyTag = document.getElementsByTagName('body')[0];
 
-           let addAdinPreroll = document.createElement('script');
-            addAdinPreroll.src = getAdinDomain;
-            bodyTag.appendChild(addAdinPreroll);
-        }
-  </script>
-  </body>
+    <!-- GAME HEADER -->
+    <div class="game-header">
+        <div class="game-header-left">
+            <img src="icon.png" class="game-icon" onerror="this.style.display='none'">
+            <div>
+                <div class="game-title">Boas IO</div>
+                <div class="game-subtitle">Multiplayer · Arcade · Snake</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME DESCRIPTION -->
+    <div class="game-desc">
+        <!-- Edit the text below to add your description -->
+        Boas IO description goes here. Tell players what the game is about.
+    </div>
+
+    <!-- GAME CONTAINER -->
+    <div class="game-wrap">
+        <div class="game-frame">
+            <div id="gameContainer" class="game-canvas"></div>
+        </div>
+
+        <!-- CONTROLS BAR -->
+        <div class="game-controls">
+            <div class="game-controls-left">
+                <button class="ctrl-btn" id="btn-pause" onclick="togglePause()" title="Pause">
+                    <img src="pause.png" id="pause-icon" alt="Pause">
+                </button>
+                <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()" title="Mute">
+                    <img src="unmuted.png" id="mute-icon" alt="Mute">
+                </button>
+            </div>
+            <div class="game-controls-right">
+                <button class="ctrl-btn" onclick="gameInstance.SetFullscreen(1)" title="Fullscreen">
+                    <img src="fullscreen.png" alt="Fullscreen">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME FOOTER -->
+    <div class="game-footer">
+        <span>Last updated: <strong>March 31, 2026</strong></span>
+        <span>All rights belong to the original creator.</span>
+    </div>
+
+    <!-- SITE FOOTER -->
+    <footer class="footer">
+        <img src="../../logoblack.png" class="footer-logo">
+        <p>All games belong to their respective creators.</p>
+    </footer>
+
+</div>
+
+<script>
+    // ── Nav dropdown (same logic as index.html) ────────────────────────────────
+    const SECTIONS = [
+        { key: 'games',     label: 'Games'     },
+        { key: 'emulators', label: 'Emulators' },
+        { key: 'music',     label: 'Music'     },
+    ];
+
+    async function buildNav() {
+        let items;
+        try {
+            const res = await fetch('../../games.json');
+            items = await res.json();
+        } catch(e) { return; }
+
+        const grouped = {};
+        SECTIONS.forEach(s => grouped[s.key] = []);
+        items.forEach(item => {
+            if (grouped[item.section] !== undefined) grouped[item.section].push(item);
+        });
+
+        const navEl = document.getElementById('topbar-right');
+        SECTIONS.forEach(s => {
+            const sectionItems = grouped[s.key];
+            if (!sectionItems || sectionItems.length === 0) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'dropdown';
+
+            const btn = document.createElement('button');
+            btn.className = 'dropbtn';
+            btn.textContent = s.label + ' ▼';
+            btn.addEventListener('click', () => {
+                window.location.href = '../../index.html#' + s.key + '-section';
+            });
+
+            const content = document.createElement('div');
+            content.className = 'dropdown-content';
+            sectionItems.forEach(item => {
+                const a = document.createElement('a');
+                a.href = '../../' + item.folder + '/index.html';
+                a.textContent = item.name;
+                content.appendChild(a);
+            });
+
+            wrapper.appendChild(btn);
+            wrapper.appendChild(content);
+            navEl.appendChild(wrapper);
+        });
+    }
+
+    buildNav();
+
+    // ── Game controls ──────────────────────────────────────────────────────────
+    let paused = false;
+    let muted  = false;
+
+    function togglePause() {
+        paused = !paused;
+        try {
+            if (paused) {
+                gameInstance.SendMessage('GameManager', 'PauseGame');
+            } else {
+                gameInstance.SendMessage('GameManager', 'ResumeGame');
+            }
+        } catch(e) {}
+        document.getElementById('pause-icon').src = paused ? 'pause.png' : 'pause.png';
+        document.getElementById('btn-pause').classList.toggle('ctrl-btn--active', paused);
+    }
+
+    function toggleMute() {
+        muted = !muted;
+        try {
+            gameInstance.SendMessage('AudioManager', muted ? 'MuteAudio' : 'UnmuteAudio');
+        } catch(e) {}
+        document.getElementById('mute-icon').src = muted ? 'muted.png' : 'unmuted.png';
+        document.getElementById('btn-mute').classList.toggle('ctrl-btn--active', muted);
+    }
+</script>
+
+</body>
 </html>
