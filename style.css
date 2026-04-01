@@ -236,7 +236,7 @@ body {
 .ticker-items {
     display: inline-block;
     white-space: nowrap;
-    animation: scroll-ticker 18s linear infinite;
+    animation: scroll-ticker 22s linear infinite;
     padding: 6px 0;
 }
 
@@ -396,6 +396,12 @@ body {
     margin-top: 4px;
 }
 
+/* under construction cards get a dashed border */
+.game-card--wip {
+    border: 1.5px dashed #c9bfb0;
+    opacity: 0.75;
+}
+
 /* =========================
    UPDATE LOG
 ========================= */
@@ -408,9 +414,7 @@ body {
     border-bottom: 1px solid #c9bfb0;
 }
 
-.update-entry:last-of-type {
-    border-bottom: none;
-}
+.update-entry:last-of-type { border-bottom: none; }
 
 .update-meta {
     display: flex;
@@ -438,9 +442,9 @@ body {
 }
 
 .update-tag--new      { background: var(--burgundy); color: var(--paper); }
-.update-tag--fix      { background: #3a1a00; color: #f6efe6; }
-.update-tag--update   { background: var(--ink); color: var(--paper); }
-.update-tag--removed  { background: #5a5a5a; color: #f6efe6; }
+.update-tag--fix      { background: #3a1a00;          color: #f6efe6;      }
+.update-tag--update   { background: var(--ink);       color: var(--paper); }
+.update-tag--removed  { background: #5a5a5a;          color: #f6efe6;      }
 
 .update-headline {
     font-family: 'Oswald', sans-serif;
@@ -483,14 +487,8 @@ body {
     color: var(--paper);
 }
 
-.updates-older {
-    display: none;
-    border-top: 1px dashed #c9bfb0;
-}
-
-.updates-older--open {
-    display: block;
-}
+.updates-older { display: none; border-top: 1px dashed #c9bfb0; }
+.updates-older--open { display: block; }
 
 /* =========================
    ORIGIN STORY
@@ -501,13 +499,9 @@ body {
     border-bottom: 3px double var(--ink);
 }
 
-.story-col {
-    padding: 20px 20px 24px;
-}
+.story-col { padding: 20px 20px 24px; }
 
-.story-col--main {
-    border-right: 2px solid var(--ink);
-}
+.story-col--main { border-right: 2px solid var(--ink); }
 
 .story-kicker {
     display: inline-block;
@@ -593,10 +587,7 @@ body {
     gap: 10px;
 }
 
-.footer-logo {
-    width: 180px;
-    opacity: 0.9;
-}
+.footer-logo { width: 180px; opacity: 0.9; }
 
 .footer p {
     font-family: 'Roboto Condensed', sans-serif;

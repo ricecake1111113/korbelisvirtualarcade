@@ -16,33 +16,8 @@
             <img src="icon.png" class="topbar-icon">
             <div class="topbar-title">Korbeli's Virtual Arcade</div>
         </a>
-        <div class="topbar-right">
-
-            <div class="dropdown">
-                <button class="dropbtn" onclick="scrollToSection('games-section')">Games ▼</button>
-                <div class="dropdown-content">
-                    <a href="games/game1/index.html">Game 1</a>
-                    <a href="games/game2/index.html">Game 2</a>
-                    <a href="games/game3/index.html">Game 3</a>
-                </div>
-            </div>
-
-            <div class="dropdown">
-                <button class="dropbtn" onclick="scrollToSection('emulators-section')">Emulators ▼</button>
-                <div class="dropdown-content">
-                    <a href="emulators/emulator1/index.html">Emulator 1</a>
-                    <a href="emulators/emulator2/index.html">Emulator 2</a>
-                </div>
-            </div>
-
-            <div class="dropdown">
-                <button class="dropbtn" onclick="scrollToSection('music-section')">Music ▼</button>
-                <div class="dropdown-content">
-                    <a href="music/track1/index.html">Track 1</a>
-                    <a href="music/track2/index.html">Track 2</a>
-                </div>
-            </div>
-
+        <div class="topbar-right" id="topbar-right">
+            <!-- dropdowns injected by JS -->
         </div>
     </div>
 
@@ -69,9 +44,9 @@
     <div class="ticker">
         <span class="ticker-label">Now Playing</span>
         <div class="ticker-track">
-            <span class="ticker-items">
-                Game 1 &nbsp;·&nbsp; Game 2 &nbsp;·&nbsp; Game 3 &nbsp;·&nbsp; Retro &nbsp;·&nbsp; Puzzle &nbsp;·&nbsp; Emulator 1 &nbsp;·&nbsp; Emulator 2 &nbsp;·&nbsp; More Coming Soon &nbsp;·&nbsp;
-            </span>
+            <div class="ticker-items" id="ticker-items">
+                <!-- injected by JS -->
+            </div>
         </div>
     </div>
 
@@ -87,68 +62,8 @@
         </div>
     </div>
 
-    <!-- GAMES SECTION -->
-    <div id="games-section" class="section-header">
-        <span class="section-header-label">Games</span>
-        <div class="section-header-rule"></div>
-    </div>
-
-    <section class="games-grid">
-        <a class="game-card" href="games/game1/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Game 1</span>
-        </a>
-        <a class="game-card" href="games/game2/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Game 2</span>
-        </a>
-        <a class="game-card" href="games/game3/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Game 3</span>
-        </a>
-        <a class="game-card" href="games/game1/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Retro</span>
-        </a>
-        <a class="game-card" href="games/game2/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Puzzle</span>
-        </a>
-    </section>
-
-    <!-- EMULATORS SECTION -->
-    <div id="emulators-section" class="section-header">
-        <span class="section-header-label">Emulators</span>
-        <div class="section-header-rule"></div>
-    </div>
-
-    <section class="games-grid">
-        <a class="game-card" href="emulators/emulator1/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Emulator 1</span>
-        </a>
-        <a class="game-card" href="emulators/emulator2/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Emulator 2</span>
-        </a>
-    </section>
-
-    <!-- MUSIC SECTION -->
-    <div id="music-section" class="section-header">
-        <span class="section-header-label">Music</span>
-        <div class="section-header-rule"></div>
-    </div>
-
-    <section class="games-grid">
-        <a class="game-card" href="music/track1/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Track 1</span>
-        </a>
-        <a class="game-card" href="music/track2/index.html">
-            <img src="placeholder.png">
-            <span class="game-card-label">Track 2</span>
-        </a>
-    </section>
+    <!-- SECTIONS injected by JS -->
+    <div id="sections-container"></div>
 
     <!-- UPDATE LOG -->
     <div class="section-header">
@@ -159,9 +74,12 @@
     <div class="updates-section">
 
         <!-- =====================================================
-             UPDATE TEMPLATE — copy this block to add a new entry
-             change the date, tag, headline, and body text
+             UPDATE TEMPLATE — copy this block to add a new entry.
+             Paste newest entries at the TOP of this list.
+             Tags: update-tag--new  update-tag--fix
+                   update-tag--update  update-tag--removed
         ====================================================== -->
+
         <div class="update-entry">
             <div class="update-meta">
                 <span class="update-date">Mar 31, 2026</span>
@@ -170,7 +88,6 @@
             <div class="update-headline">Music section added</div>
             <div class="update-body">Ported the music section over from the old Google Sites build. More tracks coming.</div>
         </div>
-        <!-- END TEMPLATE -->
 
         <div class="update-entry">
             <div class="update-meta">
@@ -195,7 +112,7 @@
             <button class="updates-toggle" onclick="toggleAllUpdates(this)">View all updates ▼</button>
         </div>
 
-        <!-- OLDER ENTRIES — hidden by default, shown when "view all" is clicked -->
+        <!-- OLDER ENTRIES — hidden by default -->
         <div class="updates-older" id="updates-older">
 
             <div class="update-entry">
@@ -258,18 +175,146 @@
 </div>
 
 <script>
-    function scrollToSection(id) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const top = el.getBoundingClientRect().top + window.scrollY - 54;
-        window.scrollTo({ top, behavior: 'smooth' });
+// ─── Section display config ───────────────────────────────────────────────────
+// Controls the order and label of each section on the page.
+// If you add a new section key in games.json, add it here too.
+const SECTIONS = [
+    { key: 'games',     label: 'Games'     },
+    { key: 'emulators', label: 'Emulators' },
+    { key: 'music',     label: 'Music'     },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 54;
+    window.scrollTo({ top, behavior: 'smooth' });
+}
+
+function toggleAllUpdates(btn) {
+    const older = document.getElementById('updates-older');
+    const open = older.classList.toggle('updates-older--open');
+    btn.textContent = open ? 'Collapse ▲' : 'View all updates ▼';
+}
+
+// ─── Under-construction tile placeholder (inline SVG as data URI) ─────────────
+function underConstructionSrc() {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+        <rect width="120" height="120" fill="#ede5d8"/>
+        <text x="60" y="48" text-anchor="middle" font-family="sans-serif" font-size="32">🚧</text>
+        <text x="60" y="72" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#7a6a5a">UNDER</text>
+        <text x="60" y="86" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#7a6a5a">CONSTRUCTION</text>
+    </svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+// ─── Build a game card ────────────────────────────────────────────────────────
+function buildCard(item) {
+    const a = document.createElement('a');
+    a.className = 'game-card';
+    a.href = item.folder + '/index.html';
+
+    const img = document.createElement('img');
+    // Try to load icon.png from the folder; fall back to under-construction SVG
+    const iconSrc = item.folder + '/icon.png';
+    img.src = iconSrc;
+    img.alt = item.name;
+    img.onerror = function() {
+        this.onerror = null;
+        this.src = underConstructionSrc();
+        a.classList.add('game-card--wip');
+    };
+
+    const label = document.createElement('span');
+    label.className = 'game-card-label';
+    label.textContent = item.name;
+
+    a.appendChild(img);
+    a.appendChild(label);
+    return a;
+}
+
+// ─── Build a dropdown item ────────────────────────────────────────────────────
+function buildDropdownLink(item) {
+    const a = document.createElement('a');
+    a.href = item.folder + '/index.html';
+    a.textContent = item.name;
+    return a;
+}
+
+// ─── Main build ───────────────────────────────────────────────────────────────
+async function build() {
+    let items;
+    try {
+        const res = await fetch('games.json');
+        items = await res.json();
+    } catch (e) {
+        console.error('Could not load games.json:', e);
+        return;
     }
 
-    function toggleAllUpdates(btn) {
-        const older = document.getElementById('updates-older');
-        const open = older.classList.toggle('updates-older--open');
-        btn.textContent = open ? 'Collapse ▲' : 'View all updates ▼';
-    }
+    // Group by section
+    const grouped = {};
+    SECTIONS.forEach(s => grouped[s.key] = []);
+    items.forEach(item => {
+        if (grouped[item.section] !== undefined) {
+            grouped[item.section].push(item);
+        }
+    });
+
+    // ── Ticker ────────────────────────────────────────────────────────────────
+    const tickerEl = document.getElementById('ticker-items');
+    const tickerText = items.map(i => i.name).join(' \u00b7 ');
+    // Duplicate so the scroll feels seamless
+    tickerEl.textContent = tickerText + '   ·   ' + tickerText;
+
+    // ── Nav dropdowns ─────────────────────────────────────────────────────────
+    const navEl = document.getElementById('topbar-right');
+    SECTIONS.forEach(s => {
+        const sectionItems = grouped[s.key];
+        if (!sectionItems || sectionItems.length === 0) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'dropdown';
+
+        const btn = document.createElement('button');
+        btn.className = 'dropbtn';
+        btn.textContent = s.label + ' ▼';
+        btn.addEventListener('click', () => scrollToSection(s.key + '-section'));
+
+        const content = document.createElement('div');
+        content.className = 'dropdown-content';
+        sectionItems.forEach(item => content.appendChild(buildDropdownLink(item)));
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(content);
+        navEl.appendChild(wrapper);
+    });
+
+    // ── Sections + grids ──────────────────────────────────────────────────────
+    const container = document.getElementById('sections-container');
+    SECTIONS.forEach(s => {
+        const sectionItems = grouped[s.key];
+        if (!sectionItems || sectionItems.length === 0) return;
+
+        // Section header
+        const header = document.createElement('div');
+        header.id = s.key + '-section';
+        header.className = 'section-header';
+        header.innerHTML = `<span class="section-header-label">${s.label}</span><div class="section-header-rule"></div>`;
+
+        // Grid
+        const grid = document.createElement('section');
+        grid.className = 'games-grid';
+        sectionItems.forEach(item => grid.appendChild(buildCard(item)));
+
+        container.appendChild(header);
+        container.appendChild(grid);
+    });
+}
+
+build();
 </script>
 
 </body>

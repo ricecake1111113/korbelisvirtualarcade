@@ -1,0 +1,11 @@
+[
+  { "name": "boas.io",      "folder": "games/boas.io",            "section": "games"     },
+  { "name": "Game 2",      "folder": "games/game2",            "section": "games"     },
+  { "name": "Game 3",      "folder": "games/game3",            "section": "games"     },
+  { "name": "Retro",       "folder": "games/retro",            "section": "games"     },
+  { "name": "Puzzle",      "folder": "games/puzzle",           "section": "games"     },
+  { "name": "Emulator 1",  "folder": "emulators/emulator1",    "section": "emulators" },
+  { "name": "Emulator 2",  "folder": "emulators/emulator2",    "section": "emulators" },
+  { "name": "Track 1",     "folder": "music/track1",           "section": "music"     },
+  { "name": "Track 2",     "folder": "music/track2",           "section": "music"     }
+]
