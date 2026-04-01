@@ -1,0 +1,502 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@400;700&display=swap');
+
+:root {
+    --burgundy: #5a0f1b;
+    --wine: #1a0505;
+    --paper: #f6efe6;
+    --ink: #1a0505;
+    --muted: #7a6a5a;
+    --card-bg: #ede5d8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Roboto Condensed', sans-serif;
+    background: var(--wine);
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 39px,
+        rgba(90,15,27,0.08) 39px,
+        rgba(90,15,27,0.08) 40px
+    );
+}
+
+/* =========================
+   PAGE WRAPPER
+========================= */
+.page {
+    max-width: 1000px;
+    width: 95%;
+    margin: 0 auto;
+    background: var(--paper);
+}
+
+/* =========================
+   TOPBAR
+========================= */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 1000px;
+    height: 44px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    z-index: 9999;
+    border-bottom: 3px solid var(--burgundy);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--ink);
+}
+
+.topbar-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.topbar-title {
+    font-family: 'Anton', sans-serif;
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--burgundy);
+}
+
+/* DROPDOWN */
+.dropdown { position: relative; }
+
+.dropbtn {
+    background: none;
+    border: none;
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 6px 10px;
+}
+
+.dropbtn:hover { color: var(--burgundy); }
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    min-width: 160px;
+    border: 1px solid #ddd;
+    border-top: 3px solid var(--burgundy);
+    z-index: 9999;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 9px 14px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    border-bottom: 0.5px solid #eee;
+}
+
+.dropdown-content a:hover {
+    background: var(--burgundy);
+    color: var(--paper);
+}
+
+.dropdown:hover .dropdown-content { display: block; }
+
+/* =========================
+   RIBBON
+========================= */
+.ribbon {
+    background: var(--wine);
+    color: var(--paper);
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--burgundy);
+    margin-top: 44px;
+}
+
+/* =========================
+   MASTHEAD
+========================= */
+.masthead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 16px 18px 10px;
+    border-bottom: 5px double var(--ink);
+    gap: 12px;
+}
+
+.masthead-name {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(36px, 7vw, 64px);
+    line-height: 0.9;
+    color: var(--ink);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.masthead-name span {
+    display: block;
+    font-size: clamp(13px, 2.5vw, 18px);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 400;
+    letter-spacing: 4px;
+    color: var(--burgundy);
+    margin-bottom: 4px;
+}
+
+.masthead-meta {
+    text-align: right;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'Roboto Condensed', sans-serif;
+    line-height: 1.8;
+    padding-bottom: 4px;
+}
+
+.masthead-badge {
+    display: inline-block;
+    background: var(--burgundy);
+    color: var(--paper);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    margin-bottom: 4px;
+}
+
+/* =========================
+   NEWS TICKER
+========================= */
+.ticker {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-bottom: 2px solid var(--burgundy);
+}
+
+.ticker-label {
+    background: var(--burgundy);
+    padding: 6px 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 2px;
+}
+
+.ticker-track {
+    overflow: hidden;
+    flex: 1;
+}
+
+.ticker-items {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll-ticker 18s linear infinite;
+    padding: 6px 0;
+}
+
+@keyframes scroll-ticker {
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* =========================
+   HERO SECTION
+========================= */
+.hero-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    border-bottom: 3px double var(--ink);
+}
+
+.hero-main {
+    padding: 16px 18px;
+    border-right: 2px solid var(--ink);
+}
+
+.hero-kicker {
+    display: inline-block;
+    background: var(--burgundy);
+    color: var(--paper);
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+}
+
+.hero-headline {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 0.95;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.hero-deck {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    border-top: 1.5px solid var(--burgundy);
+    border-bottom: 1.5px solid var(--burgundy);
+    padding: 6px 0;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.hero-logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 14px;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-logo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("bg.jpg") center/cover no-repeat;
+    opacity: 0.25;
+}
+
+.hero-logo {
+    position: relative;
+    z-index: 2;
+    width: 90%;
+    max-width: 300px;
+}
+
+/* =========================
+   SECTION HEADERS
+========================= */
+.section-header {
+    display: flex;
+    align-items: center;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+}
+
+.section-header-label {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Anton', sans-serif;
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 6px 18px;
+}
+
+.section-header-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--burgundy);
+    margin: 0 14px;
+}
+
+/* =========================
+   GAMES GRID
+========================= */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0;
+    border-bottom: 2px solid var(--ink);
+}
+
+.game-card {
+    background: var(--card-bg);
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 10px 10px;
+    border-right: 1px solid #c9bfb0;
+    border-bottom: 1px solid #c9bfb0;
+    transition: background 0.15s;
+    overflow: hidden;
+}
+
+.game-card:hover {
+    background: var(--burgundy);
+    color: var(--paper);
+}
+
+.game-card:hover .game-card-label { color: var(--paper); }
+
+.game-card img {
+    width: 70%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    margin-bottom: 8px;
+}
+
+.game-card-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* =========================
+   ORIGIN STORY
+========================= */
+.story-section {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    border-bottom: 3px double var(--ink);
+}
+
+.story-col {
+    padding: 20px 20px 24px;
+}
+
+.story-col--main {
+    border-right: 2px solid var(--ink);
+}
+
+.story-kicker {
+    display: inline-block;
+    background: var(--burgundy);
+    color: var(--paper);
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+}
+
+.story-headline {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(22px, 3.5vw, 34px);
+    line-height: 1.0;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    border-bottom: 1.5px solid var(--burgundy);
+    padding-bottom: 10px;
+}
+
+.story-drop {
+    font-family: 'Anton', sans-serif;
+    font-size: 20px;
+    color: var(--burgundy);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.story-body {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #3a2e28;
+    margin-bottom: 12px;
+    text-align: justify;
+}
+
+.story-pullquote {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(18px, 2.8vw, 26px);
+    line-height: 1.1;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 18px 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    border-left: 5px solid var(--burgundy);
+}
+
+.story-byline {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-top: 1.5px solid var(--burgundy);
+    padding-top: 10px;
+    margin-top: 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* =========================
+   FOOTER
+========================= */
+.footer {
+    background: var(--burgundy);
+    color: var(--paper);
+    padding: 24px 18px 20px;
+    border-top: 5px double var(--paper);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-logo {
+    width: 180px;
+    opacity: 0.9;
+}
+
+.footer p {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    text-align: center;
+}
