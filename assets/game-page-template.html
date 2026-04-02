@@ -7,12 +7,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Boas.IO — Korbeli's Virtual Arcade</title>
+    <!-- =============================================
+         HOW TO USE THIS TEMPLATE
+         =============================================
+         1. Fill in the four CONFIG values below.
+         2. Save as:
+              /games/[game-folder]/index.html
+         3. Copy game-frame-template.html to:
+              /file/[game-folder]/index.html
+            and fill in its CONFIG too.
+         4. Put all game files (build.json etc.)
+            inside /file/[game-folder]/
+         ============================================= -->
+
+    <title>%%GAME_TITLE%% — Korbeli's Virtual Arcade</title>
 
     <link rel="icon"       type="image/x-icon" href="../../icon.ico">
     <link rel="stylesheet" href="../../style.css">
     <link rel="stylesheet" href="game.css">
-
 </head>
 
 <body>
@@ -32,15 +44,16 @@
         <div class="game-header-left">
             <img src="icon.png" class="game-icon" onerror="this.style.display='none'">
             <div>
-                <div class="game-title">Boas.IO</div>
-                <div class="game-subtitle">Fake Multiplayer · Arcade · Snake</div>
+                <div class="game-title">%%GAME_TITLE%%</div>
+                <div class="game-subtitle">%%GAME_TAGS%%</div>
+                <!-- Example: Fake Multiplayer · Arcade · Snake -->
             </div>
         </div>
     </div>
 
     <!-- GAME DESCRIPTION -->
     <div class="game-desc">
-        Boas.io is a fast-paced snake battle royale where you compete against bots in a single arena, growing by surrounding and swallowing objects and opponents. Consumed items permanently disappear, reshaping the battlefield as the match progresses, and each round continues until only one snake remains victorious.
+        %%GAME_DESCRIPTION%%
     </div>
 
     <!-- GAME WRAP -->
@@ -48,14 +61,14 @@
         <div class="game-frame">
             <div class="game-stage">
 
-                <!-- Play overlay — hides on click, then tells the iframe to start -->
                 <div id="loadOverlay" class="game-overlay" onclick="activateGame()">
                     <div class="overlay-content">
-                        <button>▶ Click to Play</button>
+                        <button>&#9654; Click to Play</button>
                         <p>Game will load after clicking</p>
                     </div>
                 </div>
 
+                <!-- No src until user clicks — keeps page fast -->
                 <iframe
                     id="gameFrame"
                     allowfullscreen
@@ -79,7 +92,6 @@
                 </button>
 
             </div>
-
             <div class="game-controls-right">
                 <button class="ctrl-btn" onclick="sendToFrame('fullscreen')" title="Fullscreen">
                     <img src="fullscreen.png" alt="Fullscreen">
@@ -90,7 +102,7 @@
 
     <!-- GAME FOOTER -->
     <div class="game-footer">
-        <span>Last updated: <strong>March 31, 2026</strong></span>
+        <span>Last updated: <strong>%%LAST_UPDATED%%</strong></span>
         <span>All rights belong to the original creator.</span>
     </div>
 
@@ -104,11 +116,11 @@
 
 <script>
 /* ==============================================
-   CONFIG
+   CONFIG — change these per game
    ============================================== */
-
-// /file/boas-io/index.html is the existing Unity host page
-const FRAME_SRC   = '../../file/boas-io/index.html';
+const FRAME_SRC   = '../../file/%%GAME_FOLDER%%/index.html';
+//                                ^^^^^^^^^^^^^^
+//                                e.g. boas-io
 
 const IS_POPOUT   = window.opener !== null;
 const ARCADE_ROOT = window.location.origin + '/korbelisvirtualarcade/';
@@ -117,7 +129,6 @@ const ARCADE_ROOT = window.location.origin + '/korbelisvirtualarcade/';
 /* ==============================================
    NAV
    ============================================== */
-
 const SECTIONS = [
     { key: 'games',     label: 'Games'     },
     { key: 'emulators', label: 'Emulators' },
@@ -138,7 +149,6 @@ async function buildNav() {
     });
 
     const navEl = document.getElementById('topbar-right');
-
     SECTIONS.forEach(section => {
         const sectionItems = grouped[section.key];
         if (!sectionItems.length) return;
@@ -148,7 +158,7 @@ async function buildNav() {
 
         const btn = document.createElement('button');
         btn.className = 'dropbtn';
-        btn.textContent = section.label + ' ▼';
+        btn.textContent = section.label + ' \u25BC';
         btn.onclick = () => {
             window.location.href = ARCADE_ROOT + '#' + section.key + '-section';
         };
@@ -180,21 +190,16 @@ buildNav();
 /* ==============================================
    GAME ACTIVATION
    ============================================== */
-
 let gameActivated = false;
 
 function activateGame() {
     document.getElementById('loadOverlay').style.display = 'none';
-
     const frame = document.getElementById('gameFrame');
 
     if (!gameActivated) {
         gameActivated = true;
         frame.src = FRAME_SRC;
-
-        frame.addEventListener('load', () => {
-            sendToFrame('start');
-        }, { once: true });
+        frame.addEventListener('load', () => sendToFrame('start'), { once: true });
     } else {
         sendToFrame('start');
     }
@@ -204,7 +209,6 @@ function activateGame() {
 /* ==============================================
    CROSS-FRAME MESSAGING
    ============================================== */
-
 function sendToFrame(msg) {
     const frame = document.getElementById('gameFrame');
     if (frame && frame.contentWindow) {
@@ -214,9 +218,8 @@ function sendToFrame(msg) {
 
 
 /* ==============================================
-   POP OUT
+   POP OUT — opens the frame file directly
    ============================================== */
-
 function popOutGame() {
     window.open(FRAME_SRC, '_blank', 'noopener,noreferrer');
 }
@@ -225,18 +228,13 @@ function popOutGame() {
 /* ==============================================
    MUTE
    ============================================== */
-
 let muted = false;
 
 function toggleMute() {
     muted = !muted;
     sendToFrame(muted ? 'mute' : 'unmute');
-
-    document.getElementById('mute-icon').src =
-        muted ? 'muted.png' : 'unmuted.png';
-
-    document.getElementById('btn-mute')
-        .classList.toggle('ctrl-btn--active', muted);
+    document.getElementById('mute-icon').src = muted ? 'muted.png' : 'unmuted.png';
+    document.getElementById('btn-mute').classList.toggle('ctrl-btn--active', muted);
 }
 </script>
 

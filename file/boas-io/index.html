@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boas IO</title>
+
+    <script src="UnityProgress.js"></script>
+    <script src="UnityLoader.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #gameContainer {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #gameContainer canvas {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer"></div>
+
+    <script>
+        /* ── Ad status constants ── */
+        var AD_STATUS = {
+            NONE:           0,
+            CLOSE_FINISHED: 1,
+            CLOSE_ABORTED:  2,
+            ERROR:          3,
+        };
+
+        /* ── Stubs required by UnityLoader ── */
+        function onGameLoaded() {}
+        function onShowUI()     {}
+        function onHideUI()     {}
+        function hideProgress() {}
+        function getFetchResult() { return true; }
+
+        /* ── Game flow — Unity calls these directly ── */
+        function sendClickEvent(category, label) {}
+
+        function StartGame(target) {
+            try {
+                gameInstance.SendMessage('GameManager', 'StartGame', parseInt(target, 10));
+            } catch(e) {}
+        }
+
+        function playButtonClicked(from) {
+            StartGame(from);
+        }
+
+        /* ── Ad stub — instantly fires CLOSE_FINISHED so game never freezes ── */
+        var rewardedAdFrom = 0;
+        function showVideoAd(from) {
+            rewardedAdFrom = from;
+            try {
+                gameInstance.SendMessage(
+                    'WebGLAdManager',
+                    'FireWebAdEvent',
+                    AD_STATUS.CLOSE_FINISHED + '/' + rewardedAdFrom
+                );
+            } catch(e) {}
+        }
+
+        /* ── XHR interceptor (no-cache path fix) ── */
+        (function() {
+            const _open = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                if (url && url.includes('no-cache')) {
+                    url = url.replace('no-cache', 'supertest/boasmaybe/no-cache');
+                }
+                return _open.apply(this, [method, url, ...rest]);
+            };
+        })();
+
+        let gameInstance = null;
+        let gameLoaded   = false;
+        let muted        = false;
+
+        /* ── Start Unity ── */
+        function startGame() {
+            if (gameLoaded) return;
+            gameLoaded = true;
+
+            gameInstance = UnityLoader.instantiate(
+                'gameContainer',
+                'build.json',
+                { onProgress: UnityProgress }
+            );
+        }
+
+        /* ── Mute ── */
+        function setMute(state) {
+            muted = state;
+            try {
+                gameInstance.SendMessage(
+                    'AudioManager',
+                    muted ? 'MuteAudio' : 'UnmuteAudio'
+                );
+            } catch(e) {}
+        }
+
+        /* ── Fullscreen ── */
+        function goFullscreen() {
+            const el = document.documentElement;
+            const req = el.requestFullscreen
+                     || el.webkitRequestFullscreen
+                     || el.mozRequestFullScreen
+                     || el.msRequestFullscreen;
+            if (req) req.call(el);
+        }
+
+        /* ── Auto-start if opened standalone in a new tab ── */
+        if (window.opener === null && window.parent === window) {
+            startGame();
+        }
+
+        /* ── Listen for commands from the parent page ── */
+        window.addEventListener('message', ({ data }) => {
+            switch (data) {
+                case 'start':      startGame();    break;
+                case 'mute':       setMute(true);  break;
+                case 'unmute':     setMute(false); break;
+                case 'fullscreen': goFullscreen(); break;
+            }
+        });
+    </script>
+
+</body>
+</html>
