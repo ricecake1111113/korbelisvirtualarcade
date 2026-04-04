@@ -1,11 +1,37 @@
 [
-  { "name": "boas.io",      "folder": "games/boas.io",            "section": "games"     },
-  { "name": "PokéPath TD",      "folder": "games/pokepathtd",            "section": "games"     },
-  { "name": "Game 3",      "folder": "games/game3",            "section": "games"     },
-  { "name": "Retro",       "folder": "games/retro",            "section": "games"     },
-  { "name": "Puzzle",      "folder": "games/puzzle",           "section": "games"     },
-  { "name": "Emulator 1",  "folder": "emulators/emulator1",    "section": "emulators" },
-  { "name": "Emulator 2",  "folder": "emulators/emulator2",    "section": "emulators" },
-  { "name": "Track 1",     "folder": "music/track1",           "section": "music"     },
-  { "name": "Track 2",     "folder": "music/track2",           "section": "music"     }
+  {
+    "name": "Boas.io",
+    "folder": "games/boas.io",
+    "section": "games",
+    "dateAdded": "2026-03-31",
+    "popularity": 95
+  },
+  {
+    "name": "PokéPath TD",
+    "folder": "games/pokepathtd",
+    "section": "games",
+    "dateAdded": "2026-04-02",
+    "popularity": 90
+  },
+  {
+    "name": "Crazy Cattle 3D",
+    "folder": "games/crazy-cattle",
+    "section": "games",
+    "dateAdded": "2026-04-02",
+    "popularity": 90
+  },
+  {
+    "name": "Retro",
+    "folder": "emulators/retro",
+    "section": "emulators",
+    "dateAdded": "2026-02-10",
+    "popularity": 70
+  },
+  {
+    "name": "Puzzle",
+    "folder": "music/puzzle",
+    "section": "music",
+    "dateAdded": "2026-01-15",
+    "popularity": 60
+  }
 ]

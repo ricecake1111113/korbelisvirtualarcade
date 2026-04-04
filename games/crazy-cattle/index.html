@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Crazy Cattle 3D — Korbeli's Virtual Arcade</title>
+
+    <link rel="icon"       type="image/x-icon" href="../../icon.ico">
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="game.css">
+</head>
+
+<body>
+<div class="page">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <a href="../../" class="topbar-left">
+            <img src="../../icon.png" class="topbar-icon">
+            <div class="topbar-title">Korbeli's Virtual Arcade</div>
+        </a>
+        <div class="topbar-right" id="topbar-right"></div>
+    </div>
+
+    <!-- GAME HEADER -->
+    <div class="game-header">
+        <div class="game-header-left">
+            <img src="icon.png" class="game-icon" onerror="this.style.display='none'">
+            <div>
+                <div class="game-title">Crazy Cattle 3D</div>
+                <div class="game-subtitle">Fake Multiplayer · Meme · Retro</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME DESCRIPTION -->
+    <div class="game-desc">
+        Crazy Cattle 3D is an independent battle royale game where you play as an explosive sheep whose goal is to be the last sheep standing. Unlike traditional battle royale games that focus on weapons and resources, Crazy Cattle 3D's core gameplay revolves around physics-based movement, momentum, and strategic collisions. You navigate diverse terrains and eliminate other crazy sheep by bumping into them and knocking them off the map or into hazards. It's known for its simple premise, challenging gameplay, and often hilarious, chaotic outcomes.
+    </div>
+
+    <!-- GAME WRAP -->
+    <div class="game-wrap">
+        <div class="game-frame">
+            <div class="game-stage">
+
+                <div id="loadOverlay" class="game-overlay" onclick="activateGame()">
+                    <div class="overlay-content">
+                        <button>&#9654; Click to Play</button>
+                        <p>Game will load after clicking</p>
+                    </div>
+                </div>
+
+                <iframe
+                    id="gameFrame"
+                    allowfullscreen
+                    allow="autoplay; fullscreen"
+                    style="width:100%;height:100%;border:none;display:block;"
+                ></iframe>
+
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="game-controls">
+            <div class="game-controls-left">
+                <button class="ctrl-btn" onclick="popOutGame()" title="Pop Out">
+                    <img src="window.png" alt="Pop Out">
+                </button>
+            </div>
+            <div class="game-controls-right">
+                <button class="ctrl-btn" onclick="goFullscreen()" title="Fullscreen">
+                    <img src="fullscreen.png" alt="Fullscreen">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME FOOTER -->
+    <div class="game-footer">
+        <span>Last updated: <strong>April 3, 2026</strong></span>
+        <span>All rights belong to the original creator.</span>
+    </div>
+
+    <!-- SITE FOOTER -->
+    <footer class="footer">
+        <img src="../../logoblack.png" class="footer-logo">
+        <p>All games belong to their respective creators.</p>
+    </footer>
+
+</div>
+
+<script>
+/* =========================
+   CONFIG (EDIT PER GAME)
+========================= */
+
+const FRAME_SRC = '../../file/crazy-cattle/index.html'; 
+// example: '../../file/pokepath-td/index.html'
+
+/* =========================
+   SYSTEM (DO NOT TOUCH)
+========================= */
+
+const IS_POPOUT   = window.opener !== null;
+const ARCADE_ROOT = window.location.origin + '/korbelisvirtualarcade/';
+
+const SECTIONS = [
+    { key: 'games',     label: 'Games'     },
+    { key: 'emulators', label: 'Emulators' },
+    { key: 'music',     label: 'Music'     },
+];
+
+async function buildNav() {
+    let items;
+    try {
+        const res = await fetch('../../games.json');
+        items = await res.json();
+    } catch(e) { return; }
+
+    const grouped = {};
+    SECTIONS.forEach(s => grouped[s.key] = []);
+    items.forEach(item => {
+        if (grouped[item.section]) grouped[item.section].push(item);
+    });
+
+    const navEl = document.getElementById('topbar-right');
+    SECTIONS.forEach(section => {
+        const sectionItems = grouped[section.key];
+        if (!sectionItems.length) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'dropdown';
+
+        const btn = document.createElement('button');
+        btn.className = 'dropbtn';
+        btn.textContent = section.label + ' ▼';
+        btn.onclick = () => {
+            window.location.href = ARCADE_ROOT + '#' + section.key + '-section';
+        };
+
+        const content = document.createElement('div');
+        content.className = 'dropdown-content';
+
+        sectionItems.forEach(item => {
+            const a = document.createElement('a');
+            a.textContent = item.name;
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = IS_POPOUT
+                    ? ARCADE_ROOT
+                    : '../../' + item.folder + '/';
+            });
+            content.appendChild(a);
+        });
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(content);
+        navEl.appendChild(wrapper);
+    });
+}
+
+buildNav();
+
+let gameActivated = false;
+
+function activateGame() {
+    document.getElementById('loadOverlay').style.display = 'none';
+    const frame = document.getElementById('gameFrame');
+
+    if (!gameActivated) {
+        gameActivated = true;
+        frame.src = FRAME_SRC;
+        frame.addEventListener('load', () => sendToFrame('start'), { once: true });
+    } else {
+        sendToFrame('start');
+    }
+}
+
+function sendToFrame(msg) {
+    const frame = document.getElementById('gameFrame');
+    if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage(msg, '*');
+    }
+}
+
+function goFullscreen() {
+    const frame = document.getElementById('gameFrame');
+    const req   = frame.requestFullscreen
+               || frame.webkitRequestFullscreen
+               || frame.mozRequestFullScreen
+               || frame.msRequestFullscreen;
+    if (req) req.call(frame);
+}
+
+function popOutGame() {
+    window.open(FRAME_SRC, '_blank', 'noopener,noreferrer');
+}
+</script>
+
+</body>
+</html>

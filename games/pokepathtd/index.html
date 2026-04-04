@@ -7,20 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- =============================================
-         HOW TO USE THIS TEMPLATE
-         =============================================
-         1. Fill in the four CONFIG values below.
-         2. Save as:
-              /games/[game-folder]/index.html
-         3. Copy game-frame-template.html to:
-              /file/[game-folder]/index.html
-            and fill in its CONFIG too.
-         4. Put all game files (build.json etc.)
-            inside /file/[game-folder]/
-         ============================================= -->
-
-    <title>%%GAME_TITLE%% — Korbeli's Virtual Arcade</title>
+    <title>PokéPath TD — Korbeli's Virtual Arcade</title>
 
     <link rel="icon"       type="image/x-icon" href="../../icon.ico">
     <link rel="stylesheet" href="../../style.css">
@@ -44,16 +31,15 @@
         <div class="game-header-left">
             <img src="icon.png" class="game-icon" onerror="this.style.display='none'">
             <div>
-                <div class="game-title">%%GAME_TITLE%%</div>
-                <div class="game-subtitle">%%GAME_TAGS%%</div>
-                <!-- Example: Fake Multiplayer · Arcade · Snake -->
+                <div class="game-title">PokéPath TD</div>
+                <div class="game-subtitle">Pokémon · Tower Defense · Strategy</div>
             </div>
         </div>
     </div>
 
     <!-- GAME DESCRIPTION -->
     <div class="game-desc">
-        %%GAME_DESCRIPTION%%
+        PokéPath TD is a strategic Pokémon Tower Defense game where you defend multiple routes against increasingly powerful waves of enemies. Evolve your Pokémon, optimize your teams, and adapt your strategy to each area. Progress is persistent: every attempt matters, even after a defeat. Freely explore different paths without losing progress on your current route, and use Auto Mode to farm while AFK. Your goal: complete all paths and defeat the Legendary Pokémon.
     </div>
 
     <!-- GAME WRAP -->
@@ -68,7 +54,6 @@
                     </div>
                 </div>
 
-                <!-- No src until user clicks — keeps page fast -->
                 <iframe
                     id="gameFrame"
                     allowfullscreen
@@ -87,13 +72,9 @@
                     <img src="window.png" alt="Pop Out">
                 </button>
 
-                <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()" title="Mute">
-                    <img src="unmuted.png" id="mute-icon" alt="Mute">
-                </button>
-
             </div>
             <div class="game-controls-right">
-                <button class="ctrl-btn" onclick="sendToFrame('fullscreen')" title="Fullscreen">
+                <button class="ctrl-btn" onclick="goFullscreen()" title="Fullscreen">
                     <img src="fullscreen.png" alt="Fullscreen">
                 </button>
             </div>
@@ -102,7 +83,7 @@
 
     <!-- GAME FOOTER -->
     <div class="game-footer">
-        <span>Last updated: <strong>%%LAST_UPDATED%%</strong></span>
+        <span>Last updated: <strong>April 2, 2026</strong></span>
         <span>All rights belong to the original creator.</span>
     </div>
 
@@ -115,20 +96,10 @@
 </div>
 
 <script>
-/* ==============================================
-   CONFIG — change these per game
-   ============================================== */
 const FRAME_SRC   = '../../file/pokepath-td/index.html';
-//                                ^^^^^^^^^^^^^^
-//                                e.g. boas-io
-
 const IS_POPOUT   = window.opener !== null;
 const ARCADE_ROOT = window.location.origin + '/korbelisvirtualarcade/';
 
-
-/* ==============================================
-   NAV
-   ============================================== */
 const SECTIONS = [
     { key: 'games',     label: 'Games'     },
     { key: 'emulators', label: 'Emulators' },
@@ -186,10 +157,6 @@ async function buildNav() {
 
 buildNav();
 
-
-/* ==============================================
-   GAME ACTIVATION
-   ============================================== */
 let gameActivated = false;
 
 function activateGame() {
@@ -205,10 +172,6 @@ function activateGame() {
     }
 }
 
-
-/* ==============================================
-   CROSS-FRAME MESSAGING
-   ============================================== */
 function sendToFrame(msg) {
     const frame = document.getElementById('gameFrame');
     if (frame && frame.contentWindow) {
@@ -216,26 +179,19 @@ function sendToFrame(msg) {
     }
 }
 
+function goFullscreen() {
+    const frame = document.getElementById('gameFrame');
+    const req   = frame.requestFullscreen
+               || frame.webkitRequestFullscreen
+               || frame.mozRequestFullScreen
+               || frame.msRequestFullscreen;
+    if (req) req.call(frame);
+}
 
-/* ==============================================
-   POP OUT — opens the frame file directly
-   ============================================== */
 function popOutGame() {
     window.open(FRAME_SRC, '_blank', 'noopener,noreferrer');
 }
 
-
-/* ==============================================
-   MUTE
-   ============================================== */
-let muted = false;
-
-function toggleMute() {
-    muted = !muted;
-    sendToFrame(muted ? 'mute' : 'unmute');
-    document.getElementById('mute-icon').src = muted ? 'muted.png' : 'unmuted.png';
-    document.getElementById('btn-mute').classList.toggle('ctrl-btn--active', muted);
-}
 </script>
 
 </body>

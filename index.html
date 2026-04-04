@@ -169,6 +169,22 @@ const SECTIONS = [
     { key: 'music', label: 'Music' },
 ];
 
+/* ==============================================
+   SORT STATE
+============================================== */
+
+let SORT_MODE = 'alphabetical'; // default
+
+function setSort(mode) {
+    SORT_MODE = mode;
+    document.getElementById('sections-container').innerHTML = '';
+    build(); // rebuild everything
+}
+
+/* ==============================================
+   UTIL
+============================================== */
+
 function scrollToSection(id) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -192,16 +208,17 @@ function underConstructionSrc() {
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
+/* ==============================================
+   CARD BUILDERS
+============================================== */
+
 function buildCard(item) {
     const a = document.createElement('a');
     a.className = 'game-card';
-
-    // 🔥 FIX: no index.html anymore
     a.href = item.folder + '/';
 
     const img = document.createElement('img');
-    const iconSrc = item.folder + '/icon.png';
-    img.src = iconSrc;
+    img.src = item.folder + '/icon.png';
     img.alt = item.name;
 
     img.onerror = function() {
@@ -221,16 +238,44 @@ function buildCard(item) {
 
 function buildDropdownLink(item) {
     const a = document.createElement('a');
-
-    // 🔥 FIX: folder root only
     a.href = item.folder + '/';
     a.textContent = item.name;
-
     return a;
 }
 
+/* ==============================================
+   SORTING LOGIC
+============================================== */
+
+function sortItems(items) {
+    if (SORT_MODE === 'alphabetical') {
+        return items.sort((a, b) =>
+            a.name.localeCompare(b.name)
+        );
+    }
+
+    if (SORT_MODE === 'date') {
+        return items.sort((a, b) =>
+            new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0)
+        );
+    }
+
+    if (SORT_MODE === 'popularity') {
+        return items.sort((a, b) =>
+            (b.popularity || 0) - (a.popularity || 0)
+        );
+    }
+
+    return items;
+}
+
+/* ==============================================
+   MAIN BUILD
+============================================== */
+
 async function build() {
     let items;
+
     try {
         const res = await fetch('games.json');
         items = await res.json();
@@ -239,19 +284,60 @@ async function build() {
         return;
     }
 
+    // 🔥 SORT APPLIED HERE
+    items = sortItems(items);
+
+    /* ---------- SORT UI ---------- */
+    const container = document.getElementById('sections-container');
+
+    const sortBar = document.createElement('div');
+    sortBar.className = 'section-header';
+    sortBar.innerHTML = `
+        <span class="section-header-label">Sort</span>
+        <div class="section-header-rule"></div>
+        <div style="padding:6px 14px;">
+            <select id="sortSelect" style="
+                font-family: 'Oswald', sans-serif;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                border: 1px solid var(--burgundy);
+                background: var(--paper);
+                padding: 4px 8px;
+                cursor: pointer;
+            ">
+                <option value="alphabetical">Alphabetical</option>
+                <option value="date">Newest</option>
+                <option value="popularity">Popular</option>
+            </select>
+        </div>
+    `;
+    container.appendChild(sortBar);
+
+    setTimeout(() => {
+        document.getElementById('sortSelect').value = SORT_MODE;
+        document.getElementById('sortSelect').onchange = (e) =>
+            setSort(e.target.value);
+    }, 0);
+
+    /* ---------- GROUP ---------- */
     const grouped = {};
     SECTIONS.forEach(s => grouped[s.key] = []);
+
     items.forEach(item => {
         if (grouped[item.section] !== undefined) {
             grouped[item.section].push(item);
         }
     });
 
+    /* ---------- TICKER ---------- */
     const tickerEl = document.getElementById('ticker-items');
     const tickerText = items.map(i => i.name).join(' · ');
     tickerEl.textContent = tickerText + ' · ' + tickerText;
 
+    /* ---------- NAV ---------- */
     const navEl = document.getElementById('topbar-right');
+    navEl.innerHTML = '';
+
     SECTIONS.forEach(s => {
         const sectionItems = grouped[s.key];
         if (!sectionItems?.length) return;
@@ -278,8 +364,7 @@ async function build() {
         navEl.appendChild(wrapper);
     });
 
-    const container = document.getElementById('sections-container');
-
+    /* ---------- SECTIONS ---------- */
     SECTIONS.forEach(s => {
         const sectionItems = grouped[s.key];
         if (!sectionItems?.length) return;
@@ -287,14 +372,17 @@ async function build() {
         const header = document.createElement('div');
         header.id = s.key + '-section';
         header.className = 'section-header';
-        header.innerHTML =
-            `<span class="section-header-label">${s.label}</span>
-             <div class="section-header-rule"></div>`;
+        header.innerHTML = `
+            <span class="section-header-label">${s.label}</span>
+            <div class="section-header-rule"></div>
+        `;
 
         const grid = document.createElement('section');
         grid.className = 'games-grid';
 
-        sectionItems.forEach(item => grid.appendChild(buildCard(item)));
+        sectionItems.forEach(item =>
+            grid.appendChild(buildCard(item))
+        );
 
         container.appendChild(header);
         container.appendChild(grid);
@@ -304,6 +392,5 @@ async function build() {
 build();
 
 </script>
-
 </body>
 </html>

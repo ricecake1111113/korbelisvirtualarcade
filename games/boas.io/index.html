@@ -67,30 +67,23 @@
         </div>
 
         <!-- CONTROLS -->
-        <div class="game-controls">
-            <div class="game-controls-left">
-
-                <button class="ctrl-btn" onclick="popOutGame()" title="Pop Out">
-                    <img src="window.png" alt="Pop Out">
-                </button>
-
-                <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()" title="Mute">
-                    <img src="unmuted.png" id="mute-icon" alt="Mute">
-                </button>
-
-            </div>
-
-            <div class="game-controls-right">
-                <button class="ctrl-btn" onclick="sendToFrame('fullscreen')" title="Fullscreen">
-                    <img src="fullscreen.png" alt="Fullscreen">
-                </button>
-            </div>
-        </div>
+ <div class="game-controls">
+    <div class="game-controls-left">
+        <button class="ctrl-btn" onclick="popOutGame()" title="Pop Out">
+            <img src="window.png" alt="Pop Out">
+        </button>
     </div>
+
+    <div class="game-controls-right">
+        <button class="ctrl-btn" onclick="sendToFrame('fullscreen')" title="Fullscreen">
+            <img src="fullscreen.png" alt="Fullscreen">
+        </button>
+    </div>
+</div>
 
     <!-- GAME FOOTER -->
     <div class="game-footer">
-        <span>Last updated: <strong>March 31, 2026</strong></span>
+        <span>Last updated: <strong>April 2, 2026</strong></span>
         <span>All rights belong to the original creator.</span>
     </div>
 
@@ -222,22 +215,6 @@ function popOutGame() {
 }
 
 
-/* ==============================================
-   MUTE
-   ============================================== */
-
-let muted = false;
-
-function toggleMute() {
-    muted = !muted;
-    sendToFrame(muted ? 'mute' : 'unmute');
-
-    document.getElementById('mute-icon').src =
-        muted ? 'muted.png' : 'unmuted.png';
-
-    document.getElementById('btn-mute')
-        .classList.toggle('ctrl-btn--active', muted);
-}
 </script>
 
 </body>
