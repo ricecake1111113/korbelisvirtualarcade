@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>The Backyardigans Super Spy Adventure</title>
+		<script language="JavaScript">
+		keepKeyboard = false;
+
+		var largeur = screen.width;
+		var hauteur = screen.height;
+
+		function GoFullScreen(largeur,hauteur) {
+		var cmd = "FullScreen '" + largeur+ "' '" + hauteur;
+		var res = document.Virtools.DoCommand(cmd); 
+		}
+
+		function fullscreen(activate,width,height,bpp32)
+		{
+		var cmd;
+		if (activate)	
+		{
+		cmd = "FullScreen '" + width + "' '" + height + "' '" + bpp32 + "'";
+		}
+		else
+		{
+		cmd = "StopFullScreen";
+		}
+
+		var res = document.Virtools.DoCommand(cmd);
+		} 
+
+		function printScreen() {
+		window.print();
+		}
+
+		function StopFullScreenMode() {
+		var res = document.Virtools.DoCommand("StopFullScreen");
+		}
+		</script>
+	</head>
+	<body bgcolor="#000000">
+		<div style="position:absolute;top:50%;left:50%;width:600px;height:400px;margin-top:-200px;margin-left:-300px">
+			<OBJECT CLASSID="CLSID:D4323BF2-006A-4440-A2F5-27E3E7AB25F8" ID="Virtools" WIDTH="600" HEIGHT="400" CODEBASE="http://3dlifeplayer.dl.3dvia.com/player/install/installer.exe#version=5,0,0,20">
+				<PARAM NAME="SRC" VALUE="SuperSpy_master.vmo">
+				<PARAM NAME="AllowFullScreen" VALUE="1">
+				<PARAM NAME="AllowPause" VALUE="1">
+				<PARAM NAME="AutoPlay" VALUE="1">
+				<PARAM NAME="KeepKeyboard" VALUE="0">
+				<PARAM NAME="BackColor" VALUE="#21083C">
+				<PARAM NAME="RenderOptions" VALUE="">
+				<EMBED TYPE="application/x-virtools" PLUGINSPAGE="http://player.virtools.com/" SRC="SuperSpy_master.vmo" WIDTH="600" HEIGHT="400" NAME="Virtools" AllowFullScreen="1" AllowPause="1" AutoPlay="1" KeepKeyboard="0" BackColor="#21083C" RenderOptions="">
+					<NOEMBED>
+						<p>3D Life Player is not supported by this browser (or operating system) or not correctly installed.</p>
+					</NOEMBED>
+				</EMBED>
+			</OBJECT>
+		</div>
+	</body>
+</html>

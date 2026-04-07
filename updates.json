@@ -1,0 +1,14 @@
+[
+  {
+    "date": "2026-04-06",
+    "type": "new",
+    "title": "New games",
+    "body": "new games! emulators will be making a return soon"
+  },
+  {
+    "date": "2026-03-30",
+    "type": "update",
+    "title": "Site moved off Google Sites",
+    "body": "Finally got off Google Sites. Hosted properly now on GitHub!"
+  }
+]

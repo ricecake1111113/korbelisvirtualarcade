@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teenage Mutant Ninja Turtles IV: Turtles in Time &mdash; Korbeli's Virtual Arcade</title>
+    <link rel="icon" type="image/x-icon" href="../../icon.ico">
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../game.css">
+    <style>.game-stage { aspect-ratio: 4 / 3; }</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <a href="../../" class="topbar-left">
+      <img src="../../icon.png" class="topbar-icon">
+      <div class="topbar-title">Korbeli's Virtual Arcade</div>
+    </a>
+    <div class="topbar-right" id="topbar-right"></div>
+  </div>
+  <div class="game-header">
+    <div class="game-header-left">
+      <img src="../../file/emu/teenage-mutant-ninja-turtles-iv-turtles-in-time/icon.jpg" class="game-icon">
+      <div>
+        <div class="game-meta">Konami &middot; SNES &middot; 1992</div>
+        <div class="game-title">Teenage Mutant Ninja Turtles IV: Turtles in Time</div>
+        <div class="game-subtitle">Beat &#39;em up</div>
+      </div>
+    </div>
+  </div>
+  <div class="game-desc">TMNT IV: Turtles in Time is a standout co-op brawler with sharp controls, time-hopping stages, and arcade energy throughout.</div>
+  <div class="game-tags">
+    <span class="game-tag">SNES</span><span class="game-tag">Emulator</span><span class="game-tag">Beat &#39;em Up</span><span class="game-tag">Action</span>
+  </div>
+  <div class="emu-controls">
+    <button class="emu-controls-toggle" onclick="toggleAccordion('kbd-body', this)">
+      Keyboard Controls <span class="toggle-arrow">&#9660;</span>
+    </button>
+    <div class="emu-controls-body" id="kbd-body">
+      <div><span class="emu-key">Arrow Keys</span> D-Pad</div>
+      <div><span class="emu-key">Z</span> A Button</div>
+      <div><span class="emu-key">X</span> B Button</div>
+      <div><span class="emu-key">A</span> Y Button</div>
+      <div><span class="emu-key">S</span> X Button</div>
+      <div><span class="emu-key">Q</span> L Trigger</div>
+      <div><span class="emu-key">W</span> R Trigger</div>
+      <div><span class="emu-key">Enter</span> Start</div>
+      <div><span class="emu-key">Shift</span> Select</div>
+      <div style="column-span:all;margin-top:8px;font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:0.6;">
+        Open the EmulatorJS menu (bottom of screen) to remap controls, manage save states, and more.
+      </div>
+    </div>
+  </div>
+  <div class="game-wrap">
+    <div class="game-frame">
+      <div class="game-stage">
+        <div id="loadOverlay" class="game-overlay" onclick="activateGame()">
+          <div class="overlay-content">
+            <button>&#9654; Click to Play</button>
+            <p>EmulatorJS &middot; SNES Core</p>
+          </div>
+        </div>
+        <iframe id="gameFrame" allowfullscreen allow="autoplay; fullscreen" style="width:100%;height:100%;border:none;display:block;"></iframe>
+      </div>
+    </div>
+  </div>
+  <div class="cheat-menu cheat-menu--locked" id="cheat-menu">
+    <button class="cheat-toggle" onclick="toggleAccordion('cheat-body', this)" title="Start the game first to use cheats">
+      <span>&#127918; Game Genie Codes</span>
+      <span class="cheat-toggle-right"><span class="toggle-arrow">&#9660;</span></span>
+    </button>
+    <div class="cheat-body" id="cheat-body">
+      <div class="cheat-copy-toast" id="cheat-copy-toast" aria-live="polite"></div>
+      <div class="cheat-grid" id="cheat-grid"></div>
+    </div>
+  </div>
+  <div class="game-footer">
+    <span>Last updated: <strong>April 7, 2026</strong></span>
+    <span>&copy; Konami. All rights reserved.</span>
+  </div>
+  <footer class="footer">
+    <img src="../../logoblack.png" class="footer-logo">
+    <p>All games belong to their respective creators.</p>
+  </footer>
+</div>
+<script>
+const GAME_NAME   = "Teenage Mutant Ninja Turtles IV: Turtles in Time";
+const GAME_FOLDER = "emulators/teenage-mutant-ninja-turtles-iv-turtles-in-time";
+const FRAME_BASE  = "../../file/emu/teenage-mutant-ninja-turtles-iv-turtles-in-time/index.html";
+const IS_POPOUT   = window.opener !== null;
+const ARCADE_ROOT = window.location.origin + '/korbelisvirtualarcade/';
+const SECTIONS = [
+  { key: 'games', label: 'Games' },
+  { key: 'emulators', label: 'Emulators' },
+  { key: 'music', label: 'Music' },
+];
+async function buildNav() {
+  let items;
+  try { items = await (await fetch('../../games.json')).json(); } catch(e) { return; }
+  const grouped = {};
+  SECTIONS.forEach(s => grouped[s.key] = []);
+  items.forEach(item => { if (grouped[item.section]) grouped[item.section].push(item); });
+  const navEl = document.getElementById('topbar-right');
+  SECTIONS.forEach(section => {
+    const sectionItems = grouped[section.key];
+    if (!sectionItems.length) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dropdown';
+    const btn = document.createElement('button');
+    btn.className = 'dropbtn';
+    btn.textContent = section.label + ' ' + '\u25BE';
+    btn.onclick = () => { window.location.href = ARCADE_ROOT + '#' + section.key + '-section'; };
+    const content = document.createElement('div');
+    content.className = 'dropdown-content';
+    sectionItems.forEach(item => {
+      const a = document.createElement('a');
+      a.textContent = item.name;
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        window.location.href = IS_POPOUT ? ARCADE_ROOT : '../../' + item.folder + '/';
+      });
+      content.appendChild(a);
+    });
+    wrapper.appendChild(btn);
+    wrapper.appendChild(content);
+    navEl.appendChild(wrapper);
+  });
+}
+buildNav();
+function toggleAccordion(bodyId, btn) {
+  const body = document.getElementById(bodyId);
+  body.classList.toggle('open');
+  const arrow = btn.querySelector('.toggle-arrow');
+  if (arrow) arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+function buildCheatGrid() {
+  const grid = document.getElementById('cheat-grid');
+  if (grid) grid.innerHTML = '<div class="cheat-copy-toast cheat-copy-toast--visible">No cheats configured for this game yet.</div>';
+}
+buildCheatGrid();
+let gameActivated = false;
+function buildFrameSrc() { return FRAME_BASE; }
+function trackPlay() {
+  try {
+    let recent = JSON.parse(localStorage.getItem('kva_recent') || '[]');
+    recent = recent.filter(r => r.folder !== GAME_FOLDER);
+    recent.unshift({ name: GAME_NAME, folder: GAME_FOLDER, ts: Date.now() });
+    localStorage.setItem('kva_recent', JSON.stringify(recent.slice(0, 8)));
+  } catch(e) {}
+}
+function unlockCheatMenu() { document.getElementById('cheat-menu').classList.remove('cheat-menu--locked'); }
+function activateGame() {
+  document.getElementById('loadOverlay').style.display = 'none';
+  const frame = document.getElementById('gameFrame');
+  if (!gameActivated) { gameActivated = true; trackPlay(); unlockCheatMenu(); }
+  frame.src = buildFrameSrc();
+}
+</script>
+<script src="../../game.js"></script>
+</body>
+</html>

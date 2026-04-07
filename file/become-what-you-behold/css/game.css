@@ -1,0 +1,96 @@
+@font-face {
+	font-family: 'Poppins';
+	font-style: normal;
+	font-weight: 400;
+	src: url('Poppins-Medium.ttf') format('truetype');
+}
+
+/* =========================
+   BASE LAYOUT
+========================= */
+
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+body {
+	font-family: 'Poppins';
+	background: #222;
+	position: relative;
+}
+
+/* =========================
+   GAME STAGE (FULLSCREEN)
+========================= */
+
+#stage {
+	background: #000;
+	width: 100vw;
+	height: 100vh;
+	position: fixed;
+	top: 0;
+	left: 0;
+	cursor: none;
+}
+
+/* =========================
+   OVERLAYS (FULLSCREEN UI)
+========================= */
+
+.overlay {
+	display: none;
+
+	position: fixed;
+	top: 0;
+	left: 0;
+
+	width: 100vw;
+	height: 100vh;
+
+	color: #fff;
+	text-align: center;
+	letter-spacing: 1px;
+
+	display: none;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+/* title text */
+.overlay > div:nth-child(1) {
+	font-size: 100px;
+	line-height: 100px;
+}
+
+/* subtitle text */
+.overlay > div:nth-child(2) {
+	font-size: 20px;
+}
+
+/* =========================
+   MODAL SHADE (FULLSCREEN)
+========================= */
+
+#modal_shade {
+	display: none;
+
+	position: fixed;
+	top: 0;
+	left: 0;
+
+	width: 100vw;
+	height: 100vh;
+
+	background: rgba(0, 0, 0, 0.8);
+	cursor: pointer;
+}
+
+/* paused overlay interaction */
+#paused {
+	cursor: pointer;
+}

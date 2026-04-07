@@ -1,37 +1,697 @@
 [
   {
+    "name": "Aladdin",
+    "folder": "emulators/aladdin",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1993,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/aladdin/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Batman Returns",
+    "folder": "emulators/batman-returns",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Konami",
+    "year": 1993,
+    "genres": "Beat 'em up / Action",
+    "iconPath": "file/emu/batman-returns/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Breath of Fire II",
+    "folder": "emulators/breath-of-fire-ii",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1995,
+    "genres": "RPG",
+    "iconPath": "file/emu/breath-of-fire-ii/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Castlevania: Dracula X",
+    "folder": "emulators/castlevania-dracula-x",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Konami",
+    "year": 1995,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/castlevania-dracula-x/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Chrono Trigger",
+    "folder": "emulators/chrono-trigger",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Squaresoft",
+    "year": 1995,
+    "genres": "RPG",
+    "iconPath": "file/emu/chrono-trigger/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Contra III: The Alien Wars",
+    "folder": "emulators/contra-iii-the-alien-wars",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Konami",
+    "year": 1992,
+    "genres": "Run and Gun / Action",
+    "iconPath": "file/emu/contra-iii-the-alien-wars/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Donkey Kong Country",
+    "folder": "emulators/donkey-kong-country",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1994,
+    "genres": "Platformer",
+    "iconPath": "file/emu/donkey-kong-country/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Donkey Kong Country 2: Diddy's Kong Quest",
+    "folder": "emulators/donkey-kong-country-2-diddys-kong-quest",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1995,
+    "genres": "Platformer",
+    "iconPath": "file/emu/donkey-kong-country-2-diddys-kong-quest/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Donkey Kong Country 3: Dixie Kong's Double Trouble",
+    "folder": "emulators/donkey-kong-country-3-dixie-kongs-double-trouble",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1996,
+    "genres": "Platformer",
+    "iconPath": "file/emu/donkey-kong-country-3-dixie-kongs-double-trouble/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "EarthBound",
+    "folder": "emulators/earthbound",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1995,
+    "genres": "RPG",
+    "iconPath": "file/emu/earthbound/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Earthworm Jim",
+    "folder": "emulators/earthworm-jim",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Playmates Interactive",
+    "year": 1994,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/earthworm-jim/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "F-Zero",
+    "folder": "emulators/f-zero",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1991,
+    "genres": "Racing",
+    "iconPath": "file/emu/f-zero/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Illusion of Gaia",
+    "folder": "emulators/illusion-of-gaia",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1994,
+    "genres": "Action RPG",
+    "iconPath": "file/emu/illusion-of-gaia/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Kirby Super Star",
+    "folder": "emulators/kirby-super-star",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1996,
+    "genres": "Platformer",
+    "iconPath": "file/emu/kirby-super-star/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Kirby's Dream Land 3",
+    "folder": "emulators/kirbys-dream-land-3",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1997,
+    "genres": "Platformer",
+    "iconPath": "file/emu/kirbys-dream-land-3/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "The Lion King",
+    "folder": "emulators/lion-king-the",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Virgin Interactive",
+    "year": 1994,
+    "genres": "Platformer",
+    "iconPath": "file/emu/lion-king-the/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Lufia II: Rise of the Sinistrals",
+    "folder": "emulators/lufia-ii-rise-of-the-sinistrals",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Natsume",
+    "year": 1996,
+    "genres": "RPG",
+    "iconPath": "file/emu/lufia-ii-rise-of-the-sinistrals/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Mega Man X",
+    "folder": "emulators/mega-man-x",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1993,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/mega-man-x/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Mega Man X2",
+    "folder": "emulators/mega-man-x2",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1994,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/mega-man-x2/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Mega Man X3",
+    "folder": "emulators/mega-man-x3",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1995,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/mega-man-x3/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Mortal Kombat",
+    "folder": "emulators/mortal-kombat",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Acclaim Entertainment",
+    "year": 1993,
+    "genres": "Fighting",
+    "iconPath": "file/emu/mortal-kombat/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Mortal Kombat 3",
+    "folder": "emulators/mortal-kombat-3",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Acclaim Entertainment",
+    "year": 1995,
+    "genres": "Fighting",
+    "iconPath": "file/emu/mortal-kombat-3/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Mortal Kombat II",
+    "folder": "emulators/mortal-kombat-ii",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Acclaim Entertainment",
+    "year": 1994,
+    "genres": "Fighting",
+    "iconPath": "file/emu/mortal-kombat-ii/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Ogre Battle: The March of the Black Queen",
+    "folder": "emulators/ogre-battle-the-march-of-the-black-queen",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Enix",
+    "year": 1995,
+    "genres": "Strategy RPG",
+    "iconPath": "file/emu/ogre-battle-the-march-of-the-black-queen/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Rock N' Roll Racing",
+    "folder": "emulators/rock-n-roll-racing",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Interplay",
+    "year": 1993,
+    "genres": "Combat Racing",
+    "iconPath": "file/emu/rock-n-roll-racing/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Secret of Evermore",
+    "folder": "emulators/secret-of-evermore",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Square",
+    "year": 1995,
+    "genres": "Action RPG",
+    "iconPath": "file/emu/secret-of-evermore/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Secret of Mana",
+    "folder": "emulators/secret-of-mana",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Squaresoft",
+    "year": 1993,
+    "genres": "Action RPG",
+    "iconPath": "file/emu/secret-of-mana/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Star Fox",
+    "folder": "emulators/star-fox",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1993,
+    "genres": "Rail Shooter",
+    "iconPath": "file/emu/star-fox/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Street Fighter II",
+    "folder": "emulators/street-fighter-ii",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1992,
+    "genres": "Fighting",
+    "iconPath": "file/emu/street-fighter-ii/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Street Fighter II Turbo",
+    "folder": "emulators/street-fighter-ii-turbo",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1993,
+    "genres": "Fighting",
+    "iconPath": "file/emu/street-fighter-ii-turbo/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Super Castlevania IV",
+    "folder": "emulators/super-castlevania-iv",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Konami",
+    "year": 1991,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/super-castlevania-iv/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Super Mario All-Stars",
+    "folder": "emulators/super-mario-all-stars",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1993,
+    "genres": "Platformer",
+    "iconPath": "file/emu/super-mario-all-stars/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Super Mario Kart",
+    "folder": "emulators/super-mario-kart",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1992,
+    "genres": "Racing",
+    "iconPath": "file/emu/super-mario-kart/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Super Mario RPG: Legend of the Seven Stars",
+    "folder": "emulators/super-mario-rpg-legend-of-the-seven-stars",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1996,
+    "genres": "RPG",
+    "iconPath": "file/emu/super-mario-rpg-legend-of-the-seven-stars/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Super Mario World",
+    "folder": "emulators/super-mario-world",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1991,
+    "genres": "Platformer",
+    "iconPath": "file/emu/super-mario-world/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 95,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Super Punch-Out!!",
+    "folder": "emulators/super-punch-out",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1994,
+    "genres": "Sports / Fighting",
+    "iconPath": "file/emu/super-punch-out/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Super Street Fighter II",
+    "folder": "emulators/super-street-fighter-ii",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1994,
+    "genres": "Fighting",
+    "iconPath": "file/emu/super-street-fighter-ii/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Teenage Mutant Ninja Turtles IV: Turtles in Time",
+    "folder": "emulators/teenage-mutant-ninja-turtles-iv-turtles-in-time",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Konami",
+    "year": 1992,
+    "genres": "Beat 'em up",
+    "iconPath": "file/emu/teenage-mutant-ninja-turtles-iv-turtles-in-time/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "The Legend of Zelda: A Link to the Past",
+    "folder": "emulators/the-legend-of-zelda-a-link-to-the-past",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Nintendo",
+    "year": 1992,
+    "genres": "Action Adventure",
+    "iconPath": "file/emu/the-legend-of-zelda-a-link-to-the-past/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Top Gear",
+    "folder": "emulators/top-gear",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Kemco",
+    "year": 1992,
+    "genres": "Racing",
+    "iconPath": "file/emu/top-gear/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "X-Men: Mutant Apocalypse",
+    "folder": "emulators/x-men-mutant-apocalypse",
+    "section": "emulators",
+    "system": "SNES",
+    "publisher": "Capcom",
+    "year": 1994,
+    "genres": "Platformer / Action",
+    "iconPath": "file/emu/x-men-mutant-apocalypse/icon.png",
+    "dateAdded": "2026-04-06",
+    "popularity": 50,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
+    "name": "Baldi's Fun New School Ultimate",
+    "folder": "games/baldis-fun-new-school-ultimate",
+    "section": "games",
+    "dateAdded": "2026-04-06",
+    "popularity": 55,
+    "tags": [
+      "game"
+    ]
+  },
+  {
+    "name": "We Become What We Behold",
+    "folder": "games/become-what-you-behold",
+    "section": "games",
+    "dateAdded": "2026-04-03",
+    "popularity": 60,
+    "tags": [
+      "game"
+    ]
+  },
+  {
     "name": "Boas.io",
     "folder": "games/boas.io",
     "section": "games",
     "dateAdded": "2026-03-31",
-    "popularity": 95
-  },
-  {
-    "name": "PokéPath TD",
-    "folder": "games/pokepathtd",
-    "section": "games",
-    "dateAdded": "2026-04-02",
-    "popularity": 90
+    "popularity": 95,
+    "tags": [
+      "game"
+    ]
   },
   {
     "name": "Crazy Cattle 3D",
     "folder": "games/crazy-cattle",
     "section": "games",
     "dateAdded": "2026-04-02",
-    "popularity": 90
+    "popularity": 90,
+    "tags": [
+      "game"
+    ]
   },
   {
-    "name": "Retro",
-    "folder": "emulators/retro",
-    "section": "emulators",
-    "dateAdded": "2026-02-10",
-    "popularity": 70
+    "name": "Five Nights at Epstein's",
+    "folder": "games/fnae",
+    "section": "games",
+    "dateAdded": "2026-04-03",
+    "popularity": 90,
+    "tags": [
+      "game"
+    ]
   },
   {
-    "name": "Puzzle",
+    "name": "pikes.io",
+    "folder": "games/pikes-io",
+    "section": "games",
+    "dateAdded": "2026-04-03",
+    "popularity": 50,
+    "tags": [
+      "game"
+    ]
+  },
+  {
+    "name": "PokéPath TD",
+    "folder": "games/pokepathtd",
+    "section": "games",
+    "dateAdded": "2026-04-02",
+    "popularity": 90,
+    "tags": [
+      "game"
+    ]
+  },
+  {
+    "name": "basic",
     "folder": "music/puzzle",
     "section": "music",
     "dateAdded": "2026-01-15",
-    "popularity": 60
+    "popularity": 60,
+    "tags": [
+      "music"
+    ]
   }
 ]

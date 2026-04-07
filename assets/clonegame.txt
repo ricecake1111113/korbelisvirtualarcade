@@ -1,0 +1,69 @@
+----------- 1) Devtools (f12) -> network -> refresh page -> run in console:
+
+
+const urls = performance
+  .getEntriesByType("resource")
+  .map(r => r.name)
+  .join("\n");
+
+const blob = new Blob([urls], { type: "text/plain" });
+const link = document.createElement("a");
+
+link.href = URL.createObjectURL(blob);
+link.download = "urls.txt";
+
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+
+
+----------- 2) run in powershell
+
+# edit below vvvv
+$baseDir = "C:\Users\minec\Documents\GitHub\supertest\pokepath td"
+$urlFile = "C:\Users\minec\Documents\GitHub\supertest\pokepath td\urls.txt"
+
+# Ensure base directory exists
+if (!(Test-Path $baseDir)) {
+    New-Item -ItemType Directory -Path $baseDir -Force | Out-Null
+}
+
+# Read entire file and split on whitespace (spaces, newlines, tabs)
+$content = Get-Content $urlFile -Raw
+$urls = $content -split "\s+" | Where-Object { $_ -match "^https?://" }
+
+foreach ($url in $urls) {
+
+    try {
+        # Remove itch base path, replace with actual link
+        $relativePath = $url -replace "^https://html-classic\.itch\.zone/html/15902423/PokePath%20TD%20WEB/", ""
+
+        # Decode %20 etc
+        $relativePath = [System.Uri]::UnescapeDataString($relativePath)
+
+        # Build output path
+        $outputPath = Join-Path $baseDir $relativePath
+        $folder = Split-Path -Parent $outputPath
+
+        # Create folders
+        if (!(Test-Path $folder)) {
+            New-Item -ItemType Directory -Path $folder -Force | Out-Null
+        }
+
+        # Skip existing files
+        if (Test-Path $outputPath) {
+            Write-Host "Skipped: $relativePath"
+            continue
+        }
+
+        # Download
+        Invoke-WebRequest -Uri $url -OutFile $outputPath -ErrorAction Stop
+
+        Write-Host "Downloaded: $relativePath"
+    }
+    catch {
+        Write-Host "Failed: $url"
+    }
+}
+
+Write-Host "Done."

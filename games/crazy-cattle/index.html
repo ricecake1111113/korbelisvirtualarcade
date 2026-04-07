@@ -7,11 +7,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Crazy Cattle 3D — Korbeli's Virtual Arcade</title>
+    <title>Crazy Cattle 3D &mdash; Korbeli's Virtual Arcade</title>
 
     <link rel="icon"       type="image/x-icon" href="../../icon.ico">
     <link rel="stylesheet" href="../../style.css">
-    <link rel="stylesheet" href="game.css">
+    <link rel="stylesheet" href="../../game.css">
 </head>
 
 <body>
@@ -29,18 +29,16 @@
     <!-- GAME HEADER -->
     <div class="game-header">
         <div class="game-header-left">
-            <img src="icon.png" class="game-icon" onerror="this.style.display='none'">
+            <img src="icon.png" class="game-icon" >
             <div>
                 <div class="game-title">Crazy Cattle 3D</div>
-                <div class="game-subtitle">Fake Multiplayer · Meme · Retro</div>
+                <div class="game-subtitle">Fake Multiplayer &middot; Meme &middot; Retro</div>
             </div>
         </div>
     </div>
 
     <!-- GAME DESCRIPTION -->
-    <div class="game-desc">
-        Crazy Cattle 3D is an independent battle royale game where you play as an explosive sheep whose goal is to be the last sheep standing. Unlike traditional battle royale games that focus on weapons and resources, Crazy Cattle 3D's core gameplay revolves around physics-based movement, momentum, and strategic collisions. You navigate diverse terrains and eliminate other crazy sheep by bumping into them and knocking them off the map or into hazards. It's known for its simple premise, challenging gameplay, and often hilarious, chaotic outcomes.
-    </div>
+    <div class="game-desc">Crazy Cattle 3D is an independent battle royale game where you play as an explosive sheep whose goal is to be the last sheep standing. Unlike traditional battle royale games that focus on weapons and resources, Crazy Cattle 3D's core gameplay revolves around physics-based movement, momentum, and strategic collisions. You navigate diverse terrains and eliminate other crazy sheep by bumping into them and knocking them off the map or into hazards. It's known for its simple premise, challenging gameplay, and often hilarious, chaotic outcomes.</div>
 
     <!-- GAME WRAP -->
     <div class="game-wrap">
@@ -49,8 +47,8 @@
 
                 <div id="loadOverlay" class="game-overlay" onclick="activateGame()">
                     <div class="overlay-content">
-                        <button>&#9654; Click to Play</button>
-                        <p>Game will load after clicking</p>
+                        <button>&#9654; Open in New Tab</button>
+                        <p>This game only works in a new tab.</p>
                     </div>
                 </div>
 
@@ -94,20 +92,18 @@
 </div>
 
 <script>
-/* =========================
-   CONFIG (EDIT PER GAME)
-========================= */
-
-const FRAME_SRC = '../../file/crazy-cattle/index.html'; 
-// example: '../../file/pokepath-td/index.html'
-
-/* =========================
-   SYSTEM (DO NOT TOUCH)
-========================= */
-
+/* ==============================================
+   CONFIG
+============================================== */
+const GAME_NAME   = 'Crazy Cattle 3D';
+const GAME_FOLDER = 'games/crazy-cattle';
+const FRAME_SRC   = '../../file/crazy-cattle/index.html';
 const IS_POPOUT   = window.opener !== null;
 const ARCADE_ROOT = window.location.origin + '/korbelisvirtualarcade/';
 
+/* ==============================================
+   NAV
+============================================== */
 const SECTIONS = [
     { key: 'games',     label: 'Games'     },
     { key: 'emulators', label: 'Emulators' },
@@ -137,22 +133,24 @@ async function buildNav() {
 
         const btn = document.createElement('button');
         btn.className = 'dropbtn';
-        btn.textContent = section.label + ' ▼';
+        btn.textContent = section.label + ' ' + '\u25BE';
         btn.onclick = () => {
             window.location.href = ARCADE_ROOT + '#' + section.key + '-section';
         };
 
         const content = document.createElement('div');
         content.className = 'dropdown-content';
-
         sectionItems.forEach(item => {
             const a = document.createElement('a');
-            a.textContent = item.name;
-            a.addEventListener('click', (e) => {
+            const opensInNewTab = item.folder === 'games/crazy-cattle';
+            a.textContent = opensInNewTab ? item.name + ' (New Tab)' : item.name;
+            a.addEventListener('click', e => {
                 e.preventDefault();
-                window.location.href = IS_POPOUT
-                    ? ARCADE_ROOT
-                    : '../../' + item.folder + '/';
+                if (opensInNewTab && !IS_POPOUT) {
+                    window.open('../../' + item.folder + '/', '_blank', 'noopener,noreferrer');
+                    return;
+                }
+                window.location.href = IS_POPOUT ? ARCADE_ROOT : '../../' + item.folder + '/';
             });
             content.appendChild(a);
         });
@@ -165,41 +163,52 @@ async function buildNav() {
 
 buildNav();
 
+/* ==============================================
+   GAME ACTIVATION + TRACKING
+============================================== */
 let gameActivated = false;
 
-function activateGame() {
-    document.getElementById('loadOverlay').style.display = 'none';
-    const frame = document.getElementById('gameFrame');
+function trackPlay() {
+    try {
+        let recent = JSON.parse(localStorage.getItem('kva_recent') || '[]');
+        recent = recent.filter(r => r.folder !== GAME_FOLDER);
+        recent.unshift({ name: GAME_NAME, folder: GAME_FOLDER, ts: Date.now() });
+        localStorage.setItem('kva_recent', JSON.stringify(recent.slice(0, 8)));
+    } catch(e) {}
+}
 
+function activateGame() {
     if (!gameActivated) {
         gameActivated = true;
-        frame.src = FRAME_SRC;
-        frame.addEventListener('load', () => sendToFrame('start'), { once: true });
-    } else {
-        sendToFrame('start');
+        trackPlay();
     }
+
+    popOutGame();
 }
 
 function sendToFrame(msg) {
     const frame = document.getElementById('gameFrame');
-    if (frame && frame.contentWindow) {
-        frame.contentWindow.postMessage(msg, '*');
-    }
+    if (frame && frame.contentWindow) frame.contentWindow.postMessage(msg, '*');
 }
 
+/* ==============================================
+   CONTROLS
+============================================== */
 function goFullscreen() {
     const frame = document.getElementById('gameFrame');
-    const req   = frame.requestFullscreen
-               || frame.webkitRequestFullscreen
-               || frame.mozRequestFullScreen
-               || frame.msRequestFullscreen;
+    const req = frame.requestFullscreen || frame.webkitRequestFullscreen
+              || frame.mozRequestFullScreen || frame.msRequestFullscreen;
     if (req) req.call(frame);
 }
 
 function popOutGame() {
     window.open(FRAME_SRC, '_blank', 'noopener,noreferrer');
 }
+
 </script>
+
+
+<script src="../../game.js"></script>
 
 </body>
 </html>

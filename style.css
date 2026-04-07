@@ -2,7 +2,6 @@
 
 :root {
     --burgundy: #5a0f1b;
-    --wine: #1a0505;
     --paper: #f6efe6;
     --ink: #1a0505;
     --muted: #7a6a5a;
@@ -13,7 +12,7 @@
 
 body {
     font-family: 'Roboto Condensed', sans-serif;
-    background: var(--wine);
+    background: var(--ink);
     background-image: repeating-linear-gradient(
         0deg,
         transparent,
@@ -110,6 +109,9 @@ body {
     border: 1px solid #ddd;
     border-top: 3px solid var(--burgundy);
     z-index: 9999;
+    max-height: min(70vh, 520px);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .dropdown-content a {
@@ -138,7 +140,7 @@ body {
    RIBBON
 ========================= */
 .ribbon {
-    background: var(--wine);
+    background: var(--ink);
     color: var(--paper);
     font-family: 'Roboto Condensed', sans-serif;
     font-size: 10px;
@@ -236,13 +238,14 @@ body {
 .ticker-items {
     display: inline-block;
     white-space: nowrap;
-    animation: scroll-ticker 22s linear infinite;
+    min-width: max-content;
+    animation: scroll-ticker 72s linear infinite;
     padding: 6px 0;
 }
 
 @keyframes scroll-ticker {
-    0%   { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
 /* =========================
@@ -352,7 +355,7 @@ body {
 ========================= */
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 0;
     border-bottom: 2px solid var(--ink);
 }
@@ -364,7 +367,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 14px 10px 10px;
+    padding: 4px 3px 4px;
     border-right: 1px solid #c9bfb0;
     border-bottom: 1px solid #c9bfb0;
     transition: background 0.15s;
@@ -379,21 +382,32 @@ body {
 .game-card:hover .game-card-label { color: var(--paper); }
 
 .game-card img {
-    width: 70%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    margin-bottom: 8px;
+    width: 118px;
+    height: 118px;
+    object-fit: contain;
+    margin-bottom: 0;
 }
 
 .game-card-label {
     font-family: 'Oswald', sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.25px;
     text-transform: uppercase;
     color: var(--ink);
     text-align: center;
-    margin-top: 4px;
+    margin-top: 0;
+    line-height: 1.15;
+    opacity: 0.9;
+}
+
+.system-header + .games-grid .game-card {
+    padding: 3px 2px 3px;
+}
+
+.system-header + .games-grid .game-card img {
+    width: 118px;
+    height: 118px;
 }
 
 /* under construction cards get a dashed border */
@@ -574,6 +588,136 @@ body {
 }
 
 /* =========================
+   SEARCH BAR
+========================= */
+.search-bar {
+    display: flex;
+    align-items: center;
+    padding: 8px 18px;
+    background: var(--card-bg);
+    border-bottom: 1px solid #c9bfb0;
+    gap: 10px;
+}
+
+.search-bar-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.search-bar input {
+    flex: 1;
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 14px;
+    padding: 5px 10px;
+    border: 1.5px solid #c9bfb0;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.search-bar input:focus { border-color: var(--burgundy); }
+
+.search-bar input::placeholder { color: var(--muted); opacity: 0.6; }
+
+.search-no-results {
+    display: none;
+    padding: 18px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* =========================
+   RECENTLY PLAYED
+========================= */
+.recently-played-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-bottom: 1px solid #c9bfb0 !important;
+}
+
+.recently-played-grid .game-card img {
+    width: 132px;
+    height: 132px;
+}
+
+/* =========================
+   SECTION COUNT BADGE
+========================= */
+.section-count {
+    font-family: 'Oswald', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--paper);
+    background: var(--burgundy);
+    padding: 2px 8px;
+    margin-left: 10px;
+    align-self: center;
+    white-space: nowrap;
+}
+
+/* =========================
+   NEW BADGE (cards < 30 days old)
+========================= */
+.game-card {
+    position: relative;
+}
+
+.card-new-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 2;
+    background: var(--burgundy);
+    color: var(--paper);
+    font-family: 'Oswald', sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* =========================
+   SYSTEM SUB-HEADER (Emulators)
+========================= */
+.system-header {
+    display: flex;
+    align-items: center;
+    padding: 6px 18px 0;
+}
+
+.system-header-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--burgundy);
+    white-space: nowrap;
+    padding-right: 12px;
+    border-right: 2px solid var(--burgundy);
+    margin-right: 12px;
+}
+
+.system-header-rule {
+    flex: 1;
+    height: 1px;
+    background: #c9bfb0;
+}
+
+/* =========================
    FOOTER
 ========================= */
 .footer {
@@ -596,4 +740,32 @@ body {
     text-transform: uppercase;
     opacity: 0.6;
     text-align: center;
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 600px) {
+    .masthead { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .masthead-meta { text-align: left; }
+
+    .hero-section { grid-template-columns: 1fr; }
+    .hero-logo-wrap { display: none; }
+
+    .story-section { grid-template-columns: 1fr; }
+    .story-col--main { border-right: none; border-bottom: 2px solid var(--ink); }
+
+    .games-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+    .game-card img {
+        width: 96px;
+        height: 96px;
+    }
+
+    .recently-played-grid .game-card img {
+        width: 104px;
+        height: 104px;
+    }
+
+    .topbar-title { display: none; }
 }

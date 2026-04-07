@@ -7,12 +7,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Boas.IO — Korbeli's Virtual Arcade</title>
+    <title>Boas.IO &mdash; Korbeli's Virtual Arcade</title>
 
     <link rel="icon"       type="image/x-icon" href="../../icon.ico">
     <link rel="stylesheet" href="../../style.css">
-    <link rel="stylesheet" href="game.css">
-
+    <link rel="stylesheet" href="../../game.css">
 </head>
 
 <body>
@@ -30,29 +29,26 @@
     <!-- GAME HEADER -->
     <div class="game-header">
         <div class="game-header-left">
-            <img src="icon.png" class="game-icon" onerror="this.style.display='none'">
+            <img src="icon.png" class="game-icon" >
             <div>
                 <div class="game-title">Boas.IO</div>
-                <div class="game-subtitle">Fake Multiplayer · Arcade · Snake</div>
+                <div class="game-subtitle">IO &middot; Arcade &middot; Snake</div>
             </div>
         </div>
     </div>
 
     <!-- GAME DESCRIPTION -->
-    <div class="game-desc">
-        Boas.io is a fast-paced snake battle royale where you compete against bots in a single arena, growing by surrounding and swallowing objects and opponents. Consumed items permanently disappear, reshaping the battlefield as the match progresses, and each round continues until only one snake remains victorious.
-    </div>
+    <div class="game-desc">Boas.io is a fast-paced snake battle royale where you compete against bots in a single arena, growing by surrounding and swallowing objects and opponents. Consumed items permanently disappear, reshaping the battlefield as the match progresses, and each round continues until only one snake remains victorious.</div>
 
     <!-- GAME WRAP -->
     <div class="game-wrap">
         <div class="game-frame">
             <div class="game-stage">
 
-                <!-- Play overlay — hides on click, then tells the iframe to start -->
                 <div id="loadOverlay" class="game-overlay" onclick="activateGame()">
                     <div class="overlay-content">
-                        <button>▶ Click to Play</button>
-                        <p>Game will load after clicking</p>
+                        <button>&#9654; Click to Play</button>
+                        <p>Game will load after pressing play.</p>
                     </div>
                 </div>
 
@@ -67,19 +63,19 @@
         </div>
 
         <!-- CONTROLS -->
- <div class="game-controls">
-    <div class="game-controls-left">
-        <button class="ctrl-btn" onclick="popOutGame()" title="Pop Out">
-            <img src="window.png" alt="Pop Out">
-        </button>
+        <div class="game-controls">
+            <div class="game-controls-left">
+                <button class="ctrl-btn" onclick="popOutGame()" title="Pop Out">
+                    <img src="window.png" alt="Pop Out">
+                </button>
+            </div>
+            <div class="game-controls-right">
+                <button class="ctrl-btn" onclick="goFullscreen()" title="Fullscreen">
+                    <img src="fullscreen.png" alt="Fullscreen">
+                </button>
+            </div>
+        </div>
     </div>
-
-    <div class="game-controls-right">
-        <button class="ctrl-btn" onclick="sendToFrame('fullscreen')" title="Fullscreen">
-            <img src="fullscreen.png" alt="Fullscreen">
-        </button>
-    </div>
-</div>
 
     <!-- GAME FOOTER -->
     <div class="game-footer">
@@ -98,19 +94,16 @@
 <script>
 /* ==============================================
    CONFIG
-   ============================================== */
-
-// /file/boas-io/index.html is the existing Unity host page
+============================================== */
+const GAME_NAME   = 'Boas.IO';
+const GAME_FOLDER = 'games/boas.io';
 const FRAME_SRC   = '../../file/boas-io/index.html';
-
 const IS_POPOUT   = window.opener !== null;
 const ARCADE_ROOT = window.location.origin + '/korbelisvirtualarcade/';
 
-
 /* ==============================================
    NAV
-   ============================================== */
-
+============================================== */
 const SECTIONS = [
     { key: 'games',     label: 'Games'     },
     { key: 'emulators', label: 'Emulators' },
@@ -131,7 +124,6 @@ async function buildNav() {
     });
 
     const navEl = document.getElementById('topbar-right');
-
     SECTIONS.forEach(section => {
         const sectionItems = grouped[section.key];
         if (!sectionItems.length) return;
@@ -141,22 +133,19 @@ async function buildNav() {
 
         const btn = document.createElement('button');
         btn.className = 'dropbtn';
-        btn.textContent = section.label + ' ▼';
+        btn.textContent = section.label + ' ' + '\u25BE';
         btn.onclick = () => {
             window.location.href = ARCADE_ROOT + '#' + section.key + '-section';
         };
 
         const content = document.createElement('div');
         content.className = 'dropdown-content';
-
         sectionItems.forEach(item => {
             const a = document.createElement('a');
             a.textContent = item.name;
-            a.addEventListener('click', (e) => {
+            a.addEventListener('click', e => {
                 e.preventDefault();
-                window.location.href = IS_POPOUT
-                    ? ARCADE_ROOT
-                    : '../../' + item.folder + '/';
+                window.location.href = IS_POPOUT ? ARCADE_ROOT : '../../' + item.folder + '/';
             });
             content.appendChild(a);
         });
@@ -169,53 +158,57 @@ async function buildNav() {
 
 buildNav();
 
-
 /* ==============================================
-   GAME ACTIVATION
-   ============================================== */
-
+   GAME ACTIVATION + TRACKING
+============================================== */
 let gameActivated = false;
+
+function trackPlay() {
+    try {
+        let recent = JSON.parse(localStorage.getItem('kva_recent') || '[]');
+        recent = recent.filter(r => r.folder !== GAME_FOLDER);
+        recent.unshift({ name: GAME_NAME, folder: GAME_FOLDER, ts: Date.now() });
+        localStorage.setItem('kva_recent', JSON.stringify(recent.slice(0, 8)));
+    } catch(e) {}
+}
 
 function activateGame() {
     document.getElementById('loadOverlay').style.display = 'none';
-
     const frame = document.getElementById('gameFrame');
 
     if (!gameActivated) {
         gameActivated = true;
+        trackPlay();
         frame.src = FRAME_SRC;
-
-        frame.addEventListener('load', () => {
-            sendToFrame('start');
-        }, { once: true });
+        frame.addEventListener('load', () => sendToFrame('start'), { once: true });
     } else {
         sendToFrame('start');
     }
 }
 
-
-/* ==============================================
-   CROSS-FRAME MESSAGING
-   ============================================== */
-
 function sendToFrame(msg) {
     const frame = document.getElementById('gameFrame');
-    if (frame && frame.contentWindow) {
-        frame.contentWindow.postMessage(msg, '*');
-    }
+    if (frame && frame.contentWindow) frame.contentWindow.postMessage(msg, '*');
 }
 
-
 /* ==============================================
-   POP OUT
-   ============================================== */
+   CONTROLS
+============================================== */
+function goFullscreen() {
+    const frame = document.getElementById('gameFrame');
+    const req = frame.requestFullscreen || frame.webkitRequestFullscreen
+              || frame.mozRequestFullScreen || frame.msRequestFullscreen;
+    if (req) req.call(frame);
+}
 
 function popOutGame() {
     window.open(FRAME_SRC, '_blank', 'noopener,noreferrer');
 }
 
-
 </script>
+
+
+<script src="../../game.js"></script>
 
 </body>
 </html>

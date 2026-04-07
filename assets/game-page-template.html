@@ -11,7 +11,7 @@
 
     <link rel="icon"       type="image/x-icon" href="../../icon.ico">
     <link rel="stylesheet" href="../../style.css">
-    <link rel="stylesheet" href="game.css">
+    <link rel="stylesheet" href="../../game.css">
 </head>
 
 <body>
@@ -29,7 +29,7 @@
     <!-- GAME HEADER -->
     <div class="game-header">
         <div class="game-header-left">
-            <img src="{{GAME_ICON}}" class="game-icon" onerror="this.style.display='none'">
+            <img src="{{GAME_ICON}}" class="game-icon">
             <div>
                 <div class="game-title">{{GAME_TITLE}}</div>
                 <div class="game-subtitle">{{GAME_SUBTITLE}}</div>
@@ -200,6 +200,8 @@ function popOutGame() {
     window.open(FRAME_SRC, '_blank', 'noopener,noreferrer');
 }
 </script>
+
+<script src="../../game.js"></script>
 
 </body>
 </html>
