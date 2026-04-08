@@ -1,0 +1,23 @@
+﻿{
+    "fileName":  "BFNSPUE Alpha 6 Part 2b WebGL.data",
+    "totalSize":  162363108,
+    "chunkSize":  52428800,
+    "parts":  [
+                  {
+                      "name":  "BFNSPUE Alpha 6 Part 2b WebGL.data.part000",
+                      "size":  52428800
+                  },
+                  {
+                      "name":  "BFNSPUE Alpha 6 Part 2b WebGL.data.part001",
+                      "size":  52428800
+                  },
+                  {
+                      "name":  "BFNSPUE Alpha 6 Part 2b WebGL.data.part002",
+                      "size":  52428800
+                  },
+                  {
+                      "name":  "BFNSPUE Alpha 6 Part 2b WebGL.data.part003",
+                      "size":  5076708
+                  }
+              ]
+}
