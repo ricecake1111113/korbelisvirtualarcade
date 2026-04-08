@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download Music</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22d3ee;
+      --accent-strong: #0891b2;
+      --border: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    main {
+      width: min(760px, 100%);
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    button, a.button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #06252e;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #334155;
+      color: var(--text);
+    }
+
+    button:hover, a.button:hover {
+      background: var(--accent-strong);
+      color: #f0f9ff;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      columns: 1;
+    }
+
+    li { margin: 6px 0; }
+
+    a.track {
+      color: #7dd3fc;
+      text-decoration: none;
+    }
+
+    a.track:hover { text-decoration: underline; }
+
+    #status {
+      min-height: 24px;
+      font-size: 0.95rem;
+      color: #a5f3fc;
+      margin: 6px 0 12px;
+    }
+
+    #iphonePrompt {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    #iphonePrompt.hidden {
+      display: none;
+    }
+
+    .prompt-card {
+      width: min(420px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .prompt-card h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Music Download</h1>
+    <p>This page is optimized for iPhone users. Tap <strong>Download All</strong> to start grabbing every track in the <code>music</code> folder.</p>
+    <p>If Safari opens a song instead of downloading it, use the share menu and choose <strong>Save to Files</strong>.</p>
+
+    <div class="actions">
+      <button id="downloadAllBtn" type="button">Download All</button>
+      <button id="copyLinkBtn" class="secondary" type="button">Copy Page Link</button>
+    </div>
+
+    <div id="status"></div>
+    <ul id="trackList"></ul>
+  </main>
+
+  <div id="iphonePrompt" class="hidden" role="dialog" aria-modal="true" aria-labelledby="promptTitle">
+    <div class="prompt-card">
+      <h2 id="promptTitle">iPhone detected</h2>
+      <p>Download all <span id="fileCount"></span> music files now?</p>
+      <div class="actions">
+        <button id="promptDownloadBtn" type="button">Yes, Download All</button>
+        <button id="promptCloseBtn" class="secondary" type="button">Not Now</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const files = [
+      "06 Songs For Women.mp3",
+      "07 Lovecrimes.mp3",
+      "1-01 Rocket Love.mp3",
+      "1-05 Voodoo.mp3",
+      "1-09 Acura Integurl.mp3",
+      "1-12 Pyrite (Fool's Gold).mp3",
+      "14 Nature Feels.mp3",
+      "15 American Wedding (Edit).mp3",
+      "16 Rushes.mp3",
+      "16 Strawberry Swing (No Alarm Revised).mp3",
+      "18 Higgs.mp3",
+      "2-09 I Need It.mp3",
+      "3-01 Miss You So.mp3",
+      "Do Ya Like x Resonance.mp3",
+      "Horsepower.mp3",
+      "Jersey Giant.mp3"
+    ];
+
+    const trackList = document.getElementById("trackList");
+    const statusEl = document.getElementById("status");
+    const promptEl = document.getElementById("iphonePrompt");
+    const fileCountEl = document.getElementById("fileCount");
+    const downloadBtn = document.getElementById("downloadAllBtn");
+    const promptDownloadBtn = document.getElementById("promptDownloadBtn");
+    const promptCloseBtn = document.getElementById("promptCloseBtn");
+    const copyLinkBtn = document.getElementById("copyLinkBtn");
+    const isIPhone = /iPhone/i.test(navigator.userAgent || "");
+
+    files.forEach((file) => {
+      const li = document.createElement("li");
+      const link = document.createElement("a");
+      link.className = "track";
+      link.href = `music/${encodeURIComponent(file)}`;
+      link.download = file;
+      link.textContent = file;
+      li.appendChild(link);
+      trackList.appendChild(li);
+    });
+
+    fileCountEl.textContent = String(files.length);
+
+    function downloadAll() {
+      statusEl.textContent = "Starting downloads...";
+      let index = 0;
+
+      function next() {
+        if (index >= files.length) {
+          statusEl.textContent = "Download triggers sent. Check Safari/Files for each track.";
+          return;
+        }
+
+        const file = files[index];
+        const a = document.createElement("a");
+        a.href = `music/${encodeURIComponent(file)}`;
+        a.download = file;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        index += 1;
+        statusEl.textContent = `Downloading ${index}/${files.length}: ${file}`;
+        setTimeout(next, 850);
+      }
+
+      next();
+    }
+
+    async function copyPageLink() {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        statusEl.textContent = "Page link copied.";
+      } catch (err) {
+        statusEl.textContent = "Could not copy link automatically.";
+      }
+    }
+
+    downloadBtn.addEventListener("click", downloadAll);
+    promptDownloadBtn.addEventListener("click", () => {
+      promptEl.classList.add("hidden");
+      downloadAll();
+    });
+    promptCloseBtn.addEventListener("click", () => {
+      promptEl.classList.add("hidden");
+    });
+    copyLinkBtn.addEventListener("click", copyPageLink);
+
+    if (isIPhone) {
+      setTimeout(() => {
+        promptEl.classList.remove("hidden");
+      }, 300);
+    } else {
+      statusEl.textContent = "Tip: Open this page on an iPhone for the full prompt flow.";
+    }
+  </script>
+</body>
+</html>
