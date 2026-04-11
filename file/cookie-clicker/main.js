@@ -832,6 +832,19 @@ CanvasRenderingContext2D.prototype.drawImage=function()
 
 if (!document.hasFocus) document.hasFocus=function(){return document.hidden;};//for Opera
 
+/* ── iframe embedding fix ──────────────────────────────────────────────
+   When Cookie Clicker runs inside an iframe the document never has
+   "top-level" focus, so document.hasFocus() always returns false and
+   the "Game saved" notification never fires.  Patch it to return true
+   whenever the iframe's own document is visible (i.e. the tab is open). */
+(function(){
+	var _orig=document.hasFocus.bind(document);
+	document.hasFocus=function(){
+		try{return _orig();}catch(e){}
+		return !document.hidden;
+	};
+})();
+
 function AddEvent(el,ev,func,capture)
 {
 	//ie. myListener=AddEvent(l('element'),'click',function(){console.log('hi!');});
@@ -1325,9 +1338,9 @@ var Game={};
 Game.version=VERSION;
 Game.loadedFromVersion=VERSION;
 Game.beta=BETA;
-if (!App && window.location.pathname.indexOf('/beta')>-1) Game.beta=1;
-else if (App && new URL(window.location.href).searchParams.get('beta')) Game.beta=1;
-Game.https=!App?((location.protocol!='https:')?false:true):true;
+try{if (!App && window.location.pathname.indexOf('/beta')>-1) Game.beta=1;}catch(e){}
+try{if (App && new URL(window.location.href).searchParams.get('beta')) Game.beta=1;}catch(e){}
+try{Game.https=!App?((location.protocol!='https:')?false:true):true;}catch(e){Game.https=true;}
 Game.SaveTo='CookieClickerGame';
 if (Game.beta) Game.SaveTo='CookieClickerGameBeta';
 if (SAVESUFFIX) Game.SaveTo+='-'+SAVESUFFIX;
@@ -2650,8 +2663,10 @@ Game.Launch=function()
 			Game.attachTooltip(l('httpsSwitch'),'<div style="padding:8px;width:350px;text-align:center;font-size:11px;">'+loc("You are currently playing Cookie Clicker on the <b>%1</b> protocol.<br>The <b>%2</b> version uses a different save slot than this one.<br>Click this lock to reload the page and switch to the <b>%2</b> version!",[(Game.https?'HTTPS':'HTTP'),(Game.https?'HTTP':'HTTPS')])+'</div>','this');
 			AddEvent(l('httpsSwitch'),'click',function(){
 				PlaySound('snd/pop'+Math.floor(Math.random()*3+1)+'.mp3',0.75);
-				if (location.protocol=='https:') location.href='http:'+window.location.href.substring(window.location.protocol.length);
-				else if (location.protocol=='http:') location.href='https:'+window.location.href.substring(window.location.protocol.length);
+				try{
+					if (location.protocol=='https:') location.href='http:'+window.location.href.substring(window.location.protocol.length);
+					else if (location.protocol=='http:') location.href='https:'+window.location.href.substring(window.location.protocol.length);
+				}catch(e){}
 			});
 			
 			AddEvent(l('changeLanguage'),'click',function()

@@ -29,7 +29,7 @@
     <!-- GAME HEADER -->
     <div class="game-header">
         <div class="game-header-left">
-            <img src="icon.png" class="game-icon" >
+            <img src="icon.jpg" class="game-icon" >
             <div>
                 <div class="game-title">Crazy Cattle 3D</div>
                 <div class="game-subtitle">Fake Multiplayer &middot; Meme &middot; Retro</div>
@@ -143,7 +143,7 @@ async function buildNav() {
         sectionItems.forEach(item => {
             const a = document.createElement('a');
             const opensInNewTab = item.folder === 'games/crazy-cattle';
-            a.textContent = opensInNewTab ? item.name + ' (New Tab)' : item.name;
+            a.textContent = item.name;  // Removed "(New Tab)" indicator
             a.addEventListener('click', e => {
                 e.preventDefault();
                 if (opensInNewTab && !IS_POPOUT) {
