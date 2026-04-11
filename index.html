@@ -34,6 +34,7 @@
         Experimental &amp; Classic Web Games<br>
         Emulators &amp; More<br>
         100% Unblocked
+        <div class="masthead-dateline" id="masthead-dateline"></div>
       </div>
     </div>
 
@@ -560,6 +561,13 @@
 
     build();
     buildUpdates();
+
+    // Masthead dateline
+    (function() {
+      const el = document.getElementById('masthead-dateline');
+      if (!el) return;
+      el.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    })();
   </script>
 </body>
 </html>

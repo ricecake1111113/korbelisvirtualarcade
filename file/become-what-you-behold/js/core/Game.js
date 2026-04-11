@@ -25,6 +25,16 @@ Game.init = function(HACK){
 	Game.stage = new PIXI.Container();
 	Game.stage.interactive = true;
 
+	// Scale canvas to fill the window while preserving aspect ratio
+	var canvas = Game.renderer.view;
+	canvas.style.position = "absolute";
+	canvas.style.top = "0";
+	canvas.style.left = "0";
+	canvas.style.width = "100%";
+	canvas.style.height = "100%";
+	canvas.style.margin = "0";
+	canvas.style.padding = "0";
+
 	// Mr Doob Stats
 	if(Game.stats){
 		Game.stats = new Stats();

@@ -1,160 +1,191 @@
-/* ================================================
-   game.js - shared utilities for all game pages
-   Requires GAME_NAME and GAME_FOLDER to be defined
-   in the host page before this script is loaded.
-================================================ */
+/**************************************
 
-/* ==============================================
-   ICON FALLBACKS (multi-extension scan)
-============================================== */
-const ICON_EXTENSIONS = ['png', 'jpeg', 'jpg', 'webp', 'svg', 'gif', 'avif'];
+GAME CLASS SINGLETON:
+Handles the DOM, load, init, update & render loops
 
-function iconExtOrder(preferredExt) {
-    const preferred = preferredExt ? preferredExt.toLowerCase() : null;
-    if (!preferred) return ICON_EXTENSIONS;
-    if (!ICON_EXTENSIONS.includes(preferred)) {
-        return [preferred, ...ICON_EXTENSIONS];
+**************************************/
+
+(function(exports){
+
+// Singleton
+var Game = {};
+exports.Game = Game;
+
+// PROPERTIES
+Game.width = window.innerWidth;  // Changed from 960
+Game.height = window.innerHeight; // Changed from 540
+Game.stats = true;
+
+// INIT
+Game.init = function(HACK){
+
+	// Set up PIXI with viewport dimensions
+	Game.width = window.innerWidth;
+	Game.height = window.innerHeight;
+	Game.renderer = new PIXI.WebGLRenderer(Game.width, Game.height);
+	document.querySelector("#stage").appendChild(Game.renderer.view);
+	Game.stage = new PIXI.Container();
+	Game.stage.interactive = true;
+
+	// Handle window resize
+	window.addEventListener('resize', function() {
+		Game.width = window.innerWidth;
+		Game.height = window.innerHeight;
+		Game.renderer.resize(Game.width, Game.height);
+		
+		// If the current scene has a resize handler, call it
+		if (Game.scene && Game.scene.resize) {
+			Game.scene.resize();
+		}
+	});
+
+	// Mr Doob Stats
+	if(Game.stats){
+		Game.stats = new Stats();
+		Game.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+		document.body.appendChild(Game.stats.dom);
+	}
+
+	// Scene Manager
+	Game.scene = null;
+	Game.sceneManager = new SceneManager();
+
+	if(HACK){
+		// NOT preloader - jump direct to a scene
+		Game.loadAssets(function(){ // well, also get preloader assets...
+			Game.loadAssets(function(){
+				Game.sceneManager.gotoScene(HACK);
+				setInterval(Game.update,1000/60);
+				Game.animate();
+			}, function(){}, false);
+		}, function(){}, true);
+	}else{
+		// Preloader
+		Game.loadAssets(function(){
+			Game.sceneManager.gotoScene("Preloader");
+			setInterval(Game.update,1000/60);
+			Game.animate();
+		}, function(){}, true);
+	}
+
+};
+
+// UPDATE & ANIMATE
+
+Game.paused = false;
+
+Game.update = function(){
+	if(Game.paused) return;
+	Tween.tick();
+	Game.sceneManager.update();
+};
+
+Game.animate = function(){
+	if(Game.stats) Game.stats.begin();
+	if(!Game.paused){
+    	Game.renderer.render(Game.stage);
     }
-    return [preferred, ...ICON_EXTENSIONS.filter(ext => ext !== preferred)];
+    if(Game.stats) Game.stats.end();
+    requestAnimationFrame(Game.animate);
+};
+
+// GAME PAUSED?
+// ON BLUR & PAUSE
+
+var modal_shade = document.getElementById("modal_shade");
+var paused = document.getElementById("paused");
+window.onblur = function(){
+	if(Game.scene && Game.scene.UNPAUSEABLE) return;
+	modal_shade.style.display = "block";
+	paused.style.display = "block";
+	Game.paused = true;
+	Howler.mute(true);
 }
+modal_shade.onclick = paused.onclick = function(){
+	modal_shade.style.display = "none";
+	paused.style.display = "none";
+	Game.paused = false;
+	Howler.mute(false);
+};
 
-function parseIconInfo(src) {
-    if (!src) return null;
-    const match = String(src).match(/^(.*\/)?icon\.([a-z0-9]+)(?:[?#].*)?$/i);
-    if (!match) return null;
-    return {
-        base: (match[1] || '') + 'icon',
-        ext: match[2].toLowerCase(),
-    };
-}
+// LOADING, and ADDING TO MANIFEST.
+// TO DO: Progress, too
 
-function pushIconCandidates(candidates, seen, base, preferredExt = null) {
-    if (!base) return;
-    iconExtOrder(preferredExt).forEach(ext => {
-        const candidate = `${base}.${ext}`;
-        if (!seen.has(candidate)) {
-            seen.add(candidate);
-            candidates.push(candidate);
-        }
-    });
-}
+Game.manifest = {};
+Game.manifest2 = {}; // FOR PRELOADER
+Game.sounds = {};
 
-function getGameIconCandidates(img) {
-    const candidates = [];
-    const seen = new Set();
+Game.loadAssets = function(completeCallback, progressCallback, PRELOADER){
 
-    const srcAttr = (img.getAttribute('src') || '').trim();
-    const currentSrc = img.currentSrc || srcAttr;
+	var manifest = PRELOADER ? Game.manifest2 : Game.manifest;
 
-    const currentInfo = parseIconInfo(currentSrc);
-    if (currentInfo) {
-        pushIconCandidates(candidates, seen, currentInfo.base, currentInfo.ext);
-    } else if (currentSrc && !seen.has(currentSrc)) {
-        seen.add(currentSrc);
-        candidates.push(currentSrc);
-    }
+	// ABSOLUTE NUMBER OF ASSETS!
+	var _totalAssetsLoaded = 0;
+	var _totalAssetsToLoad = 0;
+	for(var key in manifest){
+		var src = manifest[key];
+		if(src.slice(-5)==".json"){
+			// Is Sprite. Actually TWO assets.
+			_totalAssetsToLoad += 2;
+		}else{
+			_totalAssetsToLoad += 1;
+		}
+	}
+	var _onAssetLoad = function(){
+		_totalAssetsLoaded++;
+		progressCallback(_totalAssetsLoaded/_totalAssetsToLoad); // PROGRESS.
+	};
 
-    const attrInfo = parseIconInfo(srcAttr);
-    if (attrInfo) {
-        pushIconCandidates(candidates, seen, attrInfo.base, attrInfo.ext);
-    }
+	// META: Groups To Load – just images & sounds
+	var _groupsToLoad = PRELOADER ? 1 : 2;
+	var _onGroupLoaded = function(){
+		_groupsToLoad--;
+		if(_groupsToLoad==0) completeCallback(); // DONE.
+	};
 
-    if (typeof GAME_FOLDER === 'string' && GAME_FOLDER.trim()) {
-        const normalizedFolder = GAME_FOLDER.replace(/^\/+|\/+$/g, '');
-        pushIconCandidates(candidates, seen, `../../${normalizedFolder}/icon`);
-    }
+	// Howler
+	var _soundsToLoad = 0;
+	var _onSoundLoad = function(){
+		_soundsToLoad--;
+		_onAssetLoad();
+		if(_soundsToLoad==0) _onGroupLoaded();
+	};
 
-    pushIconCandidates(candidates, seen, 'icon');
-    return candidates;
-}
+	// PIXI
+	var loader = PIXI.loader;
+	var resources = PIXI.loader.resources;
 
-function applyGameIconFallback(img) {
-    const candidates = getGameIconCandidates(img);
-    if (!candidates.length) return;
+	for(var key in manifest){
 
-    let index = 0;
-    function tryNextIcon() {
-        if (index >= candidates.length) {
-            img.style.display = 'none';
-            return;
-        }
-        img.style.display = '';
-        img.src = candidates[index++];
-    }
+		var src = manifest[key];
 
-    img.onerror = tryNextIcon;
-    tryNextIcon();
-}
+		// Is MP3. Leave it to Howler.
+		if(src.slice(-4)==".mp3"){
+			var sound = new Howl({ src:[src] });
+			_soundsToLoad++;
+			sound.once('load', _onSoundLoad);
+			Game.sounds[key] = sound;
+			continue;
+		}
 
-function initGameIconFallbacks() {
-    document.querySelectorAll('.game-icon').forEach(applyGameIconFallback);
-}
+		// Otherwise, is an image. Leave it to PIXI.
+	    loader.add(key, src);
 
-(function bootstrapGameIconFallbacks() {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initGameIconFallbacks);
-    } else {
-        initGameIconFallbacks();
-    }
-})();
+	}
 
-/* ==============================================
-   FAVOURITES (localStorage)
-============================================== */
-function getFavourites() {
-    try { return JSON.parse(localStorage.getItem('kva_favourites') || '[]'); }
-    catch (e) { return []; }
-}
+	// PIXI
+	loader.on('progress',_onAssetLoad);
+	loader.once('complete', _onGroupLoaded);
+	loader.load();
 
-function saveFavourites(favs) {
-    try { localStorage.setItem('kva_favourites', JSON.stringify(favs)); }
-    catch (e) {}
-}
+};
 
-function isFavourited(folder) {
-    return getFavourites().some(f => f.folder === folder);
-}
+// Add To Manifest
+Game.addToManifest = function(keyValues, PRELOADER){
+	var manifest = PRELOADER ? Game.manifest2 : Game.manifest;
+	for(var key in keyValues){
+		manifest[key] = keyValues[key];
+	}
+};
 
-function toggleFavourite() {
-    let favs = getFavourites();
-    if (isFavourited(GAME_FOLDER)) {
-        favs = favs.filter(f => f.folder !== GAME_FOLDER);
-    } else {
-        favs.unshift({ name: GAME_NAME, folder: GAME_FOLDER });
-    }
-    saveFavourites(favs);
-    renderFavBtn();
-    return false;
-}
-
-function renderFavBtn() {
-    const btn = document.getElementById('__fav-btn');
-    if (!btn) return;
-    const active = isFavourited(GAME_FOLDER);
-    btn.textContent = active ? '\u2665 Favourited' : '\u2661 Favourite';
-    btn.classList.toggle('fav-btn--active', active);
-    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-}
-
-/* Inject the favourites button into .game-header on load */
-(function injectFavBtn() {
-    function insert() {
-        if (typeof GAME_FOLDER === 'undefined') return;
-        const header = document.querySelector('.game-header');
-        if (!header || document.getElementById('__fav-btn')) return;
-
-        const btn = document.createElement('button');
-        btn.id = '__fav-btn';
-        btn.className = 'fav-btn';
-        btn.type = 'button';
-        btn.addEventListener('click', toggleFavourite);
-        header.appendChild(btn);
-        renderFavBtn();
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', insert);
-    } else {
-        insert();
-    }
-})();
+})(window);

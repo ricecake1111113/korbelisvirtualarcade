@@ -205,6 +205,15 @@ body {
     margin-bottom: 4px;
 }
 
+.masthead-dateline {
+    margin-top: 4px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-style: italic;
+    text-transform: none;
+}
+
 /* =========================
    NEWS TICKER
 ========================= */
@@ -382,9 +391,10 @@ body {
 .game-card:hover .game-card-label { color: var(--paper); }
 
 .game-card img {
-    width: 118px;
-    height: 118px;
-    object-fit: contain;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
     margin-bottom: 0;
 }
 
@@ -403,11 +413,6 @@ body {
 
 .system-header + .games-grid .game-card {
     padding: 3px 2px 3px;
-}
-
-.system-header + .games-grid .game-card img {
-    width: 118px;
-    height: 118px;
 }
 
 /* under construction cards get a dashed border */
@@ -643,11 +648,6 @@ body {
     border-bottom: 1px solid #c9bfb0 !important;
 }
 
-.recently-played-grid .game-card img {
-    width: 132px;
-    height: 132px;
-}
-
 /* =========================
    SECTION COUNT BADGE
 ========================= */
@@ -718,6 +718,50 @@ body {
 }
 
 /* =========================
+   STORY DROP CAP
+========================= */
+.story-drop::first-letter {
+    float: left;
+    font-family: 'Anton', sans-serif;
+    font-size: 4.5em;
+    line-height: 0.75;
+    margin-right: 6px;
+    margin-top: 4px;
+    color: var(--burgundy);
+}
+
+/* =========================
+   MASTHEAD RULE
+========================= */
+.masthead::after {
+    content: '';
+    display: block;
+}
+
+/* =========================
+   HERO BYLINE
+========================= */
+.hero-byline {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--burgundy);
+}
+
+/* =========================
+   CARD LABEL PADDING
+========================= */
+.game-card-label {
+    padding: 4px 4px 3px;
+    width: 100%;
+}
+
+/* =========================
    FOOTER
 ========================= */
 .footer {
@@ -755,17 +799,7 @@ body {
     .story-section { grid-template-columns: 1fr; }
     .story-col--main { border-right: none; border-bottom: 2px solid var(--ink); }
 
-    .games-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-
-    .game-card img {
-        width: 96px;
-        height: 96px;
-    }
-
-    .recently-played-grid .game-card img {
-        width: 104px;
-        height: 104px;
-    }
+    .games-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
     .topbar-title { display: none; }
 }

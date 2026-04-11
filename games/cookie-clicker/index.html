@@ -12,6 +12,11 @@
     <link rel="icon"       type="image/x-icon" href="../../icon.ico">
     <link rel="stylesheet" href="../../style.css">
     <link rel="stylesheet" href="../../game.css">
+
+    <style>
+        /* Cookie Clicker needs a wide viewport — use 4:3 ratio for better layout */
+        .game-stage { aspect-ratio: 4 / 3; }
+    </style>
 </head>
 
 <body>
@@ -95,7 +100,7 @@
 /* ==============================================
    CONFIG
 ============================================== */
-const GAME_NAME   = 'Boas.IO';
+const GAME_NAME   = 'Cookie Clicker';
 const GAME_FOLDER = 'games/cookie-clicker';
 const FRAME_SRC   = '../../file/cookie-clicker';
 const IS_POPOUT   = window.opener !== null;

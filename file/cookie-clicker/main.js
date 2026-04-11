@@ -17305,6 +17305,19 @@ window.onload=function()
 				},
 				function(){
 					Game.Launch();
+					if (top!=self && !Game.local) Game.ErrorFrame();
+					else
+					{
+						console.log('[=== '+choose([
+							'Oh, hello!',
+							'hey, how\'s it hangin',
+							'About to cheat in some cookies or just checking for bugs?',
+							'Remember : cheated cookies taste awful!',
+							'Hey, Orteil here. Cheated cookies taste awful... or do they?',
+						])+' ===]');
+						Game.Load(function(){Game.Init();if (firstLaunch) Game.showLangSelection(true);});
+						//try {Game.Load(Game.Init);}
+						//catch(err) {console.log('ERROR : '+err.message);}
 					}
 				},
 			];

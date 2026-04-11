@@ -14,45 +14,9 @@
     <link rel="stylesheet" href="../../game.css">
     
     <style>
-        /* Fix for centered embed that fills the frame */
+        /* We Become What We Behold — uses a 16:9 aspect ratio */
         .game-stage {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #000;
-        }
-        
-        #gameFrame {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
-            border: none;
-            display: block;
-            object-fit: contain; /* Ensures game scales properly while maintaining aspect ratio */
-        }
-        
-        /* Ensure the overlay covers the entire stage */
-        .game-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.8);
-        }
-        
-        .overlay-content {
-            text-align: center;
-            color: white;
+            aspect-ratio: 16 / 9;
         }
     </style>
 </head>
