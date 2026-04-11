@@ -693,5 +693,25 @@
     "tags": [
       "music"
     ]
+  },
+  {
+    "name": "Cookie Clicker",
+    "folder": "games/cookie-clicker",
+    "section": "games",
+    "dateAdded": "2026-04-09",
+    "popularity": 80,
+    "tags": [
+      "music"
+    ]
+  },
+  {
+    "name": "4th of July Baseball",
+    "folder": "games/google-4th-of-july-baseball",
+    "section": "games",
+    "dateAdded": "2026-04-09",
+    "popularity": 60,
+    "tags": [
+      "music"
+    ]
   }
 ]

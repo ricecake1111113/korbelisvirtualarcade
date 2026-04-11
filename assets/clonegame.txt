@@ -1,69 +1,513 @@
------------ 1) Devtools (f12) -> network -> refresh page -> run in console:
-
-
-const urls = performance
-  .getEntriesByType("resource")
-  .map(r => r.name)
-  .join("\n");
-
-const blob = new Blob([urls], { type: "text/plain" });
-const link = document.createElement("a");
-
-link.href = URL.createObjectURL(blob);
-link.download = "urls.txt";
-
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-
-
------------ 2) run in powershell
-
-# edit below vvvv
-$baseDir = "C:\Users\minec\Documents\GitHub\supertest\pokepath td"
-$urlFile = "C:\Users\minec\Documents\GitHub\supertest\pokepath td\urls.txt"
-
-# Ensure base directory exists
-if (!(Test-Path $baseDir)) {
-    New-Item -ItemType Directory -Path $baseDir -Force | Out-Null
-}
-
-# Read entire file and split on whitespace (spaces, newlines, tabs)
-$content = Get-Content $urlFile -Raw
-$urls = $content -split "\s+" | Where-Object { $_ -match "^https?://" }
-
-foreach ($url in $urls) {
-
-    try {
-        # Remove itch base path, replace with actual link
-        $relativePath = $url -replace "^https://html-classic\.itch\.zone/html/15902423/PokePath%20TD%20WEB/", ""
-
-        # Decode %20 etc
-        $relativePath = [System.Uri]::UnescapeDataString($relativePath)
-
-        # Build output path
-        $outputPath = Join-Path $baseDir $relativePath
-        $folder = Split-Path -Parent $outputPath
-
-        # Create folders
-        if (!(Test-Path $folder)) {
-            New-Item -ItemType Directory -Path $folder -Force | Out-Null
+// === ULTIMATE NETWORK ASSET HARVESTER ===
+// Captures EVERY URL from Performance API, DOM, memory, and network hooks
+// Even if CORS blocks fetching, URLs are saved for external download
+(function() {
+    'use strict';
+    
+    console.log('%c🚀 ULTIMATE ASSET HARVESTER', 'font-size: 18px; font-weight: bold; background: #9C27B0; color: white; padding: 8px;');
+    
+    const urlDatabase = new Map(); // url -> metadata
+    let isCapturing = true; // Start capturing immediately
+    
+    // ========== INTERCEPT ALL NETWORK APIS ==========
+    const originalFetch = window.fetch;
+    const originalXHROpen = XMLHttpRequest.prototype.open;
+    const originalXHRSend = XMLHttpRequest.prototype.send;
+    
+    // Hook Fetch
+    window.fetch = async function(...args) {
+        const request = args[0];
+        const url = typeof request === 'string' ? request : request.url;
+        const method = (request.method || 'GET').toUpperCase();
+        
+        if (isCapturing && url && !url.startsWith('data:') && !url.startsWith('blob:')) {
+            registerUrl(url, method, 'fetch');
         }
-
-        # Skip existing files
-        if (Test-Path $outputPath) {
-            Write-Host "Skipped: $relativePath"
-            continue
+        
+        try {
+            const response = await originalFetch.apply(this, args);
+            
+            // Try to capture blob even if CORS allows
+            if (isCapturing && url) {
+                const cloned = response.clone();
+                cloned.blob().then(blob => {
+                    updateUrlWithBlob(url, blob, response.status, response.headers.get('content-type'));
+                }).catch(() => {
+                    // CORS blocked - mark as opaque
+                    updateUrlStatus(url, response.status, response.headers.get('content-type'), true);
+                });
+            }
+            
+            return response;
+        } catch (error) {
+            if (isCapturing) registerUrl(url, method, 'fetch-error');
+            throw error;
         }
-
-        # Download
-        Invoke-WebRequest -Uri $url -OutFile $outputPath -ErrorAction Stop
-
-        Write-Host "Downloaded: $relativePath"
+    };
+    
+    // Hook XHR
+    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        this._url = url;
+        this._method = method;
+        if (isCapturing && url && !url.startsWith('data:') && !url.startsWith('blob:')) {
+            registerUrl(url, method, 'xhr');
+        }
+        return originalXHROpen.apply(this, [method, url, ...rest]);
+    };
+    
+    XMLHttpRequest.prototype.send = function(...args) {
+        this.addEventListener('load', function() {
+            if (isCapturing && this._url) {
+                try {
+                    const blob = new Blob([this.response], { 
+                        type: this.getResponseHeader('content-type') || 'application/octet-stream' 
+                    });
+                    updateUrlWithBlob(this._url, blob, this.status, this.getResponseHeader('content-type'));
+                } catch(e) {
+                    updateUrlStatus(this._url, this.status, this.getResponseHeader('content-type'), true);
+                }
+            }
+        });
+        this.addEventListener('error', () => {
+            if (isCapturing && this._url) updateUrlStatus(this._url, 0, null, true);
+        });
+        return originalXHRSend.apply(this, args);
+    };
+    
+    // Hook image/audio/video src sets
+    const originalImageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+        set: function(url) {
+            if (isCapturing && url && typeof url === 'string' && !url.startsWith('data:')) {
+                registerUrl(url, 'GET', 'image');
+            }
+            originalImageSrc.set.call(this, url);
+        },
+        get: originalImageSrc.get
+    });
+    
+    // ========== URL REGISTRATION & BLOB STORAGE ==========
+    function registerUrl(url, method = 'GET', type = 'unknown') {
+        if (!url || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:')) return;
+        if (urlDatabase.has(url)) return;
+        
+        urlDatabase.set(url, {
+            url,
+            method,
+            type,
+            status: null,
+            contentType: null,
+            blob: null,
+            opaque: false,
+            timestamp: Date.now(),
+            size: 0
+        });
+        
+        console.log(`%c🔗 Registered: ${url.substring(0, 80)}`, 'color: #9E9E9E;');
+        updateUI();
     }
-    catch {
-        Write-Host "Failed: $url"
+    
+    function updateUrlWithBlob(url, blob, status, contentType) {
+        const entry = urlDatabase.get(url);
+        if (entry) {
+            entry.blob = blob;
+            entry.status = status;
+            entry.contentType = contentType;
+            entry.size = blob.size;
+            entry.opaque = false;
+            console.log(`%c✅ Captured: ${url.substring(0, 80)} (${formatSize(blob.size)})`, 'color: #4CAF50;');
+        } else {
+            // New URL discovered via blob
+            urlDatabase.set(url, {
+                url, method: 'GET', type: 'blob', status, contentType, blob,
+                opaque: false, timestamp: Date.now(), size: blob.size
+            });
+            console.log(`%c✅ Captured (late): ${url.substring(0, 80)}`, 'color: #4CAF50;');
+        }
+        updateUI();
     }
-}
-
-Write-Host "Done."
+    
+    function updateUrlStatus(url, status, contentType, opaque = false) {
+        const entry = urlDatabase.get(url);
+        if (entry) {
+            entry.status = status;
+            entry.contentType = contentType;
+            entry.opaque = opaque;
+            console.log(`%c⚠️ Opaque: ${url.substring(0, 80)} (CORS blocked)`, 'color: #FF9800;');
+            updateUI();
+        }
+    }
+    
+    // ========== HARVEST EXISTING RESOURCES ==========
+    async function harvestExisting() {
+        console.log('%c🔍 Harvesting all existing resources...', 'color: #FF9800; font-weight: bold;');
+        
+        // 1. Performance API (most comprehensive)
+        performance.getEntriesByType('resource').forEach(entry => {
+            if (entry.name) registerUrl(entry.name, 'GET', entry.initiatorType);
+        });
+        
+        // 2. DOM elements
+        document.querySelectorAll('img, script, link, audio, video, source').forEach(el => {
+            const url = el.src || el.href;
+            if (url) registerUrl(url, 'GET', el.tagName.toLowerCase());
+        });
+        
+        // 3. Deep scan window objects for URL strings
+        const seen = new WeakSet();
+        function scanObject(obj, path = 'window', depth = 0) {
+            if (depth > 8 || !obj || typeof obj !== 'object') return;
+            if (seen.has(obj)) return;
+            seen.add(obj);
+            
+            try {
+                Object.entries(obj).forEach(([key, value]) => {
+                    if (typeof value === 'string') {
+                        // Check if string looks like a URL
+                        if (value.match(/^https?:\/\//i) || value.match(/\.(png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|mp4|json|xml|scml|atlas|tmx|bin|js|css|wasm)/i)) {
+                            try {
+                                const absolute = new URL(value, window.location.href).href;
+                                registerUrl(absolute, 'GET', 'memory');
+                            } catch(e) {}
+                        }
+                    } else if (value && typeof value === 'object') {
+                        scanObject(value, `${path}.${key}`, depth + 1);
+                    }
+                });
+            } catch(e) {}
+        }
+        
+        scanObject(window);
+        
+        // 4. Attempt to fetch each URL (with CORS workarounds)
+        console.log(`%c📦 Found ${urlDatabase.size} URLs. Attempting to fetch...`, 'color: #2196F3;');
+        
+        const urls = Array.from(urlDatabase.keys());
+        for (const url of urls) {
+            const entry = urlDatabase.get(url);
+            if (entry.blob) continue; // already have blob
+            
+            try {
+                // Try standard fetch
+                const response = await fetch(url, { mode: 'cors', credentials: 'include' });
+                if (response.ok) {
+                    const blob = await response.blob();
+                    updateUrlWithBlob(url, blob, response.status, response.headers.get('content-type'));
+                } else {
+                    updateUrlStatus(url, response.status, response.headers.get('content-type'), true);
+                }
+            } catch(e) {
+                // CORS error - try no-cors to at least get opaque response
+                try {
+                    const response = await fetch(url, { mode: 'no-cors' });
+                    // Opaque response - can't read body, but URL is recorded
+                    updateUrlStatus(url, 0, null, true);
+                } catch(e2) {
+                    updateUrlStatus(url, 0, null, true);
+                }
+            }
+        }
+        
+        updateUI();
+        console.log('%c✅ Harvest complete.', 'color: #4CAF50; font-weight: bold;');
+    }
+    
+    // ========== UI PANEL ==========
+    function createUI() {
+        const panel = document.createElement('div');
+        panel.id = 'harvesterUI';
+        panel.style.cssText = `
+            position: fixed; top: 10px; right: 10px; z-index: 999999;
+            background: #1e1e1e; color: #d4d4d4; padding: 15px;
+            border-radius: 8px; font-family: monospace; font-size: 12px;
+            border: 1px solid #3e3e42; max-height: 90vh; overflow-y: auto;
+            min-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        `;
+        panel.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0; color: #9C27B0;">🚀 Asset Harvester</h3>
+                <button id="closeUI" style="background:#d32f2f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">✕</button>
+            </div>
+            <div style="margin: 10px 0;">
+                <button id="harvestNow" style="width:100%; background:#9C27B0; color:white; border:none; padding:10px; border-radius:4px; cursor:pointer; font-weight:bold;">🔍 HARVEST EXISTING</button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button id="toggleCapture" style="flex:1; background:#4CAF50; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">⏸ Pause Capture</button>
+                <button id="downloadZip" style="flex:1; background:#2196F3; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">📥 Download ZIP</button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button id="exportUrls" style="flex:1; background:#FF9800; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">📋 Export URLs</button>
+                <button id="exportHar" style="flex:1; background:#607d8b; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">📄 Export HAR-like</button>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <input type="text" id="filterInput" placeholder="Filter URLs..." style="width:100%; padding:6px; background:#2d2d30; border:1px solid #3e3e42; color:#d4d4d4; border-radius:4px;">
+            </div>
+            <div style="margin-bottom: 10px; background:#2d2d30; padding:8px; border-radius:4px;">
+                <span>📊 Total: <span id="totalCount">0</span> | 
+                💾 With blob: <span id="blobCount">0</span> | 
+                ⚠️ Opaque: <span id="opaqueCount">0</span></span><br>
+                <span>💿 Total size: <span id="totalSize">0 B</span></span>
+            </div>
+            <div id="urlList" style="max-height: 400px; overflow-y: auto; background:#252526; padding:5px; border-radius:4px;">
+                <div style="color:#6a9955;">Click "HARVEST EXISTING" to start...</div>
+            </div>
+        `;
+        document.body.appendChild(panel);
+        
+        // Make draggable
+        let pos1=0,pos2=0,pos3=0,pos4=0;
+        panel.querySelector('h3').onmousedown = dragMouseDown;
+        function dragMouseDown(e) {
+            e.preventDefault();
+            pos3 = e.clientX; pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }
+        function elementDrag(e) {
+            e.preventDefault();
+            pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
+            pos3 = e.clientX; pos4 = e.clientY;
+            panel.style.top = (panel.offsetTop - pos2) + "px";
+            panel.style.left = (panel.offsetLeft - pos1) + "px";
+            panel.style.right = 'auto';
+        }
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+        
+        // Event listeners
+        document.getElementById('closeUI').onclick = () => panel.remove();
+        document.getElementById('harvestNow').onclick = harvestExisting;
+        document.getElementById('toggleCapture').onclick = function() {
+            isCapturing = !isCapturing;
+            this.textContent = isCapturing ? '⏸ Pause Capture' : '▶ Resume Capture';
+            this.style.background = isCapturing ? '#4CAF50' : '#f44336';
+            console.log(`Capture ${isCapturing ? 'resumed' : 'paused'}`);
+        };
+        document.getElementById('downloadZip').onclick = downloadZip;
+        document.getElementById('exportUrls').onclick = exportUrlList;
+        document.getElementById('exportHar').onclick = exportHar;
+        document.getElementById('filterInput').oninput = updateUI;
+        
+        updateUI();
+    }
+    
+    // ========== UI UPDATE ==========
+    function formatSize(bytes) {
+        if (!bytes) return '0 B';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024*1024) return (bytes/1024).toFixed(2) + ' KB';
+        return (bytes/(1024*1024)).toFixed(2) + ' MB';
+    }
+    
+    function updateUI() {
+        const filter = document.getElementById('filterInput')?.value.toLowerCase() || '';
+        const entries = Array.from(urlDatabase.values())
+            .filter(e => e.url.toLowerCase().includes(filter))
+            .sort((a,b) => b.timestamp - a.timestamp);
+        
+        const listDiv = document.getElementById('urlList');
+        if (entries.length === 0) {
+            listDiv.innerHTML = '<div style="color:#6a9955;">No URLs captured yet.</div>';
+        } else {
+            let html = '';
+            entries.forEach(e => {
+                const hasBlob = !!e.blob;
+                const statusColor = e.status === 200 ? '#4ec9b0' : (e.opaque ? '#FF9800' : '#f48771');
+                const icon = hasBlob ? '✅' : (e.opaque ? '⚠️' : '⏳');
+                const shortUrl = e.url.length > 60 ? e.url.substring(0,60)+'...' : e.url;
+                html += `<div style="margin-bottom:4px; padding:4px; background:#2d2d30; border-left:3px solid ${hasBlob ? '#4CAF50' : '#FF9800'}">
+                    <div style="display:flex; gap:5px;">
+                        <span>${icon}</span>
+                        <span style="color:${statusColor}">${e.status||'?'}</span>
+                        <span style="color:#d4d4d4; flex:1;" title="${e.url}">${shortUrl}</span>
+                        <span style="color:#808080">${formatSize(e.size)}</span>
+                    </div>
+                </div>`;
+            });
+            listDiv.innerHTML = html;
+        }
+        
+        const total = urlDatabase.size;
+        const withBlob = Array.from(urlDatabase.values()).filter(e => e.blob).length;
+        const opaque = Array.from(urlDatabase.values()).filter(e => e.opaque).length;
+        const totalBytes = Array.from(urlDatabase.values()).reduce((sum, e) => sum + (e.size||0), 0);
+        
+        document.getElementById('totalCount').textContent = total;
+        document.getElementById('blobCount').textContent = withBlob;
+        document.getElementById('opaqueCount').textContent = opaque;
+        document.getElementById('totalSize').textContent = formatSize(totalBytes);
+    }
+    
+    // ========== DOWNLOAD ZIP (only blobs we have) ==========
+    async function downloadZip() {
+        const entries = Array.from(urlDatabase.values()).filter(e => e.blob);
+        if (entries.length === 0) {
+            alert('No blobs captured. CORS may be blocking downloads. Export URL list instead.');
+            return;
+        }
+        
+        if (typeof JSZip === 'undefined') {
+            await new Promise(r => {
+                const s = document.createElement('script');
+                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+                s.onload = r;
+                document.head.appendChild(s);
+            });
+        }
+        
+        const zip = new JSZip();
+        let success = 0;
+        
+        for (const e of entries) {
+            try {
+                const url = new URL(e.url);
+                let path = url.pathname.substring(1);
+                if (!path || path.endsWith('/')) path += 'index.html';
+                
+                // Add opaque marker to path if needed
+                if (e.opaque) path = 'opaque/' + path;
+                
+                zip.file(path, e.blob);
+                success++;
+                if (success % 20 === 0) console.log(`ZIP progress: ${success}/${entries.length}`);
+            } catch(err) {
+                console.warn('Failed to add to ZIP:', e.url, err);
+            }
+        }
+        
+        // Add manifest with all URLs
+        const manifest = {
+            total: urlDatabase.size,
+            withBlob: entries.length,
+            opaque: Array.from(urlDatabase.values()).filter(e => e.opaque).length,
+            urls: Array.from(urlDatabase.keys())
+        };
+        zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+        
+        // Add list of opaque URLs for manual download
+        const opaqueUrls = Array.from(urlDatabase.values()).filter(e => e.opaque).map(e => e.url);
+        if (opaqueUrls.length) {
+            zip.file('OPAQUE_URLS.txt', 
+                "# These URLs could not be fetched due to CORS.\n" +
+                "# Use a download manager or browser extension to get them.\n\n" +
+                opaqueUrls.join('\n'));
+        }
+        
+        const blob = await zip.generateAsync({type: 'blob'});
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `assets_partial_${Date.now()}.zip`;
+        a.click();
+        URL.revokeObjectURL(downloadUrl);
+        
+        console.log('✅ ZIP downloaded (partial). Opaque URLs saved in OPAQUE_URLS.txt inside.');
+    }
+    
+    // ========== EXPORT URL LIST ==========
+    function exportUrlList() {
+        const urls = Array.from(urlDatabase.keys());
+        const data = {
+            total: urls.length,
+            withBlob: Array.from(urlDatabase.values()).filter(e => e.blob).length,
+            opaque: Array.from(urlDatabase.values()).filter(e => e.opaque).length,
+            urls: urls,
+            details: Array.from(urlDatabase.values()).map(e => ({
+                url: e.url,
+                method: e.method,
+                type: e.type,
+                status: e.status,
+                contentType: e.contentType,
+                size: e.size,
+                opaque: e.opaque
+            }))
+        };
+        
+        // JSON
+        const jsonBlob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(jsonBlob);
+        a.download = `asset_urls_${Date.now()}.json`;
+        a.click();
+        
+        // Plain text list
+        const textBlob = new Blob([urls.join('\n')], {type: 'text/plain'});
+        const a2 = document.createElement('a');
+        a2.href = URL.createObjectURL(textBlob);
+        a2.download = `asset_urls_${Date.now()}.txt`;
+        a2.click();
+        
+        // Also save opaque list separately
+        const opaque = data.details.filter(d => d.opaque).map(d => d.url);
+        if (opaque.length) {
+            const opaqueBlob = new Blob([opaque.join('\n')], {type: 'text/plain'});
+            const a3 = document.createElement('a');
+            a3.href = URL.createObjectURL(opaqueBlob);
+            a3.download = `opaque_urls_${Date.now()}.txt`;
+            a3.click();
+        }
+        
+        console.log('📋 URL lists exported.');
+    }
+    
+    // ========== EXPORT HAR-LIKE ==========
+    function exportHar() {
+        const entries = Array.from(urlDatabase.values());
+        const har = {
+            log: {
+                version: '1.2',
+                creator: { name: 'Asset Harvester', version: '1.0' },
+                entries: entries.map(e => ({
+                    startedDateTime: new Date(e.timestamp).toISOString(),
+                    time: 0,
+                    request: {
+                        method: e.method,
+                        url: e.url,
+                        httpVersion: 'HTTP/1.1',
+                        headers: [],
+                        queryString: [],
+                        headersSize: -1,
+                        bodySize: -1
+                    },
+                    response: {
+                        status: e.status || 0,
+                        statusText: e.status === 200 ? 'OK' : (e.opaque ? 'Opaque' : 'Unknown'),
+                        httpVersion: 'HTTP/1.1',
+                        headers: e.contentType ? [{ name: 'Content-Type', value: e.contentType }] : [],
+                        content: {
+                            size: e.size || 0,
+                            mimeType: e.contentType || ''
+                        },
+                        redirectURL: '',
+                        headersSize: -1,
+                        bodySize: e.size || -1
+                    },
+                    cache: {},
+                    timings: { send: 0, wait: 0, receive: 0 },
+                    _opaque: e.opaque
+                }))
+            }
+        };
+        
+        const blob = new Blob([JSON.stringify(har, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `network_har_${Date.now()}.json`;
+        a.click();
+        console.log('📄 HAR-like export saved.');
+    }
+    
+    // ========== INIT ==========
+    function init() {
+        createUI();
+        // Auto-harvest after a short delay
+        setTimeout(harvestExisting, 500);
+        
+        console.log('%c✅ Ultimate Asset Harvester active!', 'color: #4CAF50; font-weight: bold;');
+        console.log('%c💡 If some assets are opaque (CORS blocked), export the URL list and use a download manager like "DownThemAll" or "wget" with the text file.', 'color: #FF9800; font-weight: bold;');
+    }
+    
+    init();
+})();

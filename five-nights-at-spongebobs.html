@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five Nights at SpongeBob's Pineapple</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    overflow: hidden;
+    user-select: none;
+    cursor: default;
+  }
+
+  #game-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ===== TITLE SCREEN ===== */
+  #title-screen {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  #title-screen h1 {
+    font-family: 'Creepster', cursive;
+    font-size: 4.5vw;
+    color: #FFD700;
+    text-shadow: 0 0 20px #FF6600, 0 0 40px #FF3300, 3px 3px 0 #333;
+    text-align: center;
+    margin-bottom: 10px;
+    animation: flicker 3s infinite;
+  }
+
+  #title-screen h2 {
+    font-family: 'Creepster', cursive;
+    font-size: 2vw;
+    color: #87CEEB;
+    text-shadow: 0 0 10px #0066FF;
+    margin-bottom: 40px;
+  }
+
+  .title-character {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #555;
+    filter: grayscale(60%) brightness(0.6);
+    animation: titleFloat 4s ease-in-out infinite;
+  }
+
+  .title-characters {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 50px;
+  }
+
+  .title-characters div {
+    text-align: center;
+  }
+
+  .title-characters p {
+    font-size: 9px;
+    color: #888;
+    margin-top: 8px;
+  }
+
+  #start-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 18px;
+    padding: 15px 40px;
+    background: transparent;
+    color: #FFD700;
+    border: 2px solid #FFD700;
+    cursor: pointer;
+    animation: pulse 2s infinite;
+    transition: all 0.3s;
+  }
+
+  #start-btn:hover {
+    background: #FFD700;
+    color: #000;
+  }
+
+  .night-select {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .night-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 8px 14px;
+    background: transparent;
+    color: #666;
+    border: 1px solid #444;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .night-btn:hover, .night-btn.active {
+    color: #FFD700;
+    border-color: #FFD700;
+  }
+
+  /* ===== OFFICE VIEW ===== */
+  #office-view {
+    position: absolute;
+    inset: 0;
+    background: #1a0a00;
+    display: none;
+  }
+
+  .office-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #2a1500 0%, #1a0a00 40%, #0d0500 100%);
+  }
+
+  /* Pineapple interior walls */
+  .pineapple-wall {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(255, 165, 0, 0.08) 0%, transparent 60%),
+      repeating-conic-gradient(from 0deg at 50% 50%, rgba(200, 120, 0, 0.03) 0deg 10deg, transparent 10deg 20deg);
+  }
+
+  .wall-texture {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255, 140, 0, 0.05) 2px, transparent 2px),
+      radial-gradient(circle at 60% 50%, rgba(255, 140, 0, 0.04) 3px, transparent 3px),
+      radial-gradient(circle at 80% 20%, rgba(255, 140, 0, 0.06) 2px, transparent 2px),
+      radial-gradient(circle at 40% 70%, rgba(255, 140, 0, 0.03) 4px, transparent 4px);
+  }
+
+  /* Office furniture */
+  .desk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 35%;
+    background: linear-gradient(180deg, #4a2800 0%, #3a1e00 100%);
+    border-top: 4px solid #6b3a00;
+    border-radius: 5px 5px 0 0;
+  }
+
+  .desk::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 120px;
+    background: #111;
+    border: 3px solid #333;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.15);
+  }
+
+  .desk::after {
+    content: '00:00';
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 194px;
+    height: 110px;
+    background: #0a0a2a;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: #0088ff44;
+  }
+
+  .fan {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 80px;
+  }
+
+  .fan-blade {
+    position: absolute;
+    width: 30px;
+    height: 4px;
+    background: #555;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .fan-blade:nth-child(2) { animation-delay: -0.33s; }
+  .fan-blade:nth-child(3) { animation-delay: -0.66s; }
+
+  /* Doors */
+  .door-area {
+    position: absolute;
+    top: 0;
+    width: 15%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .door-area.left { left: 0; }
+  .door-area.right { right: 0; }
+
+  .door-btn, .light-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 12px 8px;
+    margin: 5px;
+    width: 90%;
+    max-width: 120px;
+    border: 2px solid #555;
+    background: #222;
+    color: #aaa;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+
+  .door-btn:hover, .light-btn:hover {
+    border-color: #888;
+    color: #fff;
+  }
+
+  .door-btn.active {
+    background: #600;
+    border-color: #f00;
+    color: #ff4444;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  }
+
+  .light-btn.active {
+    background: #004400;
+    border-color: #0f0;
+    color: #44ff44;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+  }
+
+  /* Door visuals */
+  .door-visual {
+    position: absolute;
+    top: 0;
+    width: 15%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .door-visual.left { left: 0; }
+  .door-visual.right { right: 0; }
+
+  .door-panel {
+    position: absolute;
+    inset: 0;
+    background: #333;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+
+  .door-visual.right .door-panel {
+    transform-origin: right;
+  }
+
+  .door-panel.closed {
+    transform: scaleX(1);
+  }
+
+  /* Hallway peek (when light is on) */
+  .hallway-peek {
+    position: absolute;
+    top: 0;
+    width: 15%;
+    height: 100%;
+    z-index: 4;
+    display: none;
+  }
+
+  .hallway-peek.left { left: 0; }
+  .hallway-peek.right { right: 0; }
+
+  .hallway-peek.visible { display: block; }
+
+  .hallway-peek .hallway-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #1a1a1a, #0d0d0d);
+  }
+
+  .hallway-peek.right .hallway-bg {
+    background: linear-gradient(270deg, #1a1a1a, #0d0d0d);
+  }
+
+  .hallway-enemy {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 140px;
+    object-fit: contain;
+    filter: brightness(0.7) contrast(1.3);
+    animation: creepyShake 0.15s infinite;
+  }
+
+  /* ===== CAMERA VIEW ===== */
+  #camera-view {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    display: none;
+    z-index: 50;
+  }
+
+  .camera-feed {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .camera-feed-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .cam-room-bg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .cam-room-name {
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 0 5px #0f0;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+  }
+
+  .cam-enemy-img {
+    width: 180px;
+    height: 220px;
+    object-fit: contain;
+    filter: brightness(0.5) contrast(1.4) saturate(0.3);
+  }
+
+  /* Scanlines */
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 51;
+  }
+
+  .cam-static {
+    position: absolute;
+    inset: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="1" height="1" fill="%23ffffff10"/></svg>');
+    opacity: 0.3;
+    animation: staticNoise 0.1s steps(5) infinite;
+    pointer-events: none;
+    z-index: 52;
+  }
+
+  .cam-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 53;
+  }
+
+  .cam-rec {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 10px;
+    color: #f00;
+    z-index: 54;
+    animation: blink 1s infinite;
+  }
+
+  .cam-rec::before {
+    content: '●';
+    margin-right: 5px;
+  }
+
+  /* Camera map */
+  .cam-map {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 280px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #333;
+    padding: 15px;
+    z-index: 55;
+    border-radius: 5px;
+  }
+
+  .cam-map h3 {
+    font-size: 8px;
+    color: #888;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .map-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+
+  .map-room {
+    font-size: 7px;
+    padding: 8px 4px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #888;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .map-room:hover {
+    border-color: #FFD700;
+    color: #FFD700;
+  }
+
+  .map-room.active {
+    background: #2a2a00;
+    border-color: #FFD700;
+    color: #FFD700;
+  }
+
+  .map-room.has-enemy {
+    color: #ff4444;
+  }
+
+  /* Camera toggle button */
+  .cam-toggle {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 12px 25px;
+    background: #111;
+    border: 2px solid #555;
+    color: #aaa;
+    cursor: pointer;
+    z-index: 60;
+    transition: all 0.2s;
+  }
+
+  .cam-toggle:hover {
+    border-color: #FFD700;
+    color: #FFD700;
+  }
+
+  /* ===== HUD ===== */
+  .hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 80;
+    pointer-events: none;
+  }
+
+  .hud-left, .hud-right {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .hud-right { align-items: flex-end; }
+
+  .hud-text {
+    font-size: 10px;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+  }
+
+  .power-bar {
+    width: 150px;
+    height: 12px;
+    background: #222;
+    border: 1px solid #555;
+    margin-top: 3px;
+  }
+
+  .power-fill {
+    height: 100%;
+    background: #00ff00;
+    transition: width 0.5s, background 0.5s;
+  }
+
+  .power-fill.warning { background: #ffaa00; }
+  .power-fill.danger { background: #ff0000; }
+
+  .time-display {
+    font-size: 16px;
+    font-family: 'Creepster', cursive;
+    color: #FFD700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+
+  .night-display {
+    font-size: 9px;
+    color: #aaa;
+  }
+
+  /* ===== JUMPSCARE ===== */
+  #jumpscare-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .jumpscare-img {
+    width: 80vw;
+    height: 80vh;
+    object-fit: contain;
+    animation: jumpscarePop 0.5s ease-out;
+    filter: brightness(1.2) contrast(1.5) saturate(1.3);
+  }
+
+  /* ===== NIGHT TRANSITION ===== */
+  #night-transition {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 400;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  #night-transition h2 {
+    font-family: 'Creepster', cursive;
+    font-size: 48px;
+    color: #FFD700;
+    text-shadow: 0 0 20px #FF6600;
+  }
+
+  #night-transition p {
+    font-size: 11px;
+    color: #888;
+    margin-top: 20px;
+  }
+
+  /* ===== GAME OVER ===== */
+  #game-over {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 600;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  #game-over h1 {
+    font-family: 'Creepster', cursive;
+    font-size: 64px;
+    color: #ff0000;
+    text-shadow: 0 0 30px #ff0000;
+    animation: flicker 1s infinite;
+  }
+
+  #game-over p {
+    font-size: 11px;
+    color: #888;
+    margin-top: 30px;
+    cursor: pointer;
+  }
+
+  #game-over p:hover { color: #FFD700; }
+
+  /* ===== WIN SCREEN ===== */
+  #win-screen {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 600;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  #win-screen h1 {
+    font-family: 'Creepster', cursive;
+    font-size: 42px;
+    color: #00ff00;
+    text-shadow: 0 0 20px #00ff00;
+  }
+
+  #win-screen h2 {
+    font-family: 'Creepster', cursive;
+    font-size: 28px;
+    color: #FFD700;
+    margin-top: 15px;
+  }
+
+  #win-screen p {
+    font-size: 11px;
+    color: #888;
+    margin-top: 30px;
+    cursor: pointer;
+  }
+
+  #win-screen p:hover { color: #FFD700; }
+
+  /* ===== ROOM BACKGROUNDS ===== */
+  .room-bg {
+    position: absolute;
+    inset: 0;
+  }
+
+  .room-kitchen {
+    background: linear-gradient(180deg, #2a1800 0%, #1a0f00 50%, #0d0800 100%);
+  }
+
+  .room-living {
+    background: linear-gradient(180deg, #1a1a2a 0%, #0d0d1a 50%, #06060d 100%);
+  }
+
+  .room-hallway {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 50%, #050505 100%);
+  }
+
+  .room-outside {
+    background: linear-gradient(180deg, #001a2a 0%, #000d1a 50%, #00060d 100%);
+  }
+
+  .room-bedroom {
+    background: linear-gradient(180deg, #2a1a2a 0%, #1a0d1a 50%, #0d060d 100%);
+  }
+
+  .room-bathroom {
+    background: linear-gradient(180deg, #1a2a2a 0%, #0d1a1a 50%, #060d0d 100%);
+  }
+
+  .room-props {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 60px;
+    opacity: 0.15;
+  }
+
+  /* ===== POWER OUT ===== */
+  .power-out-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 90;
+    display: none;
+  }
+
+  .power-out-overlay.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    animation: powerOutFlicker 4s ease-in-out infinite;
+  }
+
+  .music-box-text {
+    font-family: 'Creepster', cursive;
+    font-size: 24px;
+    color: #FFD700;
+    opacity: 0.3;
+    animation: musicBoxGlow 2s ease-in-out infinite;
+  }
+
+  /* ===== PHONE GUY ===== */
+  .phone-msg {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    border: 1px solid #555;
+    padding: 15px 20px;
+    max-width: 500px;
+    font-size: 9px;
+    line-height: 1.6;
+    color: #aaa;
+    z-index: 85;
+    border-radius: 5px;
+    animation: fadeIn 0.5s;
+  }
+
+  .phone-msg .caller {
+    color: #FFD700;
+    margin-bottom: 8px;
+    font-size: 8px;
+  }
+
+  .phone-msg .dismiss {
+    color: #666;
+    font-size: 7px;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+
+  .phone-msg .dismiss:hover { color: #FFD700; }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+    52% { opacity: 0.2; }
+    54% { opacity: 0.9; }
+    70% { opacity: 1; }
+    72% { opacity: 0.4; }
+    74% { opacity: 1; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @keyframes staticNoise {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-2px, 1px); }
+    40% { transform: translate(1px, -1px); }
+    60% { transform: translate(-1px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  @keyframes creepyShake {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    25% { transform: translateX(-50%) translateY(-2px) rotate(0.5deg); }
+    75% { transform: translateX(-50%) translateY(1px) rotate(-0.5deg); }
+  }
+
+  @keyframes jumpscarePop {
+    0% { transform: scale(3) rotate(5deg); opacity: 0; }
+    30% { transform: scale(1.1) rotate(-2deg); opacity: 1; }
+    60% { transform: scale(1.05) rotate(1deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes titleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  @keyframes powerOutFlicker {
+    0%, 100% { opacity: 0; }
+    10% { opacity: 0.05; }
+    12% { opacity: 0; }
+    40% { opacity: 0.03; }
+    42% { opacity: 0.08; }
+    44% { opacity: 0; }
+    80% { opacity: 0.05; }
+  }
+
+  @keyframes musicBoxGlow {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.5; }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+
+  <!-- TITLE SCREEN -->
+  <div id="title-screen">
+    <h1>Five Nights at<br>SpongeBob's Pineapple</h1>
+    <h2>Under the Sea... No One Can Hear You Scream</h2>
+    <div class="title-characters">
+      <div>
+        <img class="title-character" src="https://upload.wikimedia.org/wikipedia/en/thumb/1/17/SpongeBob_SquarePants_character.svg/220px-SpongeBob_SquarePants_character.svg.png" alt="SpongeBob" crossorigin="anonymous">
+        <p>SpongeBob</p>
+      </div>
+      <div>
+        <img class="title-character" src="https://upload.wikimedia.org/wikipedia/en/thumb/a/ab/Patrickstar.png/220px-Patrickstar.png" alt="Patrick" style="animation-delay: -1s;" crossorigin="anonymous">
+        <p>Patrick</p>
+      </div>
+      <div>
+        <img class="title-character" src="https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/Squidward_Tentacles.svg/220px-Squidward_Tentacles.svg.png" alt="Squidward" style="animation-delay: -2s;" crossorigin="anonymous">
+        <p>Squidward</p>
+      </div>
+      <div>
+        <img class="title-character" src="https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/Mr._Krabs.svg/220px-Mr._Krabs.svg.png" alt="Mr. Krabs" style="animation-delay: -3s;" crossorigin="anonymous">
+        <p>Mr. Krabs</p>
+      </div>
+    </div>
+    <button id="start-btn">START GAME</button>
+    <div class="night-select">
+      <button class="night-btn active" data-night="1">Night 1</button>
+      <button class="night-btn" data-night="2">Night 2</button>
+      <button class="night-btn" data-night="3">Night 3</button>
+      <button class="night-btn" data-night="4">Night 4</button>
+      <button class="night-btn" data-night="5">Night 5</button>
+    </div>
+  </div>
+
+  <!-- OFFICE VIEW -->
+  <div id="office-view">
+    <div class="office-bg">
+      <div class="pineapple-wall"></div>
+      <div class="wall-texture"></div>
+    </div>
+
+    <div class="desk">
+      <div class="fan">
+        <div class="fan-blade"></div>
+        <div class="fan-blade"></div>
+        <div class="fan-blade"></div>
+      </div>
+    </div>
+
+    <!-- Left door area -->
+    <div class="door-area left">
+      <button class="door-btn" id="left-door-btn" onclick="toggleDoor('left')">DOOR</button>
+      <button class="light-btn" id="left-light-btn" onmousedown="toggleLight('left', true)" onmouseup="toggleLight('left', false)" onmouseleave="toggleLight('left', false)">LIGHT</button>
+    </div>
+
+    <div class="door-visual left">
+      <div class="door-panel" id="left-door-panel"></div>
+    </div>
+
+    <div class="hallway-peek left" id="left-hallway">
+      <div class="hallway-bg"></div>
+      <img class="hallway-enemy" id="left-enemy-img" src="" style="display:none;">
+    </div>
+
+    <!-- Right door area -->
+    <div class="door-area right">
+      <button class="door-btn" id="right-door-btn" onclick="toggleDoor('right')">DOOR</button>
+      <button class="light-btn" id="right-light-btn" onmousedown="toggleLight('right', true)" onmouseup="toggleLight('right', false)" onmouseleave="toggleLight('right', false)">LIGHT</button>
+    </div>
+
+    <div class="door-visual right">
+      <div class="door-panel" id="right-door-panel"></div>
+    </div>
+
+    <div class="hallway-peek right" id="right-hallway">
+      <div class="hallway-bg"></div>
+      <img class="hallway-enemy" id="right-enemy-img" src="" style="display:none;">
+    </div>
+
+    <!-- Power out overlay -->
+    <div class="power-out-overlay" id="power-out">
+      <div class="music-box-text">🎵 ...drip... drip... drip... 🎵</div>
+    </div>
+  </div>
+
+  <!-- CAMERA VIEW -->
+  <div id="camera-view">
+    <div class="camera-feed">
+      <div class="camera-feed-inner" id="cam-feed-inner">
+        <div class="room-bg room-kitchen" id="cam-room-bg"></div>
+        <div class="cam-room-bg" id="cam-room-content">
+          <div class="cam-room-name" id="cam-room-name">CAM 1A - Kitchen</div>
+          <div class="room-props" id="cam-props">🍳</div>
+          <img class="cam-enemy-img" id="cam-enemy-img" src="" style="display:none;">
+        </div>
+      </div>
+    </div>
+    <div class="scanlines"></div>
+    <div class="cam-static"></div>
+    <div class="cam-vignette"></div>
+    <div class="cam-rec">REC</div>
+
+    <div class="cam-map">
+      <h3>PINEAPPLE MAP</h3>
+      <div class="map-grid" id="map-grid"></div>
+    </div>
+  </div>
+
+  <!-- Camera toggle -->
+  <button class="cam-toggle" id="cam-toggle" onclick="toggleCameras()">📹 CAMERAS</button>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-left">
+      <div class="hud-text">POWER</div>
+      <div class="power-bar">
+        <div class="power-fill" id="power-fill"></div>
+      </div>
+      <div class="hud-text" id="power-text">100%</div>
+      <div class="hud-text" style="margin-top:5px;">Usage: <span id="usage-text">■</span></div>
+    </div>
+    <div class="hud-right">
+      <div class="time-display" id="time-display">12 AM</div>
+      <div class="night-display" id="night-display">Night 1</div>
+    </div>
+  </div>
+
+  <!-- Phone message -->
+  <div class="phone-msg" id="phone-msg" style="display:none;">
+    <div class="caller">📞 Incoming call — Squidward</div>
+    <div id="phone-text"></div>
+    <div class="dismiss" onclick="dismissPhone()">[ Click to dismiss ]</div>
+  </div>
+
+  <!-- JUMPSCARE -->
+  <div id="jumpscare-overlay">
+    <img class="jumpscare-img" id="jumpscare-img" src="">
+  </div>
+
+  <!-- NIGHT TRANSITION -->
+  <div id="night-transition">
+    <h2 id="night-trans-text">Night 1</h2>
+    <p>12:00 AM</p>
+  </div>
+
+  <!-- GAME OVER -->
+  <div id="game-over">
+    <h1>GAME OVER</h1>
+    <p onclick="restartGame()">[ Try Again ]</p>
+  </div>
+
+  <!-- WIN -->
+  <div id="win-screen">
+    <h1>6 AM</h1>
+    <h2 id="win-text">Night Complete!</h2>
+    <p id="win-action">[ Continue ]</p>
+  </div>
+</div>
+
+<script>
+// ===== CHARACTER DATA =====
+const CHARACTERS = {
+  spongebob: {
+    name: 'SpongeBob',
+    img: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/17/SpongeBob_SquarePants_character.svg/220px-SpongeBob_SquarePants_character.svg.png',
+    startRoom: 'kitchen',
+    attackSide: 'left',
+    aggressionBase: 0,
+    path: ['kitchen', 'living', 'hallLeft', 'doorLeft']
+  },
+  patrick: {
+    name: 'Patrick',
+    img: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ab/Patrickstar.png/220px-Patrickstar.png',
+    startRoom: 'outside',
+    attackSide: 'right',
+    aggressionBase: 0,
+    path: ['outside', 'hallRight', 'doorRight']
+  },
+  squidward: {
+    name: 'Squidward',
+    img: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/Squidward_Tentacles.svg/220px-Squidward_Tentacles.svg.png',
+    startRoom: 'bedroom',
+    attackSide: 'left',
+    aggressionBase: 0,
+    path: ['bedroom', 'bathroom', 'hallLeft', 'doorLeft']
+  },
+  krabs: {
+    name: 'Mr. Krabs',
+    img: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/Mr._Krabs.svg/220px-Mr._Krabs.svg.png',
+    startRoom: 'kitchen',
+    attackSide: 'right',
+    aggressionBase: 0,
+    path: ['kitchen', 'living', 'hallRight', 'doorRight']
+  }
+};
+
+// Night difficulty (aggression levels per night)
+const NIGHT_CONFIG = {
+  1: { spongebob: 2, patrick: 0, squidward: 0, krabs: 1, powerDrain: 1.0 },
+  2: { spongebob: 3, patrick: 2, squidward: 1, krabs: 2, powerDrain: 1.1 },
+  3: { spongebob: 4, patrick: 3, squidward: 3, krabs: 3, powerDrain: 1.2 },
+  4: { spongebob: 5, patrick: 4, squidward: 4, krabs: 5, powerDrain: 1.3 },
+  5: { spongebob: 7, patrick: 6, squidward: 5, krabs: 7, powerDrain: 1.5 }
+};
+
+const ROOMS = {
+  kitchen:   { name: 'Kitchen',        camId: '1A', bgClass: 'room-kitchen',  prop: '🍳', col: 0, row: 0 },
+  living:    { name: 'Living Room',     camId: '1B', bgClass: 'room-living',   prop: '📺', col: 1, row: 0 },
+  bedroom:   { name: 'Bedroom',         camId: '2A', bgClass: 'room-bedroom',  prop: '🛏️', col: 2, row: 0 },
+  bathroom:  { name: 'Bathroom',        camId: '2B', bgClass: 'room-bathroom', prop: '🛁', col: 0, row: 1 },
+  outside:   { name: 'Outside',         camId: '3A', bgClass: 'room-outside',  prop: '🍍', col: 1, row: 1 },
+  hallLeft:  { name: 'Left Hall',       camId: '4A', bgClass: 'room-hallway',  prop: '🚪', col: 2, row: 1 },
+  hallRight: { name: 'Right Hall',      camId: '4B', bgClass: 'room-hallway',  prop: '🚪', col: 0, row: 2 },
+  doorLeft:  { name: 'Left Door',       camId: '5A', bgClass: 'room-hallway',  prop: '⬅️', col: 1, row: 2 },
+  doorRight: { name: 'Right Door',      camId: '5B', bgClass: 'room-hallway',  prop: '➡️', col: 2, row: 2 }
+};
+
+const PHONE_MESSAGES = {
+  1: "Hey there, new night guard! Welcome to SpongeBob's Pineapple. I'm Squidward, your... ugh... advisor. Look, the animatronics here get a bit... weird at night. Something about their servos locking up, so they wander. Just keep an eye on the cameras and close the doors if they get too close. And for Neptune's sake, conserve your power!",
+  2: "Okay so... you survived night one. Great. Tonight things pick up a bit. Patrick has started moving — he comes from outside, through the right hall. He's... not the brightest star in the sea, but he's fast once he gets going. Keep checking those cameras.",
+  3: "Night three already? I'll be honest, I didn't think you'd make it. All four of them are active now. Watch your power carefully — they're draining it faster. Remember: lights check who's at the door, but they cost power too. Good luck.",
+  4: "I... I don't know what's happening anymore. They're getting more aggressive. I think they know you're watching. Mr. Krabs keeps talking about 'overtime pay' but his eyes are glowing. Just... be careful tonight.",
+  5: "This is it. The final night. They're all coming for you at maximum aggression. I'd say good luck but... just survive. Whatever you do, DON'T let the power run out. See you on the other side... maybe."
+};
+
+// ===== GAME STATE =====
+let gameState = {
+  currentNight: 1,
+  power: 100,
+  time: 0, // 0 = 12AM, 1 = 1AM ... 5 = 5AM, 6 = 6AM (win)
+  timeProgress: 0, // progress within current hour (0-100)
+  camerasOpen: false,
+  currentCam: 'kitchen',
+  leftDoorClosed: false,
+  rightDoorClosed: false,
+  leftLightOn: false,
+  rightLightOn: false,
+  powerOut: false,
+  powerOutTimer: 0,
+  gameActive: false,
+  gameOver: false,
+  enemies: {},
+  phoneShown: false,
+  phoneDismissed: false
+};
+
+// ===== AUDIO (Web Audio API for simple sounds) =====
+let audioCtx = null;
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playTone(freq, duration, type = 'sine', volume = 0.1) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.value = volume;
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playDoorSound() { playTone(80, 0.3, 'square', 0.15); }
+function playLightSound() { playTone(2000, 0.1, 'sine', 0.05); }
+function playCamSound() { playTone(400, 0.15, 'sawtooth', 0.08); }
+function playScareSound() {
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => playTone(100 + Math.random() * 800, 0.3, 'sawtooth', 0.3), i * 60);
+  }
+}
+function playAmbient() {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 40 + Math.random() * 20;
+  gain.gain.value = 0.02;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 2);
+}
+
+// ===== INITIALIZATION =====
+function initMapGrid() {
+  const grid = document.getElementById('map-grid');
+  grid.innerHTML = '';
+  Object.entries(ROOMS).forEach(([key, room]) => {
+    const btn = document.createElement('div');
+    btn.className = 'map-room' + (key === gameState.currentCam ? ' active' : '');
+    btn.id = 'map-' + key;
+    btn.textContent = room.camId + '\n' + room.name;
+    btn.style.gridColumn = room.col + 1;
+    btn.style.gridRow = room.row + 1;
+    btn.onclick = () => switchCam(key);
+    grid.appendChild(btn);
+  });
+}
+
+function initEnemies() {
+  const config = NIGHT_CONFIG[gameState.currentNight];
+  gameState.enemies = {};
+  Object.entries(CHARACTERS).forEach(([key, char]) => {
+    gameState.enemies[key] = {
+      ...char,
+      currentRoom: char.startRoom,
+      pathIndex: 0,
+      aggression: config[key],
+      moveTimer: 0,
+      attackTimer: 0,
+      isAttacking: false
+    };
+  });
+}
+
+// ===== NIGHT SELECT =====
+document.querySelectorAll('.night-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.night-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    gameState.currentNight = parseInt(btn.dataset.night);
+  });
+});
+
+// ===== START GAME =====
+document.getElementById('start-btn').addEventListener('click', () => {
+  initAudio();
+  startNight(gameState.currentNight);
+});
+
+function startNight(night) {
+  gameState.currentNight = night;
+  gameState.power = 100;
+  gameState.time = 0;
+  gameState.timeProgress = 0;
+  gameState.camerasOpen = false;
+  gameState.leftDoorClosed = false;
+  gameState.rightDoorClosed = false;
+  gameState.leftLightOn = false;
+  gameState.rightLightOn = false;
+  gameState.powerOut = false;
+  gameState.powerOutTimer = 0;
+  gameState.gameActive = false;
+  gameState.gameOver = false;
+  gameState.phoneShown = false;
+  gameState.phoneDismissed = false;
+
+  initEnemies();
+  initMapGrid();
+
+  // Hide everything
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('office-view').style.display = 'none';
+  document.getElementById('camera-view').style.display = 'none';
+  document.getElementById('jumpscare-overlay').style.display = 'none';
+  document.getElementById('game-over').style.display = 'none';
+  document.getElementById('win-screen').style.display = 'none';
+  document.getElementById('cam-toggle').style.display = 'none';
+  document.querySelector('.hud').style.display = 'none';
+  document.getElementById('phone-msg').style.display = 'none';
+  document.getElementById('power-out').classList.remove('active');
+
+  // Reset door visuals
+  document.getElementById('left-door-panel').classList.remove('closed');
+  document.getElementById('right-door-panel').classList.remove('closed');
+  document.getElementById('left-door-btn').classList.remove('active');
+  document.getElementById('right-door-btn').classList.remove('active');
+  document.getElementById('left-hallway').classList.remove('visible');
+  document.getElementById('right-hallway').classList.remove('visible');
+
+  // Night transition
+  const trans = document.getElementById('night-transition');
+  trans.style.display = 'flex';
+  document.getElementById('night-trans-text').textContent = 'Night ' + night;
+
+  setTimeout(() => {
+    trans.style.display = 'none';
+    document.getElementById('office-view').style.display = 'block';
+    document.getElementById('cam-toggle').style.display = 'block';
+    document.querySelector('.hud').style.display = 'flex';
+    gameState.gameActive = true;
+    updateHUD();
+
+    // Show phone message after a delay
+    setTimeout(() => {
+      if (gameState.gameActive && !gameState.phoneDismissed) {
+        showPhone();
+      }
+    }, 3000);
+  }, 3000);
+}
+
+// ===== PHONE =====
+function showPhone() {
+  const msg = PHONE_MESSAGES[gameState.currentNight];
+  if (!msg) return;
+  document.getElementById('phone-text').textContent = msg;
+  document.getElementById('phone-msg').style.display = 'block';
+  gameState.phoneShown = true;
+}
+
+function dismissPhone() {
+  document.getElementById('phone-msg').style.display = 'none';
+  gameState.phoneDismissed = true;
+}
+
+// ===== DOORS & LIGHTS =====
+function toggleDoor(side) {
+  if (!gameState.gameActive || gameState.powerOut) return;
+  playDoorSound();
+  if (side === 'left') {
+    gameState.leftDoorClosed = !gameState.leftDoorClosed;
+    document.getElementById('left-door-panel').classList.toggle('closed', gameState.leftDoorClosed);
+    document.getElementById('left-door-btn').classList.toggle('active', gameState.leftDoorClosed);
+  } else {
+    gameState.rightDoorClosed = !gameState.rightDoorClosed;
+    document.getElementById('right-door-panel').classList.toggle('closed', gameState.rightDoorClosed);
+    document.getElementById('right-door-btn').classList.toggle('active', gameState.rightDoorClosed);
+  }
+}
+
+function toggleLight(side, on) {
+  if (!gameState.gameActive || gameState.powerOut) return;
+  if (on) playLightSound();
+  if (side === 'left') {
+    gameState.leftLightOn = on;
+    document.getElementById('left-light-btn').classList.toggle('active', on);
+    const hall = document.getElementById('left-hallway');
+    hall.classList.toggle('visible', on && !gameState.leftDoorClosed);
+    // Show enemy if at door
+    const enemyImg = document.getElementById('left-enemy-img');
+    const atDoor = Object.values(gameState.enemies).find(e => e.currentRoom === 'doorLeft');
+    if (on && atDoor && !gameState.leftDoorClosed) {
+      enemyImg.src = atDoor.img;
+      enemyImg.style.display = 'block';
+    } else {
+      enemyImg.style.display = 'none';
+    }
+  } else {
+    gameState.rightLightOn = on;
+    document.getElementById('right-light-btn').classList.toggle('active', on);
+    const hall = document.getElementById('right-hallway');
+    hall.classList.toggle('visible', on && !gameState.rightDoorClosed);
+    const enemyImg = document.getElementById('right-enemy-img');
+    const atDoor = Object.values(gameState.enemies).find(e => e.currentRoom === 'doorRight');
+    if (on && atDoor && !gameState.rightDoorClosed) {
+      enemyImg.src = atDoor.img;
+      enemyImg.style.display = 'block';
+    } else {
+      enemyImg.style.display = 'none';
+    }
+  }
+}
+
+// ===== CAMERAS =====
+function toggleCameras() {
+  if (!gameState.gameActive || gameState.powerOut) return;
+  playCamSound();
+  gameState.camerasOpen = !gameState.camerasOpen;
+  document.getElementById('camera-view').style.display = gameState.camerasOpen ? 'block' : 'none';
+  document.getElementById('office-view').style.display = gameState.camerasOpen ? 'none' : 'block';
+  document.getElementById('cam-toggle').textContent = gameState.camerasOpen ? '🏠 OFFICE' : '📹 CAMERAS';
+
+  if (gameState.camerasOpen) {
+    updateCamView();
+  }
+}
+
+function switchCam(roomKey) {
+  playCamSound();
+  gameState.currentCam = roomKey;
+  // Update map buttons
+  document.querySelectorAll('.map-room').forEach(r => r.classList.remove('active'));
+  const btn = document.getElementById('map-' + roomKey);
+  if (btn) btn.classList.add('active');
+  updateCamView();
+}
+
+function updateCamView() {
+  const room = ROOMS[gameState.currentCam];
+  if (!room) return;
+
+  document.getElementById('cam-room-name').textContent = 'CAM ' + room.camId + ' - ' + room.name;
+  document.getElementById('cam-room-bg').className = 'room-bg ' + room.bgClass;
+  document.getElementById('cam-props').textContent = room.prop;
+
+  // Check if any enemy is in this room
+  const enemyHere = Object.values(gameState.enemies).find(e => e.currentRoom === gameState.currentCam);
+  const camImg = document.getElementById('cam-enemy-img');
+  if (enemyHere) {
+    camImg.src = enemyHere.img;
+    camImg.style.display = 'block';
+  } else {
+    camImg.style.display = 'none';
+  }
+
+  // Update map enemy indicators
+  Object.keys(ROOMS).forEach(key => {
+    const mapBtn = document.getElementById('map-' + key);
+    if (!mapBtn) return;
+    const hasEnemy = Object.values(gameState.enemies).some(e => e.currentRoom === key);
+    mapBtn.classList.toggle('has-enemy', hasEnemy);
+  });
+}
+
+// ===== GAME LOOP =====
+let lastTime = 0;
+const TICK_RATE = 1000; // ms per tick
+
+function gameLoop(timestamp) {
+  requestAnimationFrame(gameLoop);
+
+  if (!gameState.gameActive) return;
+
+  if (timestamp - lastTime < TICK_RATE) return;
+  lastTime = timestamp;
+
+  // Time progression (~90 seconds per in-game hour)
+  gameState.timeProgress += 1.1;
+  if (gameState.timeProgress >= 100) {
+    gameState.timeProgress = 0;
+    gameState.time++;
+    if (gameState.time >= 6) {
+      winNight();
+      return;
+    }
+  }
+
+  // Power drain
+  if (!gameState.powerOut) {
+    let drain = 0.1 * NIGHT_CONFIG[gameState.currentNight].powerDrain;
+    if (gameState.leftDoorClosed) drain += 0.12;
+    if (gameState.rightDoorClosed) drain += 0.12;
+    if (gameState.leftLightOn) drain += 0.1;
+    if (gameState.rightLightOn) drain += 0.1;
+    if (gameState.camerasOpen) drain += 0.1;
+
+    gameState.power -= drain;
+    if (gameState.power <= 0) {
+      gameState.power = 0;
+      triggerPowerOut();
+    }
+  } else {
+    // Power out - countdown to game over
+    gameState.powerOutTimer++;
+    if (gameState.powerOutTimer > 15 + Math.floor(Math.random() * 10)) {
+      triggerJumpscare(Object.values(gameState.enemies)[Math.floor(Math.random() * 4)]);
+      return;
+    }
+  }
+
+  // Enemy AI
+  Object.entries(gameState.enemies).forEach(([key, enemy]) => {
+    if (enemy.aggression <= 0) return;
+
+    enemy.moveTimer++;
+    const moveChance = enemy.aggression * 1.5;
+
+    // Movement opportunity every ~5 seconds
+    if (enemy.moveTimer >= 5) {
+      enemy.moveTimer = 0;
+      if (Math.random() * 20 < moveChance) {
+        moveEnemy(key, enemy);
+      }
+    }
+
+    // Attack check if at door
+    if (enemy.currentRoom === 'doorLeft' || enemy.currentRoom === 'doorRight') {
+      enemy.attackTimer++;
+      if (enemy.attackTimer >= 8) {
+        enemy.attackTimer = 0;
+        attemptAttack(key, enemy);
+      }
+    }
+  });
+
+  // Ambient sound occasionally
+  if (Math.random() < 0.03) playAmbient();
+
+  updateHUD();
+  if (gameState.camerasOpen) updateCamView();
+}
+
+function moveEnemy(key, enemy) {
+  const pathIndex = enemy.path.indexOf(enemy.currentRoom);
+  if (pathIndex === -1) return;
+
+  // If being watched on camera, reduced chance to move (except on night 4-5)
+  if (gameState.camerasOpen && gameState.currentCam === enemy.currentRoom && gameState.currentNight < 4) {
+    if (Math.random() > 0.3) return;
+  }
+
+  const nextIndex = pathIndex + 1;
+  if (nextIndex < enemy.path.length) {
+    enemy.currentRoom = enemy.path[nextIndex];
+    enemy.attackTimer = 0;
+  }
+}
+
+function attemptAttack(key, enemy) {
+  const side = enemy.currentRoom === 'doorLeft' ? 'left' : 'right';
+  const doorClosed = side === 'left' ? gameState.leftDoorClosed : gameState.rightDoorClosed;
+
+  if (doorClosed) {
+    // Blocked! Reset enemy to start
+    enemy.currentRoom = enemy.path[0];
+    enemy.attackTimer = 0;
+    // Play a thud
+    playTone(60, 0.5, 'square', 0.2);
+  } else {
+    // Attack! Jumpscare
+    triggerJumpscare(enemy);
+  }
+}
+
+function triggerPowerOut() {
+  gameState.powerOut = true;
+  gameState.leftDoorClosed = false;
+  gameState.rightDoorClosed = false;
+  gameState.leftLightOn = false;
+  gameState.rightLightOn = false;
+  gameState.camerasOpen = false;
+
+  document.getElementById('camera-view').style.display = 'none';
+  document.getElementById('office-view').style.display = 'block';
+  document.getElementById('power-out').classList.add('active');
+  document.getElementById('cam-toggle').style.display = 'none';
+
+  // Reset door visuals
+  document.getElementById('left-door-panel').classList.remove('closed');
+  document.getElementById('right-door-panel').classList.remove('closed');
+  document.getElementById('left-door-btn').classList.remove('active');
+  document.getElementById('right-door-btn').classList.remove('active');
+
+  // Eerie sound
+  playTone(50, 2, 'sine', 0.1);
+}
+
+function triggerJumpscare(enemy) {
+  if (gameState.gameOver) return;
+  gameState.gameActive = false;
+  gameState.gameOver = true;
+
+  playScareSound();
+
+  const overlay = document.getElementById('jumpscare-overlay');
+  const img = document.getElementById('jumpscare-img');
+  img.src = enemy.img;
+  overlay.style.display = 'flex';
+
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    document.getElementById('game-over').style.display = 'flex';
+    document.getElementById('office-view').style.display = 'none';
+    document.getElementById('camera-view').style.display = 'none';
+    document.getElementById('cam-toggle').style.display = 'none';
+    document.querySelector('.hud').style.display = 'none';
+    document.getElementById('phone-msg').style.display = 'none';
+  }, 1500);
+}
+
+function winNight() {
+  gameState.gameActive = false;
+
+  document.getElementById('office-view').style.display = 'none';
+  document.getElementById('camera-view').style.display = 'none';
+  document.getElementById('cam-toggle').style.display = 'none';
+  document.querySelector('.hud').style.display = 'none';
+  document.getElementById('phone-msg').style.display = 'none';
+  document.getElementById('power-out').classList.remove('active');
+
+  const ws = document.getElementById('win-screen');
+  ws.style.display = 'flex';
+
+  if (gameState.currentNight >= 5) {
+    document.getElementById('win-text').textContent = 'You Survived All 5 Nights!';
+    document.getElementById('win-action').textContent = '[ Return to Menu ]';
+    document.getElementById('win-action').onclick = () => {
+      ws.style.display = 'none';
+      document.getElementById('title-screen').style.display = 'flex';
+    };
+  } else {
+    document.getElementById('win-text').textContent = 'Night ' + gameState.currentNight + ' Complete!';
+    document.getElementById('win-action').textContent = '[ Next Night ]';
+    document.getElementById('win-action').onclick = () => {
+      ws.style.display = 'none';
+      startNight(gameState.currentNight + 1);
+    };
+  }
+
+  // Victory sound
+  playTone(523, 0.2, 'sine', 0.15);
+  setTimeout(() => playTone(659, 0.2, 'sine', 0.15), 200);
+  setTimeout(() => playTone(784, 0.4, 'sine', 0.15), 400);
+}
+
+function restartGame() {
+  document.getElementById('game-over').style.display = 'none';
+  startNight(gameState.currentNight);
+}
+
+// ===== HUD UPDATE =====
+function updateHUD() {
+  const pf = document.getElementById('power-fill');
+  pf.style.width = gameState.power + '%';
+  pf.className = 'power-fill' + (gameState.power < 20 ? ' danger' : gameState.power < 40 ? ' warning' : '');
+  document.getElementById('power-text').textContent = Math.ceil(gameState.power) + '%';
+
+  // Usage bars
+  let usage = 1;
+  if (gameState.leftDoorClosed) usage++;
+  if (gameState.rightDoorClosed) usage++;
+  if (gameState.leftLightOn) usage++;
+  if (gameState.rightLightOn) usage++;
+  if (gameState.camerasOpen) usage++;
+  document.getElementById('usage-text').textContent = '■'.repeat(usage);
+
+  // Time
+  const hours = ['12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM'];
+  document.getElementById('time-display').textContent = hours[gameState.time] || '12 AM';
+  document.getElementById('night-display').textContent = 'Night ' + gameState.currentNight;
+}
+
+// ===== KEYBOARD CONTROLS =====
+document.addEventListener('keydown', (e) => {
+  if (!gameState.gameActive) return;
+  switch (e.key.toLowerCase()) {
+    case 'a': case 'arrowleft':
+      toggleDoor('left');
+      break;
+    case 'd': case 'arrowright':
+      toggleDoor('right');
+      break;
+    case 'q':
+      toggleLight('left', true);
+      break;
+    case 'e':
+      toggleLight('right', true);
+      break;
+    case ' ':
+      e.preventDefault();
+      toggleCameras();
+      break;
+    case '1': switchCam('kitchen'); break;
+    case '2': switchCam('living'); break;
+    case '3': switchCam('bedroom'); break;
+    case '4': switchCam('bathroom'); break;
+    case '5': switchCam('outside'); break;
+    case '6': switchCam('hallLeft'); break;
+    case '7': switchCam('hallRight'); break;
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  if (!gameState.gameActive) return;
+  if (e.key.toLowerCase() === 'q') toggleLight('left', false);
+  if (e.key.toLowerCase() === 'e') toggleLight('right', false);
+});
+
+// Start game loop
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
