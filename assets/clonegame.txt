@@ -1,260 +1,110 @@
-// === ULTIMATE NETWORK ASSET HARVESTER ===
-// Captures EVERY URL from Performance API, DOM, memory, and network hooks
-// Even if CORS blocks fetching, URLs are saved for external download
+// === SIMPLE NETWORK URL HARVESTER ===
+// Captures URLs only - no blob storage, minimal memory footprint
+// Includes export options for external download with hierarchy
 (function() {
     'use strict';
     
-    console.log('%c🚀 ULTIMATE ASSET HARVESTER', 'font-size: 18px; font-weight: bold; background: #9C27B0; color: white; padding: 8px;');
+    console.log('%c🔍 SIMPLE URL HARVESTER', 'font-size: 16px; font-weight: bold; background: #2196F3; color: white; padding: 6px;');
     
-    const urlDatabase = new Map(); // url -> metadata
-    let isCapturing = true; // Start capturing immediately
+    const urlSet = new Set(); // Store only URL strings
+    let isCapturing = true;
     
-    // ========== INTERCEPT ALL NETWORK APIS ==========
+    // ========== LIGHTWEIGHT HOOKS ==========
     const originalFetch = window.fetch;
     const originalXHROpen = XMLHttpRequest.prototype.open;
-    const originalXHRSend = XMLHttpRequest.prototype.send;
     
-    // Hook Fetch
-    window.fetch = async function(...args) {
+    // Hook Fetch (log URL only, no response handling)
+    window.fetch = function(...args) {
         const request = args[0];
         const url = typeof request === 'string' ? request : request.url;
-        const method = (request.method || 'GET').toUpperCase();
-        
         if (isCapturing && url && !url.startsWith('data:') && !url.startsWith('blob:')) {
-            registerUrl(url, method, 'fetch');
+            addUrl(url, 'fetch');
         }
-        
-        try {
-            const response = await originalFetch.apply(this, args);
-            
-            // Try to capture blob even if CORS allows
-            if (isCapturing && url) {
-                const cloned = response.clone();
-                cloned.blob().then(blob => {
-                    updateUrlWithBlob(url, blob, response.status, response.headers.get('content-type'));
-                }).catch(() => {
-                    // CORS blocked - mark as opaque
-                    updateUrlStatus(url, response.status, response.headers.get('content-type'), true);
-                });
-            }
-            
-            return response;
-        } catch (error) {
-            if (isCapturing) registerUrl(url, method, 'fetch-error');
-            throw error;
-        }
+        return originalFetch.apply(this, args);
     };
     
-    // Hook XHR
+    // Hook XHR (log URL only)
     XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-        this._url = url;
-        this._method = method;
         if (isCapturing && url && !url.startsWith('data:') && !url.startsWith('blob:')) {
-            registerUrl(url, method, 'xhr');
+            addUrl(url, 'xhr');
         }
         return originalXHROpen.apply(this, [method, url, ...rest]);
     };
     
-    XMLHttpRequest.prototype.send = function(...args) {
-        this.addEventListener('load', function() {
-            if (isCapturing && this._url) {
-                try {
-                    const blob = new Blob([this.response], { 
-                        type: this.getResponseHeader('content-type') || 'application/octet-stream' 
-                    });
-                    updateUrlWithBlob(this._url, blob, this.status, this.getResponseHeader('content-type'));
-                } catch(e) {
-                    updateUrlStatus(this._url, this.status, this.getResponseHeader('content-type'), true);
-                }
-            }
-        });
-        this.addEventListener('error', () => {
-            if (isCapturing && this._url) updateUrlStatus(this._url, 0, null, true);
-        });
-        return originalXHRSend.apply(this, args);
-    };
-    
-    // Hook image/audio/video src sets
-    const originalImageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
-    Object.defineProperty(HTMLImageElement.prototype, 'src', {
-        set: function(url) {
-            if (isCapturing && url && typeof url === 'string' && !url.startsWith('data:')) {
-                registerUrl(url, 'GET', 'image');
-            }
-            originalImageSrc.set.call(this, url);
-        },
-        get: originalImageSrc.get
-    });
-    
-    // ========== URL REGISTRATION & BLOB STORAGE ==========
-    function registerUrl(url, method = 'GET', type = 'unknown') {
+    // ========== ADD URL TO SET ==========
+    function addUrl(url, source = 'network') {
         if (!url || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('chrome-extension:')) return;
-        if (urlDatabase.has(url)) return;
+        if (urlSet.has(url)) return;
         
-        urlDatabase.set(url, {
-            url,
-            method,
-            type,
-            status: null,
-            contentType: null,
-            blob: null,
-            opaque: false,
-            timestamp: Date.now(),
-            size: 0
-        });
-        
-        console.log(`%c🔗 Registered: ${url.substring(0, 80)}`, 'color: #9E9E9E;');
+        urlSet.add(url);
+        console.log(`🔗 ${source}: ${url.substring(0, 80)}`);
         updateUI();
     }
     
-    function updateUrlWithBlob(url, blob, status, contentType) {
-        const entry = urlDatabase.get(url);
-        if (entry) {
-            entry.blob = blob;
-            entry.status = status;
-            entry.contentType = contentType;
-            entry.size = blob.size;
-            entry.opaque = false;
-            console.log(`%c✅ Captured: ${url.substring(0, 80)} (${formatSize(blob.size)})`, 'color: #4CAF50;');
-        } else {
-            // New URL discovered via blob
-            urlDatabase.set(url, {
-                url, method: 'GET', type: 'blob', status, contentType, blob,
-                opaque: false, timestamp: Date.now(), size: blob.size
-            });
-            console.log(`%c✅ Captured (late): ${url.substring(0, 80)}`, 'color: #4CAF50;');
-        }
-        updateUI();
-    }
-    
-    function updateUrlStatus(url, status, contentType, opaque = false) {
-        const entry = urlDatabase.get(url);
-        if (entry) {
-            entry.status = status;
-            entry.contentType = contentType;
-            entry.opaque = opaque;
-            console.log(`%c⚠️ Opaque: ${url.substring(0, 80)} (CORS blocked)`, 'color: #FF9800;');
-            updateUI();
-        }
-    }
-    
-    // ========== HARVEST EXISTING RESOURCES ==========
-    async function harvestExisting() {
-        console.log('%c🔍 Harvesting all existing resources...', 'color: #FF9800; font-weight: bold;');
+    // ========== HARVEST EXISTING (without fetching) ==========
+    function harvestExisting() {
+        console.log('%c🔍 Scanning existing resources...', 'color: #FF9800; font-weight: bold;');
         
-        // 1. Performance API (most comprehensive)
+        // Performance API entries
         performance.getEntriesByType('resource').forEach(entry => {
-            if (entry.name) registerUrl(entry.name, 'GET', entry.initiatorType);
+            if (entry.name) addUrl(entry.name, entry.initiatorType);
         });
         
-        // 2. DOM elements
-        document.querySelectorAll('img, script, link, audio, video, source').forEach(el => {
+        // DOM elements
+        document.querySelectorAll('img, script, link[rel=stylesheet], audio, video, source, iframe').forEach(el => {
             const url = el.src || el.href;
-            if (url) registerUrl(url, 'GET', el.tagName.toLowerCase());
+            if (url) addUrl(url, el.tagName.toLowerCase());
         });
         
-        // 3. Deep scan window objects for URL strings
-        const seen = new WeakSet();
-        function scanObject(obj, path = 'window', depth = 0) {
-            if (depth > 8 || !obj || typeof obj !== 'object') return;
-            if (seen.has(obj)) return;
-            seen.add(obj);
-            
-            try {
-                Object.entries(obj).forEach(([key, value]) => {
-                    if (typeof value === 'string') {
-                        // Check if string looks like a URL
-                        if (value.match(/^https?:\/\//i) || value.match(/\.(png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|mp4|json|xml|scml|atlas|tmx|bin|js|css|wasm)/i)) {
-                            try {
-                                const absolute = new URL(value, window.location.href).href;
-                                registerUrl(absolute, 'GET', 'memory');
-                            } catch(e) {}
-                        }
-                    } else if (value && typeof value === 'object') {
-                        scanObject(value, `${path}.${key}`, depth + 1);
-                    }
-                });
-            } catch(e) {}
-        }
-        
-        scanObject(window);
-        
-        // 4. Attempt to fetch each URL (with CORS workarounds)
-        console.log(`%c📦 Found ${urlDatabase.size} URLs. Attempting to fetch...`, 'color: #2196F3;');
-        
-        const urls = Array.from(urlDatabase.keys());
-        for (const url of urls) {
-            const entry = urlDatabase.get(url);
-            if (entry.blob) continue; // already have blob
-            
-            try {
-                // Try standard fetch
-                const response = await fetch(url, { mode: 'cors', credentials: 'include' });
-                if (response.ok) {
-                    const blob = await response.blob();
-                    updateUrlWithBlob(url, blob, response.status, response.headers.get('content-type'));
-                } else {
-                    updateUrlStatus(url, response.status, response.headers.get('content-type'), true);
-                }
-            } catch(e) {
-                // CORS error - try no-cors to at least get opaque response
-                try {
-                    const response = await fetch(url, { mode: 'no-cors' });
-                    // Opaque response - can't read body, but URL is recorded
-                    updateUrlStatus(url, 0, null, true);
-                } catch(e2) {
-                    updateUrlStatus(url, 0, null, true);
-                }
-            }
-        }
+        // Background images (style attribute only, to keep it simple)
+        document.querySelectorAll('[style]').forEach(el => {
+            const match = el.getAttribute('style').match(/url\(["']?([^"')]+)["']?\)/i);
+            if (match && match[1]) addUrl(match[1], 'bg-image');
+        });
         
         updateUI();
-        console.log('%c✅ Harvest complete.', 'color: #4CAF50; font-weight: bold;');
+        console.log(`%c✅ Found ${urlSet.size} unique URLs.`, 'color: #4CAF50;');
     }
     
-    // ========== UI PANEL ==========
+    // ========== UI PANEL (minimal) ==========
     function createUI() {
         const panel = document.createElement('div');
-        panel.id = 'harvesterUI';
+        panel.id = 'simpleHarvesterUI';
         panel.style.cssText = `
             position: fixed; top: 10px; right: 10px; z-index: 999999;
-            background: #1e1e1e; color: #d4d4d4; padding: 15px;
-            border-radius: 8px; font-family: monospace; font-size: 12px;
-            border: 1px solid #3e3e42; max-height: 90vh; overflow-y: auto;
-            min-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            background: #1e1e1e; color: #d4d4d4; padding: 12px;
+            border-radius: 6px; font-family: monospace; font-size: 12px;
+            border: 1px solid #3e3e42; max-height: 80vh; overflow-y: auto;
+            width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            resize: both; overflow: auto;
         `;
         panel.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin:0; color: #9C27B0;">🚀 Asset Harvester</h3>
-                <button id="closeUI" style="background:#d32f2f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">✕</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin:0; color: #2196F3;">🔍 URL Harvester</h3>
+                <button id="closeSimpleUI" style="background:#d32f2f; color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">✕</button>
             </div>
-            <div style="margin: 10px 0;">
-                <button id="harvestNow" style="width:100%; background:#9C27B0; color:white; border:none; padding:10px; border-radius:4px; cursor:pointer; font-weight:bold;">🔍 HARVEST EXISTING</button>
+            <div style="margin-bottom: 10px; display: flex; gap: 8px;">
+                <button id="harvestNowSimple" style="flex:1; background:#2196F3; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer;">🔍 Scan Now</button>
+                <button id="toggleCaptureSimple" style="flex:1; background:#4CAF50; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer;">⏸ Pause</button>
             </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <button id="toggleCapture" style="flex:1; background:#4CAF50; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">⏸ Pause Capture</button>
-                <button id="downloadZip" style="flex:1; background:#2196F3; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">📥 Download ZIP</button>
+            <div style="margin-bottom: 10px; display: flex; gap: 8px;">
+                <button id="exportUrlsSimple" style="flex:1; background:#FF9800; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer;">📋 Export TXT</button>
+                <button id="exportScriptSimple" style="flex:1; background:#9C27B0; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer;">📜 Download Script</button>
+                <button id="clearUrlsSimple" style="flex:1; background:#607d8b; color:white; border:none; padding:6px; border-radius:4px; cursor:pointer;">🗑 Clear</button>
             </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <button id="exportUrls" style="flex:1; background:#FF9800; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">📋 Export URLs</button>
-                <button id="exportHar" style="flex:1; background:#607d8b; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">📄 Export HAR-like</button>
+            <div style="margin-bottom: 8px;">
+                <input type="text" id="filterInputSimple" placeholder="Filter URLs..." style="width:100%; padding:5px; background:#2d2d30; border:1px solid #3e3e42; color:#d4d4d4; border-radius:3px;">
             </div>
-            <div style="margin-bottom: 10px;">
-                <input type="text" id="filterInput" placeholder="Filter URLs..." style="width:100%; padding:6px; background:#2d2d30; border:1px solid #3e3e42; color:#d4d4d4; border-radius:4px;">
+            <div style="margin-bottom: 8px; background:#2d2d30; padding:5px; border-radius:3px;">
+                <span>📊 Total: <span id="totalCountSimple">0</span> URLs</span>
             </div>
-            <div style="margin-bottom: 10px; background:#2d2d30; padding:8px; border-radius:4px;">
-                <span>📊 Total: <span id="totalCount">0</span> | 
-                💾 With blob: <span id="blobCount">0</span> | 
-                ⚠️ Opaque: <span id="opaqueCount">0</span></span><br>
-                <span>💿 Total size: <span id="totalSize">0 B</span></span>
-            </div>
-            <div id="urlList" style="max-height: 400px; overflow-y: auto; background:#252526; padding:5px; border-radius:4px;">
-                <div style="color:#6a9955;">Click "HARVEST EXISTING" to start...</div>
+            <div id="urlListSimple" style="max-height: 300px; overflow-y: auto; background:#252526; padding:4px; border-radius:3px; font-size:11px;">
+                <div style="color:#6a9955;">Click "Scan Now" to harvest existing resources.</div>
             </div>
         `;
         document.body.appendChild(panel);
         
-        // Make draggable
+        // Draggable header
         let pos1=0,pos2=0,pos3=0,pos4=0;
         panel.querySelector('h3').onmousedown = dragMouseDown;
         function dragMouseDown(e) {
@@ -277,236 +127,152 @@
         }
         
         // Event listeners
-        document.getElementById('closeUI').onclick = () => panel.remove();
-        document.getElementById('harvestNow').onclick = harvestExisting;
-        document.getElementById('toggleCapture').onclick = function() {
+        document.getElementById('closeSimpleUI').onclick = () => panel.remove();
+        document.getElementById('harvestNowSimple').onclick = harvestExisting;
+        document.getElementById('toggleCaptureSimple').onclick = function() {
             isCapturing = !isCapturing;
-            this.textContent = isCapturing ? '⏸ Pause Capture' : '▶ Resume Capture';
+            this.textContent = isCapturing ? '⏸ Pause' : '▶ Resume';
             this.style.background = isCapturing ? '#4CAF50' : '#f44336';
-            console.log(`Capture ${isCapturing ? 'resumed' : 'paused'}`);
         };
-        document.getElementById('downloadZip').onclick = downloadZip;
-        document.getElementById('exportUrls').onclick = exportUrlList;
-        document.getElementById('exportHar').onclick = exportHar;
-        document.getElementById('filterInput').oninput = updateUI;
+        document.getElementById('exportUrlsSimple').onclick = exportUrls;
+        document.getElementById('exportScriptSimple').onclick = exportDownloadScript;
+        document.getElementById('clearUrlsSimple').onclick = () => {
+            urlSet.clear();
+            updateUI();
+            console.log('🗑 Cleared all URLs');
+        };
+        document.getElementById('filterInputSimple').oninput = updateUI;
         
         updateUI();
     }
     
     // ========== UI UPDATE ==========
-    function formatSize(bytes) {
-        if (!bytes) return '0 B';
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024*1024) return (bytes/1024).toFixed(2) + ' KB';
-        return (bytes/(1024*1024)).toFixed(2) + ' MB';
-    }
-    
     function updateUI() {
-        const filter = document.getElementById('filterInput')?.value.toLowerCase() || '';
-        const entries = Array.from(urlDatabase.values())
-            .filter(e => e.url.toLowerCase().includes(filter))
-            .sort((a,b) => b.timestamp - a.timestamp);
+        const filter = document.getElementById('filterInputSimple')?.value.toLowerCase() || '';
+        const urls = Array.from(urlSet)
+            .filter(url => url.toLowerCase().includes(filter))
+            .sort();
         
-        const listDiv = document.getElementById('urlList');
-        if (entries.length === 0) {
+        const listDiv = document.getElementById('urlListSimple');
+        if (urls.length === 0) {
             listDiv.innerHTML = '<div style="color:#6a9955;">No URLs captured yet.</div>';
         } else {
             let html = '';
-            entries.forEach(e => {
-                const hasBlob = !!e.blob;
-                const statusColor = e.status === 200 ? '#4ec9b0' : (e.opaque ? '#FF9800' : '#f48771');
-                const icon = hasBlob ? '✅' : (e.opaque ? '⚠️' : '⏳');
-                const shortUrl = e.url.length > 60 ? e.url.substring(0,60)+'...' : e.url;
-                html += `<div style="margin-bottom:4px; padding:4px; background:#2d2d30; border-left:3px solid ${hasBlob ? '#4CAF50' : '#FF9800'}">
-                    <div style="display:flex; gap:5px;">
-                        <span>${icon}</span>
-                        <span style="color:${statusColor}">${e.status||'?'}</span>
-                        <span style="color:#d4d4d4; flex:1;" title="${e.url}">${shortUrl}</span>
-                        <span style="color:#808080">${formatSize(e.size)}</span>
-                    </div>
-                </div>`;
+            urls.forEach(url => {
+                const shortUrl = url.length > 50 ? url.substring(0,50)+'...' : url;
+                html += `<div style="padding:2px 0; border-bottom:1px solid #3e3e42;" title="${url.replace(/"/g, '&quot;')}">🔗 ${shortUrl}</div>`;
             });
             listDiv.innerHTML = html;
         }
         
-        const total = urlDatabase.size;
-        const withBlob = Array.from(urlDatabase.values()).filter(e => e.blob).length;
-        const opaque = Array.from(urlDatabase.values()).filter(e => e.opaque).length;
-        const totalBytes = Array.from(urlDatabase.values()).reduce((sum, e) => sum + (e.size||0), 0);
-        
-        document.getElementById('totalCount').textContent = total;
-        document.getElementById('blobCount').textContent = withBlob;
-        document.getElementById('opaqueCount').textContent = opaque;
-        document.getElementById('totalSize').textContent = formatSize(totalBytes);
+        document.getElementById('totalCountSimple').textContent = urlSet.size;
     }
     
-    // ========== DOWNLOAD ZIP (only blobs we have) ==========
-    async function downloadZip() {
-        const entries = Array.from(urlDatabase.values()).filter(e => e.blob);
-        if (entries.length === 0) {
-            alert('No blobs captured. CORS may be blocking downloads. Export URL list instead.');
+    // ========== EXPORT URLS ==========
+    function exportUrls() {
+        const urls = Array.from(urlSet).sort();
+        const blob = new Blob([urls.join('\n')], {type: 'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `harvested_urls_${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        console.log(`📋 Exported ${urls.length} URLs`);
+    }
+    
+    // ========== EXPORT DOWNLOAD SCRIPT WITH HIERARCHY ==========
+    function exportDownloadScript() {
+        const urls = Array.from(urlSet).sort();
+        if (urls.length === 0) {
+            alert('No URLs captured yet. Scan first.');
             return;
         }
         
-        if (typeof JSZip === 'undefined') {
-            await new Promise(r => {
-                const s = document.createElement('script');
-                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-                s.onload = r;
-                document.head.appendChild(s);
-            });
-        }
+        // Determine base domain for relative paths
+        const baseUrl = window.location.origin;
         
-        const zip = new JSZip();
-        let success = 0;
+        // Build wget script (works on Linux/Mac, also can use wget for Windows if installed)
+        let scriptContent = `#!/bin/bash
+# Download script generated by URL Harvester
+# This will download all assets preserving directory structure
+# Requires wget (install via brew on Mac, or apt-get on Linux, or download for Windows)
+
+echo "Starting download of ${urls.length} files..."
+mkdir -p downloaded_site
+cd downloaded_site
+
+`;
         
-        for (const e of entries) {
+        // Also provide a Windows batch file alternative
+        let batchContent = `@echo off
+REM Windows batch download script using curl (included in Windows 10+)
+REM If you prefer wget, install it and replace curl commands.
+
+echo Starting download of ${urls.length} files...
+if not exist "downloaded_site" mkdir downloaded_site
+cd downloaded_site
+
+`;
+        
+        urls.forEach(url => {
             try {
-                const url = new URL(e.url);
-                let path = url.pathname.substring(1);
-                if (!path || path.endsWith('/')) path += 'index.html';
+                const urlObj = new URL(url);
+                let path = urlObj.pathname;
                 
-                // Add opaque marker to path if needed
-                if (e.opaque) path = 'opaque/' + path;
+                // Skip if path is empty or just root
+                if (!path || path === '/') path = '/index.html';
                 
-                zip.file(path, e.blob);
-                success++;
-                if (success % 20 === 0) console.log(`ZIP progress: ${success}/${entries.length}`);
-            } catch(err) {
-                console.warn('Failed to add to ZIP:', e.url, err);
+                // Remove leading slash for relative path
+                const relativePath = path.startsWith('/') ? path.substring(1) : path;
+                
+                // Create directory structure in wget command
+                const dir = relativePath.substring(0, relativePath.lastIndexOf('/'));
+                if (dir) {
+                    scriptContent += `mkdir -p "${dir}"\n`;
+                    batchContent += `if not exist "${dir.replace(/\//g, '\\')}" mkdir "${dir.replace(/\//g, '\\')}"\n`;
+                }
+                
+                // wget command with timestamping and continue
+                scriptContent += `wget -nc -x -nH --cut-dirs=0 -P . "${url}"\n`;
+                // For batch: curl with create-dirs option (curl 7.74+)
+                batchContent += `curl --create-dirs -L -o "${relativePath.replace(/\//g, '\\')}" "${url}"\n`;
+            } catch(e) {
+                console.warn('Invalid URL skipped:', url);
             }
-        }
+        });
         
-        // Add manifest with all URLs
-        const manifest = {
-            total: urlDatabase.size,
-            withBlob: entries.length,
-            opaque: Array.from(urlDatabase.values()).filter(e => e.opaque).length,
-            urls: Array.from(urlDatabase.keys())
-        };
-        zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+        scriptContent += `\necho "Download complete."\n`;
+        batchContent += `\necho Download complete.\npause\n`;
         
-        // Add list of opaque URLs for manual download
-        const opaqueUrls = Array.from(urlDatabase.values()).filter(e => e.opaque).map(e => e.url);
-        if (opaqueUrls.length) {
-            zip.file('OPAQUE_URLS.txt', 
-                "# These URLs could not be fetched due to CORS.\n" +
-                "# Use a download manager or browser extension to get them.\n\n" +
-                opaqueUrls.join('\n'));
-        }
+        // Create a combined ZIP with both scripts and URL list
+        const txtBlob = new Blob([urls.join('\n')], {type: 'text/plain'});
+        const shBlob = new Blob([scriptContent], {type: 'text/plain'});
+        const batBlob = new Blob([batchContent], {type: 'text/plain'});
         
-        const blob = await zip.generateAsync({type: 'blob'});
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = `assets_partial_${Date.now()}.zip`;
-        a.click();
-        URL.revokeObjectURL(downloadUrl);
-        
-        console.log('✅ ZIP downloaded (partial). Opaque URLs saved in OPAQUE_URLS.txt inside.');
-    }
-    
-    // ========== EXPORT URL LIST ==========
-    function exportUrlList() {
-        const urls = Array.from(urlDatabase.keys());
-        const data = {
-            total: urls.length,
-            withBlob: Array.from(urlDatabase.values()).filter(e => e.blob).length,
-            opaque: Array.from(urlDatabase.values()).filter(e => e.opaque).length,
-            urls: urls,
-            details: Array.from(urlDatabase.values()).map(e => ({
-                url: e.url,
-                method: e.method,
-                type: e.type,
-                status: e.status,
-                contentType: e.contentType,
-                size: e.size,
-                opaque: e.opaque
-            }))
+        // Offer separate downloads
+        const downloadFile = (blob, filename) => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
         };
         
-        // JSON
-        const jsonBlob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(jsonBlob);
-        a.download = `asset_urls_${Date.now()}.json`;
-        a.click();
+        downloadFile(shBlob, `download_assets.sh`);
+        setTimeout(() => downloadFile(batBlob, `download_assets.bat`), 200);
+        setTimeout(() => downloadFile(txtBlob, `url_list.txt`), 400);
         
-        // Plain text list
-        const textBlob = new Blob([urls.join('\n')], {type: 'text/plain'});
-        const a2 = document.createElement('a');
-        a2.href = URL.createObjectURL(textBlob);
-        a2.download = `asset_urls_${Date.now()}.txt`;
-        a2.click();
-        
-        // Also save opaque list separately
-        const opaque = data.details.filter(d => d.opaque).map(d => d.url);
-        if (opaque.length) {
-            const opaqueBlob = new Blob([opaque.join('\n')], {type: 'text/plain'});
-            const a3 = document.createElement('a');
-            a3.href = URL.createObjectURL(opaqueBlob);
-            a3.download = `opaque_urls_${Date.now()}.txt`;
-            a3.click();
-        }
-        
-        console.log('📋 URL lists exported.');
-    }
-    
-    // ========== EXPORT HAR-LIKE ==========
-    function exportHar() {
-        const entries = Array.from(urlDatabase.values());
-        const har = {
-            log: {
-                version: '1.2',
-                creator: { name: 'Asset Harvester', version: '1.0' },
-                entries: entries.map(e => ({
-                    startedDateTime: new Date(e.timestamp).toISOString(),
-                    time: 0,
-                    request: {
-                        method: e.method,
-                        url: e.url,
-                        httpVersion: 'HTTP/1.1',
-                        headers: [],
-                        queryString: [],
-                        headersSize: -1,
-                        bodySize: -1
-                    },
-                    response: {
-                        status: e.status || 0,
-                        statusText: e.status === 200 ? 'OK' : (e.opaque ? 'Opaque' : 'Unknown'),
-                        httpVersion: 'HTTP/1.1',
-                        headers: e.contentType ? [{ name: 'Content-Type', value: e.contentType }] : [],
-                        content: {
-                            size: e.size || 0,
-                            mimeType: e.contentType || ''
-                        },
-                        redirectURL: '',
-                        headersSize: -1,
-                        bodySize: e.size || -1
-                    },
-                    cache: {},
-                    timings: { send: 0, wait: 0, receive: 0 },
-                    _opaque: e.opaque
-                }))
-            }
-        };
-        
-        const blob = new Blob([JSON.stringify(har, null, 2)], {type: 'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `network_har_${Date.now()}.json`;
-        a.click();
-        console.log('📄 HAR-like export saved.');
+        console.log('📜 Download scripts exported: download_assets.sh (Linux/Mac) and download_assets.bat (Windows)');
+        alert('Download scripts generated:\n- download_assets.sh (for Linux/Mac)\n- download_assets.bat (for Windows)\n- url_list.txt (plain URLs)\n\nRun the appropriate script in terminal/command prompt to download all assets with folder hierarchy.');
     }
     
     // ========== INIT ==========
     function init() {
         createUI();
-        // Auto-harvest after a short delay
-        setTimeout(harvestExisting, 500);
-        
-        console.log('%c✅ Ultimate Asset Harvester active!', 'color: #4CAF50; font-weight: bold;');
-        console.log('%c💡 If some assets are opaque (CORS blocked), export the URL list and use a download manager like "DownThemAll" or "wget" with the text file.', 'color: #FF9800; font-weight: bold;');
+        // Auto-scan after short delay
+        setTimeout(harvestExisting, 300);
+        console.log('%c✅ Simple URL Harvester active - memory efficient', 'color: #4CAF50;');
+        console.log('%c💡 Use "Download Script" to export wget/curl commands that preserve folder structure.', 'color: #FF9800;');
     }
     
     init();
