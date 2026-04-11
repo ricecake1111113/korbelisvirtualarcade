@@ -159,10 +159,13 @@ body {
 .masthead {
     display: flex;
     align-items: flex-end;
-    justify-content: space-between;
     padding: 16px 18px 10px;
     border-bottom: 5px double var(--ink);
     gap: 12px;
+}
+
+.masthead > div:first-child {
+    flex: 1;
 }
 
 .masthead-name {
@@ -191,6 +194,8 @@ body {
     font-family: 'Roboto Condensed', sans-serif;
     line-height: 1.8;
     padding-bottom: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .masthead-badge {
