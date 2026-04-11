@@ -252,6 +252,11 @@
           }).then((unityInstance) => {
             unityGameInstance = unityInstance;
             loadingBar.style.display = "none";
+            // Signal to Unity that the host environment (normally YouTube) is ready.
+            // Without this, Unity waits forever on _playerIsInitializedPromise.
+            if (unityInstance.Module && unityInstance.Module.WebPlayer && unityInstance.Module.WebPlayer.PlayerIsInitialized) {
+              unityInstance.Module.WebPlayer.PlayerIsInitialized();
+            }
           }).catch((message) => {
             console.error(message);
           });
