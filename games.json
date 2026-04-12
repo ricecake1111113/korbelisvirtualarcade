@@ -701,7 +701,17 @@
     "dateAdded": "2026-04-09",
     "popularity": 80,
     "tags": [
-      "music"
+      "game"
+    ]
+  },
+  {
+    "name": "Omori",
+    "folder": "games/omori",
+    "section": "games",
+    "dateAdded": "2026-04-10",
+    "popularity": 83,
+    "tags": [
+      "game"
     ]
   },
   {
@@ -711,7 +721,7 @@
     "dateAdded": "2026-04-09",
     "popularity": 60,
     "tags": [
-      "music"
+      "game"
     ]
   }
 ]

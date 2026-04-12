@@ -10,15 +10,34 @@
   <title>Solar Smash</title>
   <link rel="stylesheet" href="TemplateData/style.css">
   <script>
-    // Stub out the YouTube Game API so the Unity build runs standalone
+    // Standalone YouTube Playables stub — persists save data in localStorage
+    var SOLAR_SMASH_SAVE_KEY = 'solar_smash_save';
+
     window.ytgame = {
       IN_PLAYABLES_ENV: true,
       SDK_VERSION: "1.0.0",
       game: {
         firstFrameReady: function() {},
         gameReady: function() {},
-        loadData: function() { return Promise.resolve(""); },
-        saveData: function(data) { return Promise.resolve(); },
+        loadData: function() {
+          var saved = localStorage.getItem(SOLAR_SMASH_SAVE_KEY);
+          // Return null (not empty string) when no save exists so Unity's
+          // ReceiveOnLoadSaveEvent treats it as a fresh game instead of
+          // trying to decompress an empty string and crashing.
+          if (!saved) {
+            console.log("[ytgame] loadData() — no save found, returning null");
+            return Promise.resolve(null);
+          }
+          console.log("[ytgame] loadData() — returning saved data (" + saved.length + " chars)");
+          return Promise.resolve(saved);
+        },
+        saveData: function(data) {
+          if (data) {
+            localStorage.setItem(SOLAR_SMASH_SAVE_KEY, data);
+            console.log("[ytgame] saveData() — saved (" + data.length + " chars)");
+          }
+          return Promise.resolve();
+        },
       },
       health: {
         logError: function() {},
@@ -28,7 +47,10 @@
         isAudioEnabled: function() { return true; },
         onAudioEnabledChange: function(cb) { return function() {}; },
         onPause: function(cb) { return function() {}; },
-        onResume: function(cb) { return function() {}; },
+        onResume: function(cb) {
+          setTimeout(function() { cb(); }, 500);
+          return function() {};
+        },
       },
       engagement: {
         sendScore: function(score) {},
