@@ -615,6 +615,21 @@
     ]
   },
   {
+    "name": "Disney Sports - Basketball",
+    "folder": "emulators/disney-sports---basketball",
+    "section": "emulators",
+    "system": "GBA",
+    "publisher": "Konami",
+    "year": 2002,
+    "genres": "Sports",
+    "iconPath": "file/emu/disney-sports---basketball/icon.jpg",
+    "dateAdded": "2026-04-12",
+    "popularity": 25,
+    "tags": [
+      "emu"
+    ]
+  },
+  {
     "name": "Baldi's Fun New School Ultimate",
     "folder": "games/baldis-fun-new-school-ultimate",
     "section": "games",

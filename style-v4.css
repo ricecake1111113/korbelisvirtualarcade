@@ -1,0 +1,845 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;600;700&family=Roboto+Condensed:ital,wght@0,400;0,700;1,400;1,700&family=Bebas+Neue&display=swap');
+
+:root {
+    --red: #b22020;
+    --red-dark: #7a1414;
+    --blue: #1e3a5f;
+    --cream: #c8b89a;
+    --white: #f5f1eb;
+    --newsprint: #efe9df;
+    --ink: #141210;
+    --ink-soft: #2a2620;
+    --muted: #7a7062;
+    --rule: #c4baa8;
+
+    /* legacy aliases for game.css */
+    --burgundy: var(--red);
+    --paper: var(--newsprint);
+    --card-bg: var(--white);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Roboto Condensed', sans-serif;
+    background: var(--ink);
+    color: var(--ink);
+    background-image:
+        repeating-linear-gradient(
+            0deg, transparent, transparent 39px,
+            rgba(180,170,150,0.04) 39px, rgba(180,170,150,0.04) 40px
+        );
+}
+
+/* =========================
+   PAGE WRAPPER
+========================= */
+.page {
+    max-width: 1000px;
+    width: 95%;
+    margin: 0 auto;
+    background: var(--newsprint);
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+}
+
+/* =========================
+   TOPBAR
+========================= */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 1000px;
+    height: 46px;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    z-index: 9999;
+    border-bottom: 3px solid var(--red);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--newsprint);
+}
+
+.topbar-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    filter: brightness(0) invert(0.9);
+}
+
+.topbar-title {
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--newsprint);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* DROPDOWN */
+.dropdown { position: relative; }
+
+.dropbtn {
+    background: none;
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cream);
+    cursor: pointer;
+    padding: 6px 10px;
+    height: 46px;
+    transition: color 0.15s;
+}
+
+.dropbtn:hover { color: var(--white); }
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--white);
+    min-width: 170px;
+    border: 2px solid var(--ink);
+    border-top: 3px solid var(--red);
+    z-index: 9999;
+    max-height: min(70vh, 520px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 9px 14px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    border-bottom: 0.5px solid var(--rule);
+}
+
+.dropdown-content a:last-child { border-bottom: none; }
+
+.dropdown-content a:hover {
+    background: var(--red);
+    color: var(--white);
+}
+
+.dropdown:hover .dropdown-content { display: block; }
+
+/* =========================
+   RIBBON
+========================= */
+.ribbon {
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--red-dark);
+    margin-top: 46px;
+}
+
+/* =========================
+   MASTHEAD
+========================= */
+.masthead {
+    display: flex;
+    align-items: flex-end;
+    padding: 18px 20px 12px;
+    border-bottom: 5px double var(--ink);
+    gap: 12px;
+}
+
+.masthead > div:first-child { flex: 1; }
+
+.masthead-name {
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: clamp(42px, 8vw, 78px);
+    line-height: 0.88;
+    color: var(--ink);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.masthead-name span {
+    display: block;
+    font-size: clamp(13px, 2.5vw, 18px);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 400;
+    letter-spacing: 4px;
+    color: var(--red);
+    margin-bottom: 2px;
+}
+
+.masthead-meta {
+    text-align: right;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'Roboto Condensed', sans-serif;
+    line-height: 1.8;
+    padding-bottom: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.masthead-badge {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--newsprint);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    margin-bottom: 4px;
+}
+
+.masthead-dateline {
+    margin-top: 4px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* =========================
+   NEWS TICKER
+========================= */
+.ticker {
+    background: var(--ink-soft);
+    color: var(--cream);
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-bottom: 2px solid var(--red-dark);
+}
+
+.ticker-label {
+    background: var(--red);
+    color: var(--newsprint);
+    padding: 6px 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 2px;
+}
+
+.ticker-track { overflow: hidden; flex: 1; }
+
+.ticker-items {
+    display: inline-block;
+    white-space: nowrap;
+    min-width: max-content;
+    animation: scroll-ticker 72s linear infinite;
+    padding: 6px 0;
+}
+
+@keyframes scroll-ticker {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* =========================
+   HERO SECTION
+========================= */
+.hero-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    border-bottom: 4px double var(--ink);
+}
+
+.hero-main {
+    padding: 20px 22px;
+    border-right: 2px solid var(--ink);
+}
+
+.hero-kicker {
+    display: inline-block;
+    background: var(--red);
+    color: var(--newsprint);
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+}
+
+.hero-headline {
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: clamp(36px, 5.5vw, 60px);
+    line-height: 0.92;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.hero-deck {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    border-top: 1.5px solid var(--red);
+    border-bottom: 1.5px solid var(--red);
+    padding: 7px 0;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.hero-logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 14px;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-logo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("bg.jpg") center/cover no-repeat;
+    opacity: 0.2;
+}
+
+.hero-logo {
+    position: relative;
+    z-index: 2;
+    width: 90%;
+    max-width: 300px;
+}
+
+/* =========================
+   SECTION HEADERS
+========================= */
+.section-header {
+    display: flex;
+    align-items: center;
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: 56px;
+}
+
+.section-header-label {
+    background: var(--ink);
+    color: var(--newsprint);
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 7px 18px;
+}
+
+.section-header-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    margin: 0 14px;
+}
+
+/* =========================
+   GAMES GRID
+========================= */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    border-bottom: 2px solid var(--ink);
+    background: var(--newsprint);
+}
+
+/* ---- Featured row: 3 big cards with a label ---- */
+.games-grid--featured {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 3px solid var(--ink);
+    position: relative;
+}
+
+.games-grid--featured::before {
+    content: 'TOP PICKS';
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    z-index: 3;
+    font-family: 'Oswald', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--newsprint);
+    background: var(--red);
+    padding: 2px 8px;
+    pointer-events: none;
+}
+
+.games-grid--featured .game-card {
+    padding: 6px 5px 5px;
+}
+
+.games-grid--featured .game-card-label {
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    padding: 7px 6px 6px;
+}
+
+/* ---- Cards ---- */
+.game-card {
+    background: var(--white);
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 3px 4px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    overflow: hidden;
+    position: relative;
+}
+
+.game-card:hover {
+    background: var(--red);
+    color: var(--newsprint);
+    transform: scale(1.04);
+    z-index: 2;
+    box-shadow: 0 6px 20px rgba(20,18,16,0.35);
+}
+
+.game-card:hover .game-card-label { color: var(--newsprint); }
+
+.game-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+}
+
+.game-card-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.25px;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.15;
+    opacity: 0.9;
+    padding: 5px 4px 4px;
+    width: 100%;
+}
+
+.system-header + .games-grid .game-card { padding: 3px 2px 3px; }
+
+.game-card--wip {
+    border: 1.5px dashed var(--rule);
+    opacity: 0.55;
+}
+
+/* =========================
+   UPDATE LOG
+========================= */
+.updates-section {
+    border-bottom: 3px double var(--ink);
+}
+
+.update-entry {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.update-entry:last-of-type { border-bottom: none; }
+
+.update-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.update-date {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.update-tag {
+    font-family: 'Oswald', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+}
+
+.update-tag--new      { background: var(--red);  color: var(--newsprint); }
+.update-tag--fix      { background: var(--blue); color: var(--newsprint); }
+.update-tag--update   { background: var(--ink);  color: var(--newsprint); }
+.update-tag--removed  { background: var(--muted); color: var(--newsprint); }
+
+.update-headline {
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: 17px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+
+.update-body {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #3a3428;
+}
+
+.updates-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--rule);
+}
+
+.updates-toggle {
+    background: none;
+    border: 1.5px solid var(--red);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--red);
+    cursor: pointer;
+    padding: 6px 16px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.updates-toggle:hover {
+    background: var(--red);
+    color: var(--newsprint);
+}
+
+.updates-older { display: none; border-top: 1px dashed var(--rule); }
+.updates-older--open { display: block; }
+
+/* =========================
+   ORIGIN STORY
+========================= */
+.story-section {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    border-bottom: 3px double var(--ink);
+}
+
+.story-col { padding: 20px 22px 24px; }
+
+.story-col--main { border-right: 2px solid var(--ink); }
+
+.story-kicker {
+    display: inline-block;
+    background: var(--red);
+    color: var(--newsprint);
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+}
+
+.story-headline {
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: clamp(24px, 3.5vw, 36px);
+    line-height: 1.0;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    border-bottom: 1.5px solid var(--red);
+    padding-bottom: 10px;
+}
+
+.story-drop {
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: 20px;
+    color: var(--red);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.story-drop::first-letter {
+    float: left;
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: 4.5em;
+    line-height: 0.75;
+    margin-right: 6px;
+    margin-top: 4px;
+    color: var(--red);
+}
+
+.story-body {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #3a3428;
+    margin-bottom: 12px;
+    text-align: justify;
+}
+
+.story-pullquote {
+    font-family: 'Bebas Neue', 'Anton', sans-serif;
+    font-size: clamp(18px, 2.8vw, 28px);
+    line-height: 1.1;
+    color: var(--newsprint);
+    background: var(--ink);
+    padding: 18px 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    border-left: 5px solid var(--red);
+}
+
+.story-byline {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-top: 1.5px solid var(--red);
+    padding-top: 10px;
+    margin-top: 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* =========================
+   SEARCH BAR
+========================= */
+.search-bar {
+    display: flex;
+    align-items: center;
+    padding: 8px 18px;
+    background: var(--white);
+    border-bottom: 1px solid var(--rule);
+    gap: 10px;
+}
+
+.search-bar-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.search-bar input {
+    flex: 1;
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 14px;
+    padding: 5px 10px;
+    border: 1.5px solid var(--rule);
+    background: var(--newsprint);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.search-bar input:focus { border-color: var(--red); }
+.search-bar input::placeholder { color: var(--muted); opacity: 0.6; }
+
+.search-no-results {
+    display: none;
+    padding: 18px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* =========================
+   RECENTLY PLAYED
+========================= */
+.recently-played-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    border-bottom: 1px solid var(--rule) !important;
+}
+
+/* =========================
+   SECTION COUNT BADGE
+========================= */
+.section-count {
+    font-family: 'Oswald', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--newsprint);
+    background: var(--red);
+    padding: 2px 8px;
+    margin-left: 10px;
+    align-self: center;
+    white-space: nowrap;
+}
+
+/* =========================
+   NEW BADGE
+========================= */
+.card-new-badge {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    z-index: 2;
+    background: var(--red);
+    color: var(--newsprint);
+    font-family: 'Oswald', sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    pointer-events: none;
+}
+
+/* =========================
+   SYSTEM SUB-HEADER (Emulators)
+========================= */
+.system-header {
+    display: flex;
+    align-items: center;
+    padding: 6px 18px 0;
+}
+
+.system-header-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--red);
+    white-space: nowrap;
+    padding-right: 12px;
+    border-right: 2px solid var(--red);
+    margin-right: 12px;
+}
+
+.system-header-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+}
+
+/* =========================
+   HERO BYLINE
+========================= */
+.hero-byline {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--red);
+}
+
+/* =========================
+   SORT SELECT
+========================= */
+#sortSelect {
+    font-family: 'Oswald', sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border: 1px solid var(--rule) !important;
+    background: var(--white) !important;
+    color: var(--ink) !important;
+    padding: 4px 8px !important;
+    cursor: pointer;
+}
+
+/* =========================
+   FOOTER
+========================= */
+.footer {
+    background: var(--ink);
+    color: var(--newsprint);
+    padding: 24px 18px 20px;
+    border-top: 4px solid var(--red);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-logo { width: 180px; opacity: 0.8; filter: brightness(0) invert(0.9); }
+
+.footer p {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.5;
+    text-align: center;
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 600px) {
+    .masthead { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .masthead-meta { text-align: left; }
+
+    .hero-section { grid-template-columns: 1fr; }
+    .hero-logo-wrap { display: none; }
+
+    .story-section { grid-template-columns: 1fr; }
+    .story-col--main { border-right: none; border-bottom: 2px solid var(--ink); }
+
+    .games-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .games-grid--featured { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .topbar-title { display: none; }
+}

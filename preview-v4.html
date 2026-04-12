@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Korbeli's Virtual Arcade</title>
+  <link rel="icon" type="image/x-icon" href="icon.ico">
+  <link rel="stylesheet" href="style-v4.css">
+</head>
+<body>
+  <div class="page">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <a href="./" class="topbar-left">
+        <img src="icon.png" class="topbar-icon">
+        <div class="topbar-title">Korbeli's Virtual Arcade</div>
+      </a>
+      <div class="topbar-right" id="topbar-right"></div>
+    </div>
+
+    <!-- RIBBON -->
+    <div class="ribbon">★ Unblocked · No Downloads · Free to Play · No Login Required ★</div>
+
+    <!-- MASTHEAD -->
+    <div class="masthead">
+      <div>
+        <div class="masthead-name">
+          <span>Korbeli's</span> Virtual<br>Arcade
+        </div>
+      </div>
+      <div class="masthead-meta">
+        <div><span class="masthead-badge">Est. 2019</span></div>
+        Web Games &amp; Emulators<br>
+        100% Unblocked &amp; Free
+        <div class="masthead-dateline" id="masthead-dateline"></div>
+      </div>
+    </div>
+
+    <!-- NEWS TICKER -->
+    <div class="ticker">
+      <span class="ticker-label">Now Playing</span>
+      <div class="ticker-track">
+        <div class="ticker-items" id="ticker-items"></div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero-section">
+      <div class="hero-main">
+        <span class="hero-kicker">Featured</span>
+        <div class="hero-headline">Play Anything.<br>Get Caught<br>By Nobody.</div>
+        <div class="hero-deck">Free unblocked games and emulators. No downloads, no sign-ups. Works at school.</div>
+      </div>
+      <div class="hero-logo-wrap">
+        <img src="logo.png" class="hero-logo">
+      </div>
+    </div>
+
+    <!-- FAVOURITES (populated by JS) -->
+    <div id="favourites-container"></div>
+
+    <!-- RECENTLY PLAYED (populated by JS if localStorage has data) -->
+    <div id="recently-played-container"></div>
+
+    <!-- SEARCH + SECTIONS -->
+    <div id="sections-container"></div>
+
+    <!-- NO RESULTS MESSAGE -->
+    <div class="search-no-results" id="search-no-results">No games match your search.</div>
+
+    <!-- UPDATE LOG -->
+    <div class="section-header">
+      <span class="section-header-label">Updates</span>
+      <div class="section-header-rule"></div>
+    </div>
+    <div class="updates-section" id="updates-section">
+      <div class="updates-footer">
+        <button class="updates-toggle" id="updates-toggle" onclick="toggleAllUpdates(this)">
+          View all updates ▼
+        </button>
+      </div>
+      <div class="updates-older" id="updates-older"></div>
+    </div>
+
+    <!-- STORY -->
+    <div class="section-header">
+      <span class="section-header-label">Our Story</span>
+      <div class="section-header-rule"></div>
+    </div>
+    <div class="story-section">
+      <div class="story-col story-col--main">
+        <span class="story-kicker">Origin</span>
+        <h2 class="story-headline">One CS Class, One Idea That Stuck.</h2>
+        <p class="story-drop">It started as homework.</p>
+        <p class="story-body">In 7th grade, Eli and Korbyn had a computer science project. Eli built a games site. They put both their names on it, Korbeli, and that was that.</p>
+        <p class="story-body">Korbyn's moved on, but they're still friends. Eli runs the site now.</p>
+      </div>
+      <div class="story-col story-col--side">
+        <div class="story-pullquote">
+          "Eli built it.<br>They put both<br>names on it."
+        </div>
+        <p class="story-body">Eli maintains everything, adds games, fixes bugs, and keeps it running.</p>
+        <p class="story-body">Still free, still unblocked, still going.</p>
+        <div class="story-byline">
+          <span>Founded by Korbyn &amp; Eli</span>
+          <span>Maintained by Eli</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <img src="logoblack.png" class="footer-logo">
+      <p>All games belong to their respective creators.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    const SECTIONS = [
+      { key: 'games',     label: 'Games'     },
+      { key: 'emulators', label: 'Emulators' },
+      { key: 'music',     label: 'Music'     },
+    ];
+
+    let SORT_MODE = 'alphabetical';
+    let ALL_ITEMS = [];
+
+    function setSort(mode) {
+      SORT_MODE = mode;
+      renderSections(sortItems([...ALL_ITEMS]));
+    }
+
+    /* =============================================
+       UTIL
+    ============================================= */
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 54, behavior: 'smooth' });
+    }
+
+    function toggleAllUpdates(btn) {
+      const older = document.getElementById('updates-older');
+      const open = older.classList.toggle('updates-older--open');
+      btn.textContent = open ? 'Collapse ▲' : 'View all updates ▼';
+    }
+
+    function underConstructionSrc() {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+        <rect width="120" height="120" fill="#f5f1eb"/>
+        <text x="60" y="48" text-anchor="middle" font-size="32">🚧</text>
+        <text x="60" y="72" text-anchor="middle" font-size="11" fill="#7a7062">UNDER</text>
+        <text x="60" y="86" text-anchor="middle" font-size="11" fill="#7a7062">CONSTRUCTION</text>
+      </svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    function isNew(dateStr) {
+      if (!dateStr) return false;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return (Date.now() - new Date(y, m - 1, d).getTime()) < 30 * 24 * 60 * 60 * 1000;
+    }
+
+    /* =============================================
+       LIKES (localStorage)
+    ============================================= */
+    function getLikes() {
+      try { return JSON.parse(localStorage.getItem('kva_likes') || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function isLiked(folder) { return getLikes().includes(folder); }
+
+    function toggleLike(folder, btn) {
+      let likes = getLikes();
+      if (likes.includes(folder)) {
+        likes = likes.filter(f => f !== folder);
+      } else {
+        likes.push(folder);
+      }
+      try { localStorage.setItem('kva_likes', JSON.stringify(likes)); } catch(e) {}
+      if (btn) {
+        btn.textContent = likes.includes(folder) ? '♥' : '♡';
+        btn.classList.toggle('liked', likes.includes(folder));
+      }
+      // Re-render if sorted by liked/popular so order updates
+      if (SORT_MODE === 'liked' || SORT_MODE === 'popularity') {
+        renderSections(sortItems([...ALL_ITEMS]));
+      }
+    }
+
+    /* =============================================
+       FAVOURITES (localStorage)
+    ============================================= */
+    function getFavourites() {
+      try { return JSON.parse(localStorage.getItem('kva_favourites') || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function buildFavourites(allItems) {
+      const favs = getFavourites();
+      if (!favs.length) return;
+      const itemMap = {};
+      allItems.forEach(i => itemMap[i.folder] = i);
+      const valid = favs.map(f => itemMap[f.folder]).filter(Boolean);
+      if (!valid.length) return;
+
+      const container = document.getElementById('favourites-container');
+      const header = document.createElement('div');
+      header.className = 'section-header';
+      header.innerHTML = `<span class="section-header-label">★ Favourites</span><div class="section-header-rule"></div>`;
+      const grid = document.createElement('section');
+      grid.className = 'games-grid recently-played-grid';
+      valid.forEach(item => grid.appendChild(buildCard(item, false)));
+      container.appendChild(header);
+      container.appendChild(grid);
+    }
+
+    /* =============================================
+       RECENTLY PLAYED (localStorage)
+    ============================================= */
+    function trackPlay(name, folder) {
+      try {
+        let r = JSON.parse(localStorage.getItem('kva_recent') || '[]');
+        r = r.filter(x => x.folder !== folder);
+        r.unshift({ name, folder, ts: Date.now() });
+        localStorage.setItem('kva_recent', JSON.stringify(r.slice(0, 8)));
+      } catch(e) {}
+    }
+
+    function buildRecentlyPlayed(allItems) {
+      let recent;
+      try { recent = JSON.parse(localStorage.getItem('kva_recent') || '[]'); }
+      catch(e) { return; }
+      if (!recent.length) return;
+      const itemMap = {};
+      allItems.forEach(i => itemMap[i.folder] = i);
+      const valid = recent.map(r => itemMap[r.folder]).filter(Boolean).slice(0, 4);
+      if (!valid.length) return;
+
+      const container = document.getElementById('recently-played-container');
+      const header = document.createElement('div');
+      header.className = 'section-header';
+      header.innerHTML = `<span class="section-header-label">Recently Played</span><div class="section-header-rule"></div>`;
+      const grid = document.createElement('section');
+      grid.className = 'games-grid recently-played-grid';
+      valid.forEach(item => grid.appendChild(buildCard(item, false)));
+      container.appendChild(header);
+      container.appendChild(grid);
+    }
+
+    /* =============================================
+       CARD BUILDER
+    ============================================= */
+    function buildCard(item, trackable = true) {
+      const a = document.createElement('a');
+      a.className = 'game-card';
+      a.href = item.folder + '/';
+
+      if (trackable) {
+        a.addEventListener('click', () => trackPlay(item.name, item.folder));
+      }
+
+      const img = document.createElement('img');
+      const iconExts = ['png', 'jpeg', 'jpg', 'webp', 'svg', 'gif', 'avif'];
+      const iconCandidates = [];
+      const seenIcons = new Set();
+      img.alt = item.name;
+
+      function addIconCandidates(base, preferredExt = null) {
+        if (!base) return;
+        const preferred = preferredExt ? preferredExt.toLowerCase() : null;
+        const orderedExts = preferred
+          ? [preferred, ...iconExts.filter(ext => ext !== preferred)]
+          : iconExts;
+        orderedExts.forEach(ext => {
+          const candidate = `${base}.${ext}`;
+          if (!seenIcons.has(candidate)) {
+            seenIcons.add(candidate);
+            iconCandidates.push(candidate);
+          }
+        });
+      }
+
+      function parseIconPath(pathValue) {
+        if (!pathValue) return null;
+        const match = String(pathValue).match(/^(.*\/)?icon\.([a-z0-9]+)(?:[?#].*)?$/i);
+        if (!match) return null;
+        return {
+          base: (match[1] || '') + 'icon',
+          ext: match[2].toLowerCase(),
+        };
+      }
+
+      const iconPathInfo = parseIconPath(item.iconPath);
+      if (iconPathInfo) addIconCandidates(iconPathInfo.base, iconPathInfo.ext);
+      else if (item.iconPath && !seenIcons.has(item.iconPath)) {
+        seenIcons.add(item.iconPath);
+        iconCandidates.push(item.iconPath);
+      }
+
+      addIconCandidates(item.folder + '/icon');
+
+      let iconIndex = 0;
+      function tryNextIcon() {
+        if (iconIndex < iconCandidates.length) {
+          img.src = iconCandidates[iconIndex++];
+          return;
+        }
+        img.src = underConstructionSrc();
+        a.classList.add('game-card--wip');
+      }
+
+      img.onerror = tryNextIcon;
+      tryNextIcon();
+
+      // NEW badge
+      if (isNew(item.dateAdded)) {
+        const badge = document.createElement('span');
+        badge.className = 'card-new-badge';
+        badge.textContent = 'New';
+        a.appendChild(badge);
+      }
+
+      const label = document.createElement('span');
+      label.className = 'game-card-label';
+      label.textContent = item.name;
+
+      a.appendChild(img);
+      a.appendChild(label);
+      return a;
+    }
+
+    function buildDropdownLink(item) {
+      const a = document.createElement('a');
+      a.href = item.folder + '/';
+      a.textContent = item.name;
+      return a;
+    }
+
+    /* =============================================
+       SORTING
+    ============================================= */
+    function sortItems(items) {
+      const likes = getLikes();
+      if (SORT_MODE === 'alphabetical') {
+        return items.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      if (SORT_MODE === 'date') {
+        return items.sort((a, b) => new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0));
+      }
+      if (SORT_MODE === 'popularity') {
+        // Liked games get a big boost to float to the top
+        return items.sort((a, b) => {
+          const aScore = (a.popularity || 0) + (likes.includes(a.folder) ? 10000 : 0);
+          const bScore = (b.popularity || 0) + (likes.includes(b.folder) ? 10000 : 0);
+          return bScore - aScore;
+        });
+      }
+      if (SORT_MODE === 'liked') {
+        // Liked games first (in their original popularity order), then rest alphabetically
+        const liked    = items.filter(i => likes.includes(i.folder)).sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+        const notLiked = items.filter(i => !likes.includes(i.folder)).sort((a, b) => a.name.localeCompare(b.name));
+        return [...liked, ...notLiked];
+      }
+      return items;
+    }
+
+    /* =============================================
+       LIVE SEARCH
+    ============================================= */
+    function filterCards(query) {
+      const q = query.toLowerCase().trim();
+      let anyVisible = false;
+
+      document.querySelectorAll('#sections-container .game-card').forEach(card => {
+        const name = card.querySelector('.game-card-label').textContent.toLowerCase();
+        const visible = !q || name.includes(q);
+        card.style.display = visible ? '' : 'none';
+        if (visible) anyVisible = true;
+      });
+
+      document.querySelectorAll('#sections-container .games-grid').forEach(grid => {
+        const any = [...grid.querySelectorAll('.game-card')].some(c => c.style.display !== 'none');
+        grid.style.display = any ? '' : 'none';
+        let prev = grid.previousElementSibling;
+        while (prev && (prev.classList.contains('section-header') || prev.classList.contains('system-header'))) {
+          prev.style.display = any ? '' : 'none';
+          prev = prev.previousElementSibling;
+        }
+      });
+
+      document.getElementById('search-no-results').style.display = anyVisible || !q ? 'none' : 'block';
+    }
+
+    /* =============================================
+       UPDATES
+    ============================================= */
+    function formatDate(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function buildUpdateEntry(u) {
+      const div = document.createElement('div');
+      div.className = 'update-entry';
+      div.innerHTML = `
+        <div class="update-meta">
+          <span class="update-date">${formatDate(u.date)}</span>
+          <span class="update-tag update-tag--${u.type}">${u.type.charAt(0).toUpperCase() + u.type.slice(1)}</span>
+        </div>
+        <div class="update-headline">${u.title}</div>
+        <div class="update-body">${u.body}</div>
+      `;
+      return div;
+    }
+
+    async function buildUpdates() {
+      let updates;
+      try { const res = await fetch('updates.json'); updates = await res.json(); }
+      catch(e) { return; }
+      updates.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const section = document.getElementById('updates-section');
+      const footer  = section.querySelector('.updates-footer');
+      const older   = document.getElementById('updates-older');
+      const RECENT  = 3;
+      updates.forEach((u, i) => {
+        const entry = buildUpdateEntry(u);
+        if (i < RECENT) section.insertBefore(entry, footer);
+        else older.appendChild(entry);
+      });
+      if (updates.length <= RECENT) footer.style.display = 'none';
+    }
+
+    /* =============================================
+       RENDER SECTIONS
+    ============================================= */
+    function renderSections(items) {
+      const container = document.getElementById('sections-container');
+      container.innerHTML = '';
+
+      // Sort + search bar
+      const sortBar = document.createElement('div');
+      sortBar.className = 'section-header';
+      sortBar.innerHTML = `
+        <span class="section-header-label">Sort</span>
+        <div class="section-header-rule"></div>
+        <div style="padding:6px 14px;">
+          <select id="sortSelect" style="font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--burgundy);background:var(--paper);padding:4px 8px;cursor:pointer;">
+            <option value="alphabetical">Alphabetical</option>
+            <option value="date">Newest</option>
+            <option value="popularity">Popular</option>
+            <option value="liked">♥ Liked First</option>
+          </select>
+        </div>
+      `;
+      container.appendChild(sortBar);
+
+      const searchBar = document.createElement('div');
+      searchBar.className = 'search-bar';
+      searchBar.innerHTML = `<span class="search-bar-label">Search</span><input type="text" id="searchInput" placeholder="Filter games…" autocomplete="off">`;
+      container.appendChild(searchBar);
+
+      setTimeout(() => {
+        const sel = document.getElementById('sortSelect');
+        if (sel) { sel.value = SORT_MODE; sel.onchange = e => setSort(e.target.value); }
+        const inp = document.getElementById('searchInput');
+        if (inp) inp.oninput = e => filterCards(e.target.value);
+      }, 0);
+
+      // Group by section
+      const grouped = {};
+      SECTIONS.forEach(s => grouped[s.key] = []);
+      items.forEach(item => { if (grouped[item.section] !== undefined) grouped[item.section].push(item); });
+
+      // Nav dropdowns
+      const navEl = document.getElementById('topbar-right');
+      navEl.innerHTML = '';
+      SECTIONS.forEach(s => {
+        const sectionItems = grouped[s.key];
+        if (!sectionItems?.length) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'dropdown';
+
+        const btn = document.createElement('button');
+        btn.className = 'dropbtn';
+        btn.textContent = s.label + ' ▼';
+        btn.addEventListener('click', () => scrollToSection(s.key + '-section'));
+
+        const content = document.createElement('div');
+        content.className = 'dropdown-content';
+        sectionItems.forEach(item => content.appendChild(buildDropdownLink(item)));
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(content);
+        navEl.appendChild(wrapper);
+      });
+
+      // Ticker
+      const tickerEl = document.getElementById('ticker-items');
+      const tickerText = items.map(i => i.name).join(' · ');
+      tickerEl.textContent = tickerText + ' · ' + tickerText;
+
+      // Render each section
+      SECTIONS.forEach(s => {
+        const sectionItems = grouped[s.key];
+        if (!sectionItems?.length) return;
+
+        const header = document.createElement('div');
+        header.id = s.key + '-section';
+        header.className = 'section-header';
+        header.innerHTML = `
+          <span class="section-header-label">${s.label}</span>
+          <span class="section-count">${sectionItems.length} ${sectionItems.length === 1 ? 'title' : 'titles'}</span>
+          <div class="section-header-rule"></div>
+        `;
+        container.appendChild(header);
+
+        if (s.key === 'emulators') {
+          const systemOrder = [], bySystem = {};
+          sectionItems.forEach(item => {
+            const sys = item.system || 'Other';
+            if (!bySystem[sys]) { bySystem[sys] = []; systemOrder.push(sys); }
+            bySystem[sys].push(item);
+          });
+          systemOrder.forEach(sys => {
+            const subH = document.createElement('div');
+            subH.className = 'system-header';
+            subH.innerHTML = `<span class="system-header-label">${sys}</span><div class="system-header-rule"></div>`;
+            container.appendChild(subH);
+            const grid = document.createElement('section');
+            grid.className = 'games-grid';
+            bySystem[sys].forEach(item => grid.appendChild(buildCard(item)));
+            container.appendChild(grid);
+          });
+        } else {
+          // Split into featured (top 3) + rest
+          const sorted = [...sectionItems].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+          const featured = sorted.slice(0, 3);
+          const rest = sectionItems; // show all in main grid (featured appear twice intentionally — once big, once in list)
+
+          if (featured.length) {
+            const featGrid = document.createElement('section');
+            featGrid.className = 'games-grid games-grid--featured';
+            featured.forEach(item => featGrid.appendChild(buildCard(item)));
+            container.appendChild(featGrid);
+          }
+
+          const grid = document.createElement('section');
+          grid.className = 'games-grid';
+          sectionItems.forEach(item => grid.appendChild(buildCard(item)));
+          container.appendChild(grid);
+        }
+      });
+    }
+
+    /* =============================================
+       MAIN BUILD
+    ============================================= */
+    async function build() {
+      let items;
+      try { const res = await fetch('games.json'); items = await res.json(); }
+      catch(e) { console.error('Could not load games.json:', e); return; }
+      ALL_ITEMS = items;
+      renderSections(sortItems([...items]));
+      buildFavourites(items);
+      buildRecentlyPlayed(items);
+    }
+
+    build();
+    buildUpdates();
+
+    // Masthead dateline
+    (function() {
+      const el = document.getElementById('masthead-dateline');
+      if (!el) return;
+      el.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    })();
+  </script>
+</body>
+</html>
