@@ -29,3 +29,4 @@ window.onload = function() {
     applyResponsiveFrameScaling();
     SceneManager.run(Scene_Boot);
 };
+
