@@ -715,6 +715,17 @@
     ]
   },
   {
+    "name": "Slope",
+    "folder": "games/slope",
+    "section": "games",
+    "dateAdded": "2026-04-12",
+    "popularity": 74,
+    "tags": [
+      "game"
+    ]
+  },
+
+  {
     "name": "4th of July Baseball",
     "folder": "games/google-4th-of-july-baseball",
     "section": "games",
