@@ -3447,17 +3447,54 @@ Gamefall.JPWordWrap = Gamefall.JPWordWrap || {};
 
 		static loadSavefileInfo(savefileId) {
 			var globalInfo = this.loadGlobalInfo();
-			if (globalInfo && globalInfo[savefileId]) {
-				globalInfo[savefileId].actorData.name = this.convertNameToLanguage('actor', globalInfo[savefileId].actorData.name);
-				if(!isTextInCurrentLanguage(globalInfo[savefileId].actorData.name)) {
-					const lang = LanguageManager.defaultLanguage();
-					globalInfo[savefileId].actorData.name = LanguageManager._data[lang]["text"]["XX_BLUE"]["Omori_Name_Input"]["defaultname"] // Assuming this is Sunny as all the other characters that could save
-					// are defined inside actorNamesPerLanguage array.
+			if (!globalInfo || !globalInfo[savefileId] || typeof globalInfo[savefileId] !== "object") {return null;}
+
+			var info = globalInfo[savefileId];
+			if (!info.actorData || typeof info.actorData !== "object") {
+				var fallbackFaceName = "";
+				var fallbackFaceIndex = 0;
+				var fallbackName = "";
+				if (info.faces && info.faces[0]) {
+					fallbackFaceName = info.faces[0][0] || "";
+					fallbackFaceIndex = Number(info.faces[0][1]) || 0;
 				}
-				globalInfo[savefileId].chapter = this.convertNameToLanguage('chapter', globalInfo[savefileId].chapter);
-				globalInfo[savefileId].location = this.convertNameToLanguage('location', globalInfo[savefileId].location)
-			};
-			return (globalInfo && globalInfo[savefileId]) ? globalInfo[savefileId] : null;
+				if (info.characters && info.characters[0]) {
+					fallbackName = info.characters[0][0] || "";
+				}
+				info.actorData = {
+					name: fallbackName,
+					level: 0,
+					faceName: fallbackFaceName,
+					faceIndex: fallbackFaceIndex
+				};
+			}
+
+			if (typeof info.actorData.name !== "string") {info.actorData.name = String(info.actorData.name || "");}
+			if (typeof info.actorData.faceName !== "string") {info.actorData.faceName = String(info.actorData.faceName || "");}
+			if (typeof info.actorData.faceIndex !== "number") {info.actorData.faceIndex = Number(info.actorData.faceIndex) || 0;}
+			if (info.actorData.level === undefined || info.actorData.level === null) {info.actorData.level = 0;}
+
+			info.actorData.name = this.convertNameToLanguage('actor', info.actorData.name);
+			if(!isTextInCurrentLanguage(info.actorData.name)) {
+				const lang = LanguageManager.defaultLanguage();
+				let defaultName = "OMORI";
+				if (LanguageManager._data &&
+					LanguageManager._data[lang] &&
+					LanguageManager._data[lang]["text"] &&
+					LanguageManager._data[lang]["text"]["XX_BLUE"] &&
+					LanguageManager._data[lang]["text"]["XX_BLUE"]["Omori_Name_Input"] &&
+					LanguageManager._data[lang]["text"]["XX_BLUE"]["Omori_Name_Input"]["defaultname"]) {
+					defaultName = LanguageManager._data[lang]["text"]["XX_BLUE"]["Omori_Name_Input"]["defaultname"];
+				}
+				// Assuming this is Sunny as all the other characters that could save
+				// are defined inside actorNamesPerLanguage array.
+				info.actorData.name = defaultName;
+			}
+			if (info.chapter === undefined || info.chapter === null) {info.chapter = "";}
+			if (info.location === undefined || info.location === null) {info.location = "";}
+			info.chapter = this.convertNameToLanguage('chapter', info.chapter);
+			info.location = this.convertNameToLanguage('location', info.location);
+			return info;
 		}
 	}
 
