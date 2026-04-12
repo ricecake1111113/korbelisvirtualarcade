@@ -143,6 +143,12 @@ LanguageManager.getInputName = function(type, input, language = this._language) 
 LanguageManager.getTextData = function(file, name, language) { 
   // Set Default Language
   if (language === undefined) { language = this._language; }
+  if (!this._data || !this._data[language] || !this._data[language].text) {
+    return undefined;
+  }
+  if (!this._data[language].text[file]) {
+    return undefined;
+  }
   // Return Text Data
   return this._data[language].text[file][name];
 };
