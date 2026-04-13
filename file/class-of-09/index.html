@@ -2,7 +2,6 @@
     <html lang=en-us>
 
     <head>
-        <base href="https://cdn.jsdelivr.net/gh/genizy/web-port@main/class-of-09/">
         <meta charset=utf-8>
         <meta content="text/html; charset=utf-8" http-equiv=Content-Type>
         <title>Class of '09</title>
@@ -175,17 +174,18 @@
     
             function getParts(file, start, end) {
                 let parts = [];
+                const gameZipVersion = "2026-04-12-3";
                 for (let i = start; i <= end; i++) {
-                    parts.push(file + ".part" + i);
+                    parts.push(file + ".part" + i + "?v=" + gameZipVersion);
                 }
                 return parts;
             }
             mergeFiles(getParts("game.zip", 1, 2)).then(async url => {
                 window.gameZipUrl = url;
                 let renpypre = document.createElement("script");
-                renpypre.src = "https://cdn.jsdelivr.net/gh/genizy/web-port@725a19f20c3f376529284c9f86299581719e8d19/class-of-09/renpy-pre.js"
+                renpypre.src = "./renpy-pre.js"
                 let renpy = document.createElement("script");
-                renpy.src = "https://cdn.jsdelivr.net/gh/genizy/web-port@725a19f20c3f376529284c9f86299581719e8d19/class-of-09/renpy.js"
+                renpy.src = "./renpy.js"
                 document.body.appendChild(renpypre);
                 document.body.appendChild(renpy);
             });

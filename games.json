@@ -739,7 +739,16 @@
       "game"
     ]
   },
-
+  {
+    "name": "Class of '09",
+    "folder": "games/class-of-09",
+    "section": "games",
+    "dateAdded": "2026-04-12",
+    "popularity": 75,
+    "tags": [
+      "game"
+    ]
+  },
   {
     "name": "4th of July Baseball",
     "folder": "games/google-4th-of-july-baseball",
