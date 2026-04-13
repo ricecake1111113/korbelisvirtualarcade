@@ -1,0 +1,2146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Agar.io - Private Server</title>
+<link rel="icon" type="image/png" href="favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --text: #f5f8ff;
+  --line: rgba(255,255,255,0.15);
+  --hud-bg: rgba(0,0,0,0.46);
+  --hud-text: #f8faff;
+  --good: #62ef75;
+  --grid-bg: #161f35;
+  --grid-line: rgba(255,255,255,0.055);
+  --map-border: #5f7295;
+}
+body.light {
+  --text: #173255;
+  --line: rgba(32,64,110,0.2);
+  --hud-bg: rgba(255,255,255,0.72);
+  --hud-text: #153258;
+  --good: #24963b;
+  --grid-bg: #edf4ff;
+  --grid-line: rgba(22,60,112,0.09);
+  --map-border: #7b9bc9;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at 30% -10%, #2d74e5 0%, #1d5ec7 42%, #1548a3 100%);
+  font-family: 'Manrope', sans-serif;
+  color: var(--text);
+}
+body.menu-open #canvas {
+  filter: blur(0.85px) saturate(1) brightness(0.98);
+}
+#canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+#menu {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  background: linear-gradient(180deg, rgba(21,84,184,0.12), rgba(9,20,41,0.24));
+  backdrop-filter: blur(4px) saturate(1.02);
+  padding: 14px;
+}
+#menu.hidden { display: none; }
+.phone {
+  width: min(980px, 56vw);
+  height: min(700px, 90vh);
+  border-radius: 14px;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(214,227,243,0.18), rgba(186,203,224,0.14) 45%, rgba(162,186,213,0.16));
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  backdrop-filter: blur(5px) saturate(1.01);
+}
+.screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 82px minmax(360px, 1fr);
+  gap: 10px;
+  padding: 10px;
+  background:
+    linear-gradient(0deg, rgba(245,251,255,0.48), rgba(245,251,255,0.48)),
+    linear-gradient(0deg, rgba(15,71,148,0.065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,71,148,0.065) 1px, transparent 1px);
+  background-size: 100% 100%, 26px 26px, 26px 26px;
+  backdrop-filter: blur(4px);
+}
+.rail { display: flex; flex-direction: column; gap: 10px; }
+.rail button {
+  height: 58px;
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+}
+#skinsBtn { background: linear-gradient(180deg,#39c8ff,#1aa0d8); }
+#openStatsBtn { background: linear-gradient(180deg,#53d64d,#34a535); }
+.center { display: flex; flex-direction: column; min-width: 0; overflow: auto; padding-right: 4px; }
+.title { text-align: center; margin-top: 6px; }
+.title h1 {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(56px, 7vw, 88px);
+  color: #42566f;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.title p { color: #637690; font-size: 18px; font-weight: 800; }
+.name-row {
+  margin: 16px auto 8px;
+  width: min(560px,100%);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+#nickInput {
+  border: 2px solid rgba(26,88,152,0.24);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #30475f;
+  background: rgba(255,255,255,0.72);
+}
+.theme-box {
+  border: 2px solid rgba(26,88,152,0.2);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.66);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  color: #446285;
+  font-size: 13px;
+  font-weight: 800;
+}
+.actions {
+  width: min(560px,100%);
+  margin: 6px auto;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+}
+.mode-row {
+  width: min(560px,100%);
+  margin: 6px auto 0;
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 8px;
+}
+.mode-btn {
+  border: 2px solid rgba(21,88,161,0.24);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #456185;
+  background: rgba(255,255,255,0.82);
+  cursor: pointer;
+}
+.mode-btn.active {
+  color: #fff;
+  border-color: rgba(20,85,155,0.5);
+  background: linear-gradient(180deg,#1ea5ff,#1a74dc);
+}
+.actions button {
+  border: none;
+  border-radius: 7px;
+  padding: 13px;
+  font-family: 'Sora', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#playBtn { background: linear-gradient(180deg,#ff9d1f,#f47e00); color: #fff; }
+#settingsToggle { background: linear-gradient(180deg,#ffd43a,#f3b304); color: #6a4d08; }
+#spectateBtn { background: linear-gradient(180deg,#35c78d,#1f9f6c); color: #fff; }
+.skin-block {
+  width: min(560px,100%);
+  margin: 10px auto 0;
+  border-radius: 7px;
+  border: 2px solid rgba(29,96,163,0.18);
+  background: rgba(255,255,255,0.62);
+  padding: 8px;
+}
+.skin-block.hidden { display: none; }
+.skin-title { font-size: 12px; color: #4f627f; font-weight: 800; margin-bottom: 6px; letter-spacing: .05em; }
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(84px,1fr));
+  gap: 7px;
+  max-height: 220px;
+  overflow: auto;
+}
+.skin-chip {
+  border: 2px solid rgba(20,84,160,0.16);
+  border-radius: 6px;
+  padding: 4px;
+  background: rgba(255,255,255,0.72);
+  color: #2e4664;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  line-height: 1.15;
+}
+.skin-chip.active { border-color: #1d8dff; }
+.skin-chip img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eef5ff; }
+.skin-chip span {
+  display: block;
+  width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.right { display: none; }
+.card {
+  border-radius: 9px;
+  border: 2px solid rgba(23,77,136,0.2);
+  background: rgba(255,255,255,0.68);
+  color: #2f4868;
+  padding: 10px;
+}
+.card h3 { font-size: 21px; margin-bottom: 8px; color: #395779; }
+.stat-grid { display: grid; grid-template-columns: repeat(2,minmax(88px,1fr)); gap: 8px; }
+.stat {
+  border-radius: 10px;
+  background: rgba(16,80,154,0.08);
+  border: 1px solid rgba(16,80,154,0.18);
+  padding: 8px;
+}
+.stat .k { font-size: 11px; color: #567293; text-transform: uppercase; font-weight: 700; }
+.stat .v { font-size: 24px; color: #264a78; font-weight: 800; }
+#settingsPanel {
+  position: fixed;
+  inset: 0;
+  z-index: 185;
+  background: rgba(10, 22, 43, 0.35);
+  backdrop-filter: blur(4px) saturate(1.04);
+  padding: 14px;
+  display: none;
+}
+#settingsPanel.show { display: flex; }
+.settings-surface {
+  width: min(980px, 94vw);
+  height: 100%;
+  margin: 0 auto;
+  border-radius: 7px;
+  border: 2px solid rgba(16,76,140,0.19);
+  background: rgba(247,251,255,0.7);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.settings-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-bottom: 6px; }
+.settings-head h4 { font-size: 13px; color: #385a83; font-weight: 800; text-transform: uppercase; }
+.settings-actions { display: flex; gap: 6px; }
+.settings-search {
+  width: 100%;
+  border: 1px solid rgba(43,98,165,0.25);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #24476f;
+  background: rgba(255,255,255,0.92);
+}
+.settings-actions button {
+  border: none;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #fff;
+}
+#regenerateWorldBtn { background: #8f4b26; }
+#saveSettingsBtn { background: #2d9b3e; }
+#resetSettingsBtn { background: #ea7f2d; }
+#closeSettingsBtn { background: #65748a; }
+#settingsList { overflow: auto; min-height: 0; }
+.settings-group { margin-bottom: 10px; }
+.settings-group h5 {
+  font-size: 11px;
+  color: #4f6f96;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 5px;
+  border-bottom: 1px dashed rgba(54,98,154,0.2);
+  padding-bottom: 3px;
+}
+.setting-row {
+  border-radius: 5px;
+  border: 1px solid rgba(54,98,154,0.18);
+  background: rgba(255,255,255,0.78);
+  padding: 5px 6px;
+  margin-bottom: 4px;
+}
+.setting-row label { display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 800; color: #3d5e87; align-items: center; }
+.setting-row input, .setting-row select {
+  width: 126px;
+  border-radius: 5px;
+  border: 1px solid rgba(43,98,165,0.25);
+  background: #fff;
+  padding: 2px 5px;
+  color: #24476f;
+  font-size: 11px;
+  font-weight: 700;
+}
+.setting-row .desc { margin-top: 2px; color: #6a87ac; font-size: 10px; line-height: 1.2; }
+.num-wrap { display: inline-flex; align-items: stretch; }
+.num-wrap input { width: 92px; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.num-steps { display: flex; flex-direction: column; width: 22px; }
+.num-step {
+  border: 1px solid rgba(43,98,165,0.25);
+  border-left: none;
+  background: rgba(241,248,255,0.94);
+  color: #2f4f77;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+.num-step:first-child { border-top-right-radius: 5px; border-bottom: none; }
+.num-step:last-child { border-bottom-right-radius: 5px; }
+.note { margin-top: 8px; font-size: 12px; color: #5a779d; text-align: center; }
+#deathScreen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 130;
+  background: rgba(7,14,27,0.65);
+  backdrop-filter: blur(4px);
+}
+#deathScreen.show { display: flex; }
+.death-box {
+  width: min(430px,92vw);
+  border-radius: 11px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(25,35,62,0.95);
+  color: #fff;
+  padding: 24px;
+  text-align: center;
+}
+.death-box h2 { font-size: 34px; font-family: 'Sora', sans-serif; color: #ff6a6a; }
+.death-info { margin: 10px 0 16px; color: #c5d2e8; line-height: 1.7; }
+.death-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+#continueBtn, #lobbyDeathBtn { border: none; border-radius: 12px; color: #fff; font-weight: 800; font-size: 16px; padding: 10px 18px; cursor: pointer; }
+#continueBtn { background: #38a8ff; }
+#lobbyDeathBtn { background: #6c7f9a; }
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 70; display: none; }
+#hud.active { display: block; }
+.hud-card { position: absolute; background: var(--hud-bg); border: 1px solid var(--line); border-radius: 12px; color: var(--hud-text); backdrop-filter: blur(4px); }
+#leaderboard { top: 10px; right: 10px; width: 260px; max-width: 38vw; max-height: 72vh; overflow-y: auto; overflow-x: hidden; padding: 10px 12px; pointer-events: auto; touch-action: pan-y; transition: width 0.2s ease, opacity 0.2s ease, padding 0.2s ease; }
+#leaderboard.collapsed { width: 0; padding-left: 0; padding-right: 0; border-width: 0; opacity: 0; overflow: hidden; }
+#leaderboard h3 { text-align: center; font-size: 17px; margin-bottom: 6px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
+.lb-entry { display: flex; justify-content: space-between; gap: 7px; font-size: 15px; line-height: 1.4; }
+.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; display: inline-block; }
+.lb-score { display: inline-flex; align-items: center; gap: 6px; }
+.lb-team-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 0 0 1px rgba(0,0,0,0.24); }
+.lb-entry.me { color: var(--good); font-weight: 800; }
+#scoreDisplay { left: 50%; bottom: 20px; transform: translateX(-50%); padding: 9px 14px; font-size: 26px; font-weight: 800; }
+#minimap { position: absolute; right: 10px; bottom: 10px; width: 170px; height: 170px; border-radius: 10px; border: 1px solid var(--line); background: var(--hud-bg); }
+#fpsCounter { left: 10px; top: 10px; padding: 7px 10px; font-size: 12px; }
+#hudStats { left: 10px; top: 50px; padding: 10px; width: 188px; font-size: 14px; }
+#hudStats .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+#leaderboardToggle {
+  position: absolute;
+  right: 280px;
+  top: 10px;
+  width: 30px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-weight: 800;
+  font-size: 18px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+#lobbyBtn {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-weight: 800;
+  font-size: 12px;
+  padding: 8px 12px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+#teamChart {
+  position: absolute;
+  left: 10px;
+  top: 202px;
+  width: 250px;
+  height: 260px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--hud-bg);
+  display: none;
+}
+#teamChartToggle {
+  position: absolute;
+  left: 10px;
+  top: 168px;
+  width: 250px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 5px 9px;
+  pointer-events: auto;
+  cursor: pointer;
+  display: none;
+  text-align: left;
+}
+#statsPanel {
+  position: fixed;
+  inset: 0;
+  z-index: 186;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 22, 43, 0.52);
+  backdrop-filter: blur(9px);
+  padding: 14px;
+}
+#statsPanel.show { display: flex; }
+.stats-surface {
+  width: min(980px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.26);
+  background: rgba(243,249,255,0.8);
+  padding: 14px;
+}
+.stats-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.stats-head h4 {
+  font-size: 16px;
+  font-family: 'Sora', sans-serif;
+  color: #37577e;
+}
+#closeStatsBtn {
+  border: none;
+  border-radius: 8px;
+  background: #687d98;
+  color: #fff;
+  font-weight: 800;
+  padding: 7px 11px;
+  cursor: pointer;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(160px,1fr));
+  gap: 8px;
+}
+.dstat {
+  border-radius: 8px;
+  border: 1px solid rgba(38,89,147,0.2);
+  background: rgba(255,255,255,0.68);
+  padding: 9px;
+}
+.dstat .k { font-size: 10px; text-transform: uppercase; color: #567193; font-weight: 800; }
+.dstat .v { font-size: 20px; color: #2a4f7b; font-weight: 800; margin-top: 4px; }
+#toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 200; background: rgba(16,35,68,0.9); color: #fff; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; font-size: 13px; display: none; }
+#exitSpectateBtn {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 210;
+  border: 1px solid rgba(255,255,255,0.28);
+  background: rgba(7,18,38,0.82);
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px 11px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: none;
+}
+#exitSpectateBtn.show { display: inline-block; }
+@media (max-width: 1080px) {
+  .phone { width: 100%; height: 100%; border-radius: 12px; padding: 8px; }
+  .screen { border-radius: 16px; grid-template-columns: 1fr; grid-auto-rows: min-content; overflow: auto; }
+  .rail { flex-direction: row; }
+  #settingsPanel { padding: 8px; }
+  .stats-grid { grid-template-columns: repeat(2,minmax(130px,1fr)); }
+}
+@media (max-width: 720px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body class="menu-open">
+<canvas id="canvas"></canvas>
+<div id="toast"></div>
+<button id="exitSpectateBtn">Exit Spectate</button>
+
+<div id="menu">
+  <div class="phone">
+    <div class="screen">
+      <aside class="rail">
+        <button id="skinsBtn">Skins</button>
+        <button id="openStatsBtn">Stats</button>
+      </aside>
+      <main class="center">
+        <div class="title"><h1>Agar.io</h1><p>Custom Private Server</p></div>
+        <div class="name-row">
+          <input id="nickInput" type="text" maxlength="15" placeholder="Name..." autofocus>
+          <label class="theme-box">Light Mode <input id="themeToggle" type="checkbox"></label>
+        </div>
+        <div class="actions">
+          <button id="playBtn">Play</button>
+          <button id="settingsToggle">Customize</button>
+          <button id="spectateBtn">Spectate</button>
+        </div>
+        <div class="mode-row">
+          <button id="ffaModeBtn" class="mode-btn active">FFA Mode</button>
+          <button id="teamModeBtn" class="mode-btn">Team Mode</button>
+        </div>
+        <div id="skinBlock" class="skin-block">
+          <div class="skin-title">Skins</div>
+          <div id="skinGrid" class="skin-grid"></div>
+        </div>
+        <div id="settingsPanel">
+          <div class="settings-surface">
+            <div class="settings-head">
+              <h4>Game Settings</h4>
+              <input id="settingsSearch" class="settings-search" type="text" placeholder="Search settings...">
+              <div class="settings-actions">
+                <button id="regenerateWorldBtn">Regenerate Match</button>
+                <button id="saveSettingsBtn">Apply</button>
+                <button id="resetSettingsBtn">Reset</button>
+                <button id="closeSettingsBtn">Close</button>
+              </div>
+            </div>
+            <div id="settingsList"></div>
+          </div>
+        </div>
+        <div class="note">Mouse move | Space split | W eject | Scroll zoom | Spectate: drag + wheel</div>
+      </main>
+      <aside class="right">
+        <div class="card">
+          <h3>Career Stats</h3>
+          <div class="stat-grid">
+            <div class="stat"><div class="k">High Score</div><div id="statHighScore" class="v">0</div></div>
+            <div class="stat"><div class="k">Total Score</div><div id="statTotalScore" class="v">0</div></div>
+            <div class="stat"><div class="k">Games Played</div><div id="statGamesPlayed" class="v">0</div></div>
+            <div class="stat"><div class="k">Times Eaten</div><div id="statTimesEaten" class="v">0</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Last Match</h3>
+          <div class="stat-grid">
+            <div class="stat"><div class="k">Score</div><div id="lastScore" class="v">0</div></div>
+            <div class="stat"><div class="k">Best Rank</div><div id="lastRank" class="v">-</div></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<div id="statsPanel">
+  <div class="stats-surface">
+    <div class="stats-head">
+      <h4>Detailed Statistics</h4>
+      <button id="closeStatsBtn">Close</button>
+    </div>
+    <div class="stats-grid">
+      <div class="dstat"><div class="k">Highest Score Ever</div><div id="dHighScore" class="v">0</div></div>
+      <div class="dstat"><div class="k">Total Score</div><div id="dTotalScore" class="v">0</div></div>
+      <div class="dstat"><div class="k">Games Played</div><div id="dGamesPlayed" class="v">0</div></div>
+      <div class="dstat"><div class="k">Times Eaten</div><div id="dTimesEaten" class="v">0</div></div>
+      <div class="dstat"><div class="k">Average Score</div><div id="dAvgScore" class="v">0</div></div>
+      <div class="dstat"><div class="k">Last Match Score</div><div id="dLastScore" class="v">0</div></div>
+      <div class="dstat"><div class="k">Best Rank This Match</div><div id="dBestRank" class="v">-</div></div>
+      <div class="dstat"><div class="k">Peak This Match</div><div id="dPeakScore" class="v">0</div></div>
+      <div class="dstat"><div class="k">Current Mode</div><div id="dCurrentMode" class="v">FFA</div></div>
+      <div class="dstat"><div class="k">Current Team</div><div id="dCurrentTeam" class="v">-</div></div>
+      <div class="dstat"><div class="k">Team Count</div><div id="dTeamCount" class="v">3</div></div>
+      <div class="dstat"><div class="k">Selected Skin</div><div id="dSelectedSkin" class="v">None</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="deathScreen">
+  <div class="death-box">
+    <h2>Game Over</h2>
+    <div class="death-info"><div id="deathKiller"></div><div id="deathScore"></div></div>
+    <div class="death-actions">
+      <button id="continueBtn">Play Again</button>
+      <button id="lobbyDeathBtn">Return To Lobby</button>
+    </div>
+  </div>
+</div>
+
+<div id="hud">
+  <button id="leaderboardToggle" title="Hide/Show leaderboard">></button>
+  <div id="leaderboard" class="hud-card"></div>
+  <div id="scoreDisplay" class="hud-card">Score: 0</div>
+  <canvas id="minimap"></canvas>
+  <button id="teamChartToggle" title="Hide/Show team chart">Hide Team Chart</button>
+  <canvas id="teamChart"></canvas>
+  <button id="lobbyBtn">Return To Lobby</button>
+  <div id="fpsCounter" class="hud-card"></div>
+  <div id="hudStats" class="hud-card">
+    <div class="row"><span>High</span><strong id="hudHigh">0</strong></div>
+    <div class="row"><span>Total</span><strong id="hudTotal">0</strong></div>
+    <div class="row"><span>Games</span><strong id="hudGames">0</strong></div>
+    <div class="row"><span>Eaten</span><strong id="hudEaten">0</strong></div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const minimapCanvas = document.getElementById('minimap');
+const minimapCtx = minimapCanvas.getContext('2d');
+const teamChartCanvas = document.getElementById('teamChart');
+const teamChartCtx = teamChartCanvas.getContext('2d');
+const STORAGE_KEY = 'agario_private_stats_v4';
+const THEME_KEY = 'agario_theme_v2';
+const CLIENT_SETTINGS_KEY = 'agario_client_settings_v3';
+const clientSettingsDefaults = {
+  fpsCap: 60,
+  hideNames: false,
+  hideMass: false,
+  showOtherMass: false,
+  hideSkins: false,
+  renderDistance: 1.0,
+  showMinimap: true,
+  showTeamChart: true,
+  ownCellLerp: 0.56,
+  globalLerp: 0.42,
+};
+const clientSettingsSchema = [
+  { key: 'fpsCap', label: 'FPS Cap', description: 'Maximum FPS. 0 = unlimited.', type: 'number', min: 0, max: 240, step: 1, group: 'Client' },
+  { key: 'renderDistance', label: 'Render Distance', description: 'Lower values draw fewer entities for better performance.', type: 'number', min: 0.45, max: 1.6, step: 0.05, group: 'Client' },
+  { key: 'globalLerp', label: 'Entity Smoothing', description: 'Interpolation amount for other entities. Lower = snappier.', type: 'number', min: 0.1, max: 0.8, step: 0.01, group: 'Client' },
+  { key: 'ownCellLerp', label: 'Own Cell Smoothing', description: 'Interpolation amount for your own cells.', type: 'number', min: 0.1, max: 0.8, step: 0.01, group: 'Client' },
+  { key: 'hideNames', label: 'Hide Names', description: 'Disable player name labels.', type: 'boolean', group: 'Client' },
+  { key: 'hideMass', label: 'Hide Mass Text', description: 'Disable cell mass labels.', type: 'boolean', group: 'Client' },
+  { key: 'showOtherMass', label: 'Show Other Player Mass', description: 'Display mass numbers on other players (default: off).', type: 'boolean', group: 'Client' },
+  { key: 'hideSkins', label: 'Hide Skins', description: 'Disable skin textures to save memory.', type: 'boolean', group: 'Client' },
+  { key: 'showMinimap', label: 'Show Minimap', description: 'Display minimap overlay.', type: 'boolean', group: 'Client' },
+  { key: 'showTeamChart', label: 'Show Team Chart', description: 'Display team pie + percentages in teams mode.', type: 'boolean', group: 'Client' },
+];
+
+let ws = null;
+let playerId = null;
+let mapWidth = 5000;
+let mapHeight = 5000;
+let viewportWidth = window.innerWidth;
+let viewportHeight = window.innerHeight;
+let canvasDpr = 1;
+let alive = false;
+let score = 0;
+let bestRankThisMatch = null;
+let peakScoreThisMatch = 0;
+let appliedPlayerSkin = null;
+let currentMode = 'ffa';
+let currentTeamId = null;
+let currentTeamCount = 3;
+let teamStats = [];
+let leaderboardCollapsed = false;
+let leaderRankByOwner = new Map();
+
+let leaderboard = [];
+let serverViewCenter = { x: 2500, y: 2500 };
+let serverViewScale = 1.22;
+let settingsSchema = [];
+let runtimeConfig = {};
+let availableSkins = [];
+let selectedSkin = null;
+let clientSettings = { ...clientSettingsDefaults };
+
+const cellMap = new Map();
+const foodMap = new Map();
+const virusMap = new Map();
+const skinImageCache = new Map();
+const cam = { x: 2500, y: 2500, scale: 1.22 };
+
+let userZoom = 0.9;
+let mouseX = 0;
+let mouseY = 0;
+let menuVisible = true;
+let spectating = false;
+let spectateDragging = false;
+let spectateScale = 2.8;
+let spectateCenter = { x: 2500, y: 2500 };
+let spectateDragLast = { x: 0, y: 0 };
+let lastFrameTime = 0;
+let fps = 0;
+let fpsFrames = 0;
+let fpsTimer = 0;
+let lastRenderAt = 0;
+let lastPhysicsAt = 0;
+let settingsPanelOpen = false;
+let statsPanelOpen = false;
+let skinPanelVisible = true;
+let settingsSearchQuery = '';
+const inputHeld = new Set();
+
+// Client-side prediction for smooth local player movement
+let predictedPlayerCenter = { x: 2500, y: 2500 };
+let predictedPlayerMass = 0;
+
+const stats = { highScore: 0, totalScore: 0, gamesPlayed: 0, timesEaten: 0, lastScore: 0, lastRank: '-' };
+
+function showToast(text, ms = 1800) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.style.display = 'block';
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => { el.style.display = 'none'; }, ms);
+}
+
+function clampClientSetting(key, value) {
+  if (key === 'fpsCap') {
+    const n = Math.round(Number(value) || 0);
+    return Math.max(0, Math.min(240, n));
+  }
+  if (key === 'renderDistance') {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0.45, Math.min(1.6, n)) : clientSettingsDefaults.renderDistance;
+  }
+  if (key === 'globalLerp' || key === 'ownCellLerp') {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0.1, Math.min(0.8, n)) : clientSettingsDefaults[key];
+  }
+  if (typeof clientSettingsDefaults[key] === 'boolean') return !!value;
+  return value;
+}
+
+function loadClientSettings() {
+  try {
+    const raw = localStorage.getItem(CLIENT_SETTINGS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    for (const key of Object.keys(clientSettingsDefaults)) {
+      if (parsed[key] === undefined) continue;
+      clientSettings[key] = clampClientSetting(key, parsed[key]);
+    }
+  } catch (e) {}
+}
+
+function saveClientSettings() {
+  localStorage.setItem(CLIENT_SETTINGS_KEY, JSON.stringify(clientSettings));
+}
+
+function applyClientSettingsPatch(patch, showMessage = false) {
+  let changed = false;
+  for (const [key, value] of Object.entries(patch || {})) {
+    if (!(key in clientSettingsDefaults)) continue;
+    const next = clampClientSetting(key, value);
+    if (clientSettings[key] !== next) {
+      clientSettings[key] = next;
+      changed = true;
+    }
+  }
+  if (changed) {
+    saveClientSettings();
+    applyHudVisibility();
+    if (showMessage) showToast('Client settings applied');
+  } else if (showMessage) {
+    showToast('No client setting changes');
+  }
+  return changed;
+}
+
+function getServerSettingDefault(key, fallback) {
+  const fromSchema = settingsSchema.find((s) => s.key === key);
+  if (fromSchema && fromSchema.defaultValue !== undefined) return fromSchema.defaultValue;
+  return fallback;
+}
+
+function applyHudVisibility() {
+  const showHud = alive || spectating;
+  const leaderboardEl = document.getElementById('leaderboard');
+  const leaderboardToggle = document.getElementById('leaderboardToggle');
+  const minimapEl = document.getElementById('minimap');
+  const teamChartEl = document.getElementById('teamChart');
+  const teamChartToggleEl = document.getElementById('teamChartToggle');
+  const scoreEl = document.getElementById('scoreDisplay');
+
+  leaderboardEl.style.display = showHud ? 'block' : 'none';
+  leaderboardToggle.style.display = showHud ? 'block' : 'none';
+  minimapEl.style.display = (showHud && clientSettings.showMinimap) ? 'block' : 'none';
+  const showTeamUi = showHud && currentMode === 'teams';
+  teamChartToggleEl.style.display = showTeamUi ? 'block' : 'none';
+  teamChartEl.style.display = (showTeamUi && clientSettings.showTeamChart) ? 'block' : 'none';
+  scoreEl.style.display = showHud ? 'block' : 'none';
+  teamChartToggleEl.textContent = clientSettings.showTeamChart ? 'Hide Team Chart' : 'Show Team Chart';
+  updateHudLayout();
+}
+
+function updateHudLayout() {
+  const hudStatsEl = document.getElementById('hudStats');
+  const toggleEl = document.getElementById('teamChartToggle');
+  const chartEl = document.getElementById('teamChart');
+  const scoreEl = document.getElementById('scoreDisplay');
+  if (!hudStatsEl || !toggleEl || !chartEl || !scoreEl) return;
+
+  const statsTop = 50;
+  const statsHeight = Math.max(80, hudStatsEl.offsetHeight || 92);
+  const toggleTop = Math.round(Math.max(122, statsTop + statsHeight + 12));
+  toggleEl.style.top = `${toggleTop}px`;
+  chartEl.style.top = `${toggleTop + 34}px`;
+  const reservedBottom = clientSettings.showMinimap ? 208 : 120;
+  const maxChartHeight = Math.max(150, viewportHeight - (toggleTop + 38) - reservedBottom);
+  chartEl.style.height = `${Math.min(320, maxChartHeight)}px`;
+  scoreEl.style.bottom = clientSettings.showMinimap ? '22px' : '14px';
+}
+
+function loadStats() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    for (const k of Object.keys(stats)) stats[k] = Number(parsed[k]) || (k === 'lastRank' ? parsed[k] || '-' : 0);
+    selectedSkin = typeof parsed.selectedSkin === 'string' ? parsed.selectedSkin : null;
+    if (typeof parsed.lastName === 'string') document.getElementById('nickInput').value = parsed.lastName;
+  } catch (e) {}
+}
+
+function saveStats() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stats, selectedSkin, lastName: document.getElementById('nickInput').value.trim() }));
+}
+
+function applyTheme(theme) {
+  const isLight = theme === 'light';
+  document.body.classList.toggle('light', isLight);
+  document.getElementById('themeToggle').checked = isLight;
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+}
+
+function loadTheme() { applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'); }
+
+function updateStatsUI() {
+  const set = (id, value) => { document.getElementById(id).textContent = value; };
+  set('statHighScore', Math.round(stats.highScore));
+  set('statTotalScore', Math.round(stats.totalScore));
+  set('statGamesPlayed', Math.round(stats.gamesPlayed));
+  set('statTimesEaten', Math.round(stats.timesEaten));
+  set('lastScore', Math.round(stats.lastScore));
+  set('lastRank', stats.lastRank);
+  set('hudHigh', Math.round(stats.highScore));
+  set('hudTotal', Math.round(stats.totalScore));
+  set('hudGames', Math.round(stats.gamesPlayed));
+  set('hudEaten', Math.round(stats.timesEaten));
+  updateDetailedStatsUI();
+}
+
+function updateDetailedStatsUI() {
+  const avg = stats.gamesPlayed > 0 ? (stats.totalScore / stats.gamesPlayed) : 0;
+  const set = (id, value) => { document.getElementById(id).textContent = value; };
+  set('dHighScore', Math.round(stats.highScore));
+  set('dTotalScore', Math.round(stats.totalScore));
+  set('dGamesPlayed', Math.round(stats.gamesPlayed));
+  set('dTimesEaten', Math.round(stats.timesEaten));
+  set('dAvgScore', Math.round(avg));
+  set('dLastScore', Math.round(stats.lastScore));
+  set('dBestRank', stats.lastRank);
+  set('dPeakScore', Math.round(peakScoreThisMatch || 0));
+  set('dCurrentMode', currentMode === 'teams' ? 'Teams' : 'FFA');
+  set('dCurrentTeam', Number.isInteger(currentTeamId) ? `${currentTeamId + 1}` : '-');
+  set('dTeamCount', currentTeamCount || 3);
+  set('dSelectedSkin', selectedSkin ? selectedSkin.replace(/\.webp$/i, '') : 'None');
+}
+
+function setStatsPanelOpen(open) {
+  statsPanelOpen = !!open;
+  document.getElementById('statsPanel').classList.toggle('show', statsPanelOpen);
+}
+
+function setModeButtons(mode) {
+  const nextMode = mode === 'teams' ? 'teams' : 'ffa';
+  const changed = nextMode !== currentMode;
+  currentMode = nextMode;
+  document.getElementById('ffaModeBtn').classList.toggle('active', currentMode === 'ffa');
+  document.getElementById('teamModeBtn').classList.toggle('active', currentMode === 'teams');
+  document.getElementById('skinsBtn').disabled = false;
+  document.getElementById('skinsBtn').style.opacity = '1';
+  document.getElementById('skinsBtn').textContent = skinPanelVisible ? 'Hide Skins' : 'Skins';
+  applyHudVisibility();
+  if (changed) {
+    renderSkinPicker();
+  }
+}
+
+function getRankMedal(rank) {
+  if (rank === 1) return '🥇';
+  if (rank === 2) return '🥈';
+  if (rank === 3) return '🥉';
+  if (rank === 4 || rank === 5) return '🏅';
+  return '';
+}
+
+function setMenuVisible(visible) {
+  menuVisible = !!visible;
+  document.getElementById('menu').classList.toggle('hidden', !visible);
+  document.body.classList.toggle('menu-open', visible);
+}
+
+function setSkinPanelVisible(visible) {
+  skinPanelVisible = visible;
+  document.getElementById('skinBlock').classList.toggle('hidden', !visible);
+  document.getElementById('skinsBtn').textContent = visible ? 'Hide Skins' : 'Skins';
+}
+
+function resize() {
+  viewportWidth = window.innerWidth;
+  viewportHeight = window.innerHeight;
+  canvasDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2.5));
+  canvas.width = Math.round(viewportWidth * canvasDpr);
+  canvas.height = Math.round(viewportHeight * canvasDpr);
+  canvas.style.width = `${viewportWidth}px`;
+  canvas.style.height = `${viewportHeight}px`;
+  minimapCanvas.width = 170;
+  minimapCanvas.height = 170;
+  if (!alive && !spectating) {
+    mouseX = viewportWidth / 2;
+    mouseY = viewportHeight / 2;
+  }
+  updateHudLayout();
+}
+window.addEventListener('resize', resize);
+resize();
+
+function sanitizeSkinName(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  return availableSkins.includes(raw) ? raw : null;
+}
+
+function fetchSkinImage(name) {
+  if (!name) return null;
+  if (skinImageCache.has(name)) return skinImageCache.get(name);
+  const img = new Image();
+  img.decoding = 'async';
+  img.loading = 'lazy';
+  img.src = `/skins/${encodeURIComponent(name)}`;
+  skinImageCache.set(name, img);
+  return img;
+}
+
+function renderSkinPicker() {
+  const skinGrid = document.getElementById('skinGrid');
+  skinGrid.innerHTML = '';
+  const noneBtn = document.createElement('button');
+  noneBtn.className = `skin-chip${!selectedSkin ? ' active' : ''}`;
+  noneBtn.innerHTML = `<img alt="None" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4MCcgaGVpZ2h0PSc4MCc+PGNpcmNsZSBjeD0nNDAnIGN5PSc0MCcgcj0nMzYnIGZpbGw9JyNlNmVjZjcnIHN0cm9rZT0nIzk4YTljYicgc3Ryb2tlLXdpZHRoPSc0Jy8+PGxpbmUgeDE9JzE4JyB5MT0nMTgnIHgyPSc2MicgeTI9JzYyJyBzdHJva2U9JyNhNWFmYzAnIHN0cm9rZS13aWR0aD0nNicvPjwvc3ZnPg=="><span>None</span>`;
+  noneBtn.onclick = () => { selectedSkin = null; renderSkinPicker(); saveStats(); };
+  skinGrid.appendChild(noneBtn);
+  for (const skin of availableSkins) {
+    const btn = document.createElement('button');
+    btn.className = `skin-chip${selectedSkin === skin ? ' active' : ''}`;
+    const displayName = skin.replace(/\.webp$/i, '');
+    btn.title = displayName;
+    btn.innerHTML = `<img alt="${skin}" src="/skins/${encodeURIComponent(skin)}"><span>${displayName}</span>`;
+    btn.onclick = () => { selectedSkin = skin; renderSkinPicker(); saveStats(); };
+    skinGrid.appendChild(btn);
+  }
+}
+
+function groupBy(arr, keyFn) {
+  const map = new Map();
+  for (const item of arr) {
+    const key = keyFn(item);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(item);
+  }
+  return map;
+}
+
+function makeSettingInput(setting) {
+  const row = document.createElement('div');
+  row.className = 'setting-row';
+  const label = document.createElement('label');
+  const title = document.createElement('span');
+  title.textContent = setting.label;
+  let input;
+  let controlEl;
+  if (setting.type === 'boolean') {
+    input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!setting.value;
+    controlEl = input;
+  } else if (setting.type === 'enum') {
+    input = document.createElement('select');
+    for (const option of setting.options || []) {
+      const opt = document.createElement('option');
+      opt.value = option;
+      opt.textContent = option;
+      if (option === setting.value) opt.selected = true;
+      input.appendChild(opt);
+    }
+    controlEl = input;
+  } else {
+    input = document.createElement('input');
+    input.type = 'number';
+    if (typeof setting.step === 'number') input.step = setting.step;
+    if (typeof setting.min === 'number') input.min = setting.min;
+    if (typeof setting.max === 'number') input.max = setting.max;
+    input.value = setting.value;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'num-wrap';
+    wrap.appendChild(input);
+
+    const steps = document.createElement('div');
+    steps.className = 'num-steps';
+    const up = document.createElement('button');
+    up.type = 'button';
+    up.className = 'num-step';
+    up.textContent = '▲';
+    const down = document.createElement('button');
+    down.type = 'button';
+    down.className = 'num-step';
+    down.textContent = '▼';
+    steps.appendChild(up);
+    steps.appendChild(down);
+    wrap.appendChild(steps);
+
+    const stepValue = typeof setting.step === 'number' && setting.step > 0 ? setting.step : 1;
+    const applyDelta = (delta) => {
+      const cur = Number(input.value);
+      if (!Number.isFinite(cur)) return;
+      let next = cur + delta;
+      if (typeof setting.min === 'number') next = Math.max(setting.min, next);
+      if (typeof setting.max === 'number') next = Math.min(setting.max, next);
+      const precision = stepValue < 1 ? Math.max(0, `${stepValue}`.split('.')[1]?.length || 0) : 0;
+      input.value = precision > 0 ? next.toFixed(precision) : `${Math.round(next)}`;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    up.addEventListener('click', () => applyDelta(stepValue));
+    down.addEventListener('click', () => applyDelta(-stepValue));
+    controlEl = wrap;
+  }
+  input.dataset.key = setting.key;
+  input.dataset.type = setting.type;
+  label.appendChild(title);
+  label.appendChild(controlEl);
+  row.appendChild(label);
+  const desc = document.createElement('div');
+  desc.className = 'desc';
+  desc.textContent = setting.description;
+  row.appendChild(desc);
+  return row;
+}
+
+function renderSettings() {
+  const root = document.getElementById('settingsList');
+  root.innerHTML = '';
+  const quickSettings = [
+    {
+      key: 'quick.fpsCap',
+      label: 'FPS Cap',
+      description: 'Client FPS cap for performance. 60 is default.',
+      type: 'number',
+      min: 0,
+      max: 240,
+      step: 1,
+      value: Math.round(Number(clientSettings.fpsCap) || 0),
+      group: 'Quick',
+    },
+    {
+      key: 'quick.virusesEnabled',
+      label: 'Enable Viruses',
+      description: 'Turns viruses on/off for both FFA and Teams by controlling max virus spawns.',
+      type: 'boolean',
+      value: Number(runtimeConfig.maxViruses || 0) > 0,
+      group: 'Quick',
+    },
+    {
+      key: 'quick.botSameSize',
+      label: 'Bots Spawn Same Size As You',
+      description: 'Makes bot spawn and respawn mass match player start mass.',
+      type: 'boolean',
+      value: runtimeConfig.botSpawnMassMode === 'player_start'
+        && runtimeConfig.botRespawnMassMode === 'player_start'
+        && Math.abs((Number(runtimeConfig.botSpawnPlayerMassScale) || 1) - 1) < 0.001,
+      group: 'Quick',
+    },
+  ];
+  const clientSettingsRows = clientSettingsSchema.map((setting) => ({
+    ...setting,
+    key: `client.${setting.key}`,
+    value: clientSettings[setting.key],
+  }));
+  const allSettings = [...quickSettings, ...clientSettingsRows, ...settingsSchema];
+  const query = (settingsSearchQuery || '').trim().toLowerCase();
+  const filtered = query
+    ? allSettings.filter((s) => {
+      const hay = `${s.key || ''} ${s.label || ''} ${s.description || ''}`.toLowerCase();
+      return hay.includes(query);
+    })
+    : allSettings;
+  const groups = groupBy(filtered, (s) => s.group || 'Misc');
+  const order = ['Quick', 'Bots', 'Gameplay', 'World', 'Virus', 'Client', 'Performance', 'Events', 'Misc'];
+  for (const groupName of order) {
+    if (!groups.has(groupName)) continue;
+    const section = document.createElement('div');
+    section.className = 'settings-group';
+    const h = document.createElement('h5');
+    h.textContent = groupName;
+    section.appendChild(h);
+    for (const setting of groups.get(groupName)) section.appendChild(makeSettingInput(setting));
+    root.appendChild(section);
+  }
+}
+
+function collectSettingsPatch() {
+  const serverPatch = {};
+  const clientPatch = {};
+  const inputs = document.querySelectorAll('#settingsList [data-key]');
+  for (const input of inputs) {
+    const key = input.dataset.key;
+    const type = input.dataset.type;
+    let value;
+    if (type === 'boolean') value = input.checked;
+    else if (type === 'enum') value = input.value;
+    else {
+      value = Number(input.value);
+      if (!Number.isFinite(value)) continue;
+    }
+
+    if (key.startsWith('client.')) {
+      const clientKey = key.slice('client.'.length);
+      if (clientSettings[clientKey] !== value) clientPatch[clientKey] = value;
+      continue;
+    }
+
+    if (key === 'quick.virusesEnabled') {
+      const enabled = !!value;
+      const currentlyEnabled = Number(runtimeConfig.maxViruses || 0) > 0;
+      if (enabled !== currentlyEnabled) {
+        if (!enabled) {
+          serverPatch.maxViruses = 0;
+        } else {
+          const defaultMaxViruses = Number(getServerSettingDefault('maxViruses', 20));
+          serverPatch.maxViruses = Math.max(1, Math.round(defaultMaxViruses || 20));
+          if ((Number(runtimeConfig.maxVirusEntities) || 0) < serverPatch.maxViruses) {
+            const defaultEntities = Number(getServerSettingDefault('maxVirusEntities', serverPatch.maxViruses * 2));
+            serverPatch.maxVirusEntities = Math.max(serverPatch.maxViruses, Math.round(defaultEntities || (serverPatch.maxViruses * 2)));
+          }
+        }
+      }
+      continue;
+    }
+
+    if (key === 'quick.fpsCap') {
+      const nextCap = clampClientSetting('fpsCap', value);
+      if (clientSettings.fpsCap !== nextCap) clientPatch.fpsCap = nextCap;
+      continue;
+    }
+
+    if (key === 'quick.botSameSize') {
+      const enabled = !!value;
+      const currentlyEnabled = runtimeConfig.botSpawnMassMode === 'player_start'
+        && runtimeConfig.botRespawnMassMode === 'player_start'
+        && Math.abs((Number(runtimeConfig.botSpawnPlayerMassScale) || 1) - 1) < 0.001;
+      if (enabled !== currentlyEnabled) {
+        if (enabled) {
+          serverPatch.botSpawnMassMode = 'player_start';
+          serverPatch.botRespawnMassMode = 'player_start';
+          serverPatch.botSpawnPlayerMassScale = 1;
+          serverPatch.moldColonyMode = true;
+        } else {
+          serverPatch.botSpawnMassMode = getServerSettingDefault('botSpawnMassMode', 'varied');
+          serverPatch.botRespawnMassMode = getServerSettingDefault('botRespawnMassMode', 'player_start');
+          serverPatch.botSpawnPlayerMassScale = Number(getServerSettingDefault('botSpawnPlayerMassScale', 1)) || 1;
+          serverPatch.moldColonyMode = false;
+        }
+      }
+      continue;
+    }
+
+    if (runtimeConfig[key] !== value) serverPatch[key] = value;
+  }
+  return { serverPatch, clientPatch };
+}
+
+async function loadBootstrap(showMessage = false) {
+  try {
+    const res = await fetch('/api/bootstrap');
+    const data = await res.json();
+    if (!data || !data.ok) throw new Error('bootstrap failed');
+    settingsSchema = data.settings || [];
+    runtimeConfig = data.config || {};
+    availableSkins = Array.isArray(data.skins) ? data.skins : [];
+    setModeButtons(runtimeConfig.gameMode || 'ffa');
+    currentTeamCount = Number(runtimeConfig.teamCount) || currentTeamCount;
+    if (!sanitizeSkinName(selectedSkin)) selectedSkin = null;
+    if (runtimeConfig.mapWidth) mapWidth = runtimeConfig.mapWidth;
+    if (runtimeConfig.mapHeight) mapHeight = runtimeConfig.mapHeight;
+    renderSkinPicker();
+    renderSettings();
+    applyHudVisibility();
+    if (showMessage) showToast('Settings reloaded');
+  } catch (e) {
+    showToast('Failed to load settings', 2400);
+  }
+}
+
+async function applySettingsPatch(patch) {
+  if (!patch || Object.keys(patch).length === 0) {
+    showToast('No setting changes to apply');
+    return;
+  }
+  try {
+    const res = await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'update failed');
+    runtimeConfig = data.config || runtimeConfig;
+    settingsSchema = data.settings || settingsSchema;
+    setModeButtons(runtimeConfig.gameMode || currentMode);
+    currentTeamCount = Number(runtimeConfig.teamCount) || currentTeamCount;
+    renderSettings();
+    applyHudVisibility();
+    showToast('Settings applied');
+  } catch (e) {
+    showToast(`Failed to apply settings: ${e.message}`, 2600);
+  }
+}
+
+async function resetSettings() {
+  try {
+    const res = await fetch('/api/config/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'reset failed');
+    runtimeConfig = data.config || runtimeConfig;
+    settingsSchema = data.settings || settingsSchema;
+    setModeButtons(runtimeConfig.gameMode || currentMode);
+    currentTeamCount = Number(runtimeConfig.teamCount) || currentTeamCount;
+    renderSettings();
+    applyHudVisibility();
+    showToast('Defaults restored');
+  } catch (e) {
+    showToast(`Reset failed: ${e.message}`, 2600);
+  }
+}
+
+async function regenerateWorld() {
+  try {
+    const res = await fetch('/api/world/restart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'regenerate failed');
+    runtimeConfig = data.config || runtimeConfig;
+    settingsSchema = data.settings || settingsSchema;
+    if (runtimeConfig.mapWidth) mapWidth = runtimeConfig.mapWidth;
+    if (runtimeConfig.mapHeight) mapHeight = runtimeConfig.mapHeight;
+    renderSettings();
+    showToast('Match regenerated');
+  } catch (e) {
+    showToast(`Failed to regenerate: ${e.message}`, 2800);
+  }
+}
+function connect() {
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${protocol}://${location.host}`);
+  ws.onmessage = (evt) => {
+    const msg = JSON.parse(evt.data);
+    switch (msg.type) {
+      case 'welcome':
+        playerId = msg.id;
+        mapWidth = msg.mapWidth;
+        mapHeight = msg.mapHeight;
+        if (msg.mode) setModeButtons(msg.mode);
+        currentTeamId = Number.isInteger(msg.teamId) ? msg.teamId : null;
+        currentTeamCount = Number(msg.teamCount) || currentTeamCount;
+        break;
+      case 'spawned':
+        alive = true;
+        spectating = false;
+        userZoom = 0.88;
+        appliedPlayerSkin = currentMode === 'teams' ? null : (msg.skin || selectedSkin || null);
+        bestRankThisMatch = null;
+        score = Number(runtimeConfig.startMass) || 10;
+        peakScoreThisMatch = score;
+        predictedPlayerCenter = { x: serverViewCenter.x, y: serverViewCenter.y };
+        predictedPlayerMass = runtimeConfig.startMass || 10;
+        if (msg.mode) setModeButtons(msg.mode);
+        currentTeamId = Number.isInteger(msg.teamId) ? msg.teamId : null;
+        currentTeamCount = Number(msg.teamCount) || currentTeamCount;
+        setMenuVisible(false);
+        setStatsPanelOpen(false);
+        document.getElementById('deathScreen').classList.remove('show');
+        document.getElementById('hud').classList.add('active');
+        document.getElementById('exitSpectateBtn').classList.remove('show');
+        applyHudVisibility();
+        break;
+      case 'state':
+        leaderboard = msg.leaderboard;
+        teamStats = Array.isArray(msg.teamStats) ? msg.teamStats : [];
+        if (msg.mode) setModeButtons(msg.mode);
+        currentTeamId = Number.isInteger(msg.playerTeamId) ? msg.playerTeamId : currentTeamId;
+        currentTeamCount = Number(msg.teamCount) || currentTeamCount;
+        if (msg.mapWidth) mapWidth = msg.mapWidth;
+        if (msg.mapHeight) mapHeight = msg.mapHeight;
+        serverViewCenter = msg.viewCenter;
+        serverViewScale = msg.viewScale;
+        if (typeof msg.spectating === 'boolean') {
+          spectating = msg.spectating;
+          applyHudVisibility();
+        }
+        updateInterpMap(cellMap, msg.cells, clientSettings.globalLerp);
+        updateInterpMap(foodMap, msg.food, Math.min(0.75, clientSettings.globalLerp + 0.12));
+        updateInterpMap(virusMap, msg.viruses, Math.min(0.75, clientSettings.globalLerp + 0.05));
+        score = msg.cells
+          .filter((c) => c.mine || c.ownerId === playerId)
+          .reduce((s, c) => s + c.mass, 0);
+        predictedPlayerMass = score;
+        peakScoreThisMatch = Math.max(peakScoreThisMatch, score);
+        if (score > stats.highScore) { stats.highScore = score; saveStats(); }
+        if (leaderboard && leaderboard.length > 0) {
+          const me = leaderboard.find((e) => e.id === playerId);
+          if (me && (bestRankThisMatch === null || me.rank < bestRankThisMatch)) {
+            bestRankThisMatch = me.rank;
+            stats.lastRank = `${me.rank}`;
+          }
+        }
+        break;
+      case 'spectate_state':
+        spectating = !!msg.enabled;
+        document.getElementById('exitSpectateBtn').classList.toggle('show', spectating);
+        if (spectating) {
+          alive = false;
+          document.getElementById('hud').classList.add('active');
+          setMenuVisible(false);
+        } else {
+          document.getElementById('hud').classList.remove('active');
+        }
+        applyHudVisibility();
+        break;
+      case 'death':
+        alive = false;
+        spectating = false;
+        // Reset prediction on death
+        predictedPlayerCenter = { x: 2500, y: 2500 };
+        predictedPlayerMass = 0;
+        document.getElementById('hud').classList.remove('active');
+        document.getElementById('exitSpectateBtn').classList.remove('show');
+        document.getElementById('deathScreen').classList.add('show');
+        document.getElementById('deathKiller').textContent = `Eaten by: ${msg.killer}`;
+        const endScore = Math.max(Number(msg.peakScore) || 0, Math.round(peakScoreThisMatch || 0), Math.round(score || 0));
+        document.getElementById('deathScore').textContent = `Peak score: ${endScore}`;
+        stats.lastScore = endScore;
+        stats.totalScore += stats.lastScore;
+        stats.timesEaten += 1;
+        if (bestRankThisMatch !== null) stats.lastRank = `${bestRankThisMatch}`;
+        if (msg.mode) setModeButtons(msg.mode);
+        currentTeamId = Number.isInteger(msg.teamId) ? msg.teamId : currentTeamId;
+        saveStats();
+        updateStatsUI();
+        applyHudVisibility();
+        break;
+    }
+  };
+  ws.onclose = () => {
+    spectating = false;
+    document.getElementById('exitSpectateBtn').classList.remove('show');
+    applyHudVisibility();
+    if (!alive) setMenuVisible(true);
+    setTimeout(connect, 1600);
+  };
+}
+
+function updateInterpMap(map, serverArr, lerpSpeed) {
+  const now = performance.now();
+  const seen = new Set();
+  for (const item of serverArr) {
+    seen.add(item.id);
+    if (map.has(item.id)) {
+      const interp = map.get(item.id);
+      if (map === cellMap) {
+        const prevServerAt = interp.serverAt || now;
+        const dt = Math.max(0.016, (now - prevServerAt) / 1000);
+        const vx = (item.x - (interp.tx ?? interp.x ?? item.x)) / dt;
+        const vy = (item.y - (interp.ty ?? interp.y ?? item.y)) / dt;
+        interp.svx = (interp.svx || 0) * 0.55 + vx * 0.45;
+        interp.svy = (interp.svy || 0) * 0.55 + vy * 0.45;
+        interp.serverAt = now;
+      }
+      interp.tx = item.x;
+      interp.ty = item.y;
+      interp.tmass = item.mass;
+      interp.color = item.color;
+      interp.name = item.name;
+      interp.mine = item.mine;
+      interp.type = item.type;
+      interp.skin = item.skin || null;
+      interp.ownerId = item.ownerId ?? null;
+      interp.teamId = item.teamId ?? null;
+      interp.kind = item.kind || null;
+      interp.lerpSpeed = lerpSpeed;
+    } else {
+      map.set(item.id, {
+        x: item.x, y: item.y, mass: item.mass,
+        tx: item.x, ty: item.y, tmass: item.mass,
+        color: item.color, name: item.name, mine: item.mine,
+        type: item.type, skin: item.skin || null, ownerId: item.ownerId ?? null,
+        teamId: item.teamId ?? null, kind: item.kind || null, lerpSpeed,
+        svx: 0, svy: 0, serverAt: now,
+      });
+    }
+  }
+  for (const [id] of map) if (!seen.has(id)) map.delete(id);
+}
+
+function interpEntities(map, dtSec) {
+  const now = performance.now();
+  for (const [, e] of map) {
+    if (map === cellMap && e.mine) {
+      const ageSec = Math.max(0, Math.min(0.12, (now - (e.serverAt || now)) / 1000));
+      const leadX = e.tx + (e.svx || 0) * ageSec;
+      const leadY = e.ty + (e.svy || 0) * ageSec;
+      const posFollow = 1 - Math.exp(-26 * Math.max(0.001, dtSec));
+      const massFollow = 1 - Math.exp(-18 * Math.max(0.001, dtSec));
+      e.x += (leadX - e.x) * posFollow;
+      e.y += (leadY - e.y) * posFollow;
+      e.mass += (e.tmass - e.mass) * massFollow;
+      continue;
+    }
+    const base = e.lerpSpeed || clientSettings.globalLerp;
+    const followRate = 7 + Math.max(0, base) * 14;
+    const spd = 1 - Math.exp(-followRate * Math.max(0.001, dtSec));
+    e.x += (e.tx - e.x) * spd;
+    e.y += (e.ty - e.y) * spd;
+    e.mass += (e.tmass - e.mass) * spd;
+  }
+}
+
+canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+canvas.addEventListener('mousedown', (e) => {
+  if (!spectating || e.button !== 0) return;
+  spectateDragging = true;
+  spectateDragLast.x = e.clientX;
+  spectateDragLast.y = e.clientY;
+});
+window.addEventListener('mouseup', () => { spectateDragging = false; });
+window.addEventListener('mousemove', (e) => {
+  if (!spectating || !spectateDragging) return;
+  const dx = e.clientX - spectateDragLast.x;
+  const dy = e.clientY - spectateDragLast.y;
+  spectateDragLast.x = e.clientX;
+  spectateDragLast.y = e.clientY;
+  spectateCenter.x = Math.max(0, Math.min(mapWidth, spectateCenter.x - dx * cam.scale));
+  spectateCenter.y = Math.max(0, Math.min(mapHeight, spectateCenter.y - dy * cam.scale));
+});
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  mouseX = e.touches[0].clientX;
+  mouseY = e.touches[0].clientY;
+}, { passive: false });
+
+function applyWheelZoom(rawDelta) {
+  if ((!alive && !spectating) || !rawDelta) return;
+  const delta = rawDelta > 0 ? 1.045 : 0.955;
+  if (spectating) {
+    spectateScale = Math.max(0.6, Math.min(8.5, spectateScale * delta));
+    return;
+  }
+  userZoom = Math.max(0.5, Math.min(4.45, userZoom * delta));
+}
+
+function handleWheelZoom(e) {
+  if (!alive && !spectating) return;
+  if (e.target && e.target.closest && e.target.closest('#leaderboard, #settingsList, #skinGrid, #settingsPanel, #teamChart, #teamChartToggle, #leaderboardToggle')) return;
+  if (typeof e.preventDefault === 'function') e.preventDefault();
+  let rawDelta = 0;
+  if (typeof e.deltaY === 'number' && e.deltaY !== 0) rawDelta = e.deltaY;
+  else if (typeof e.wheelDelta === 'number' && e.wheelDelta !== 0) rawDelta = -e.wheelDelta;
+  else if (typeof e.detail === 'number' && e.detail !== 0) rawDelta = e.detail * 16;
+  applyWheelZoom(rawDelta);
+}
+canvas.addEventListener('wheel', handleWheelZoom, { passive: false });
+canvas.addEventListener('mousewheel', handleWheelZoom, { passive: false });
+canvas.addEventListener('DOMMouseScroll', handleWheelZoom, { passive: false });
+
+function sendTarget() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  if (spectating) {
+    ws.send(JSON.stringify({
+      type: 'spectate_view',
+      x: spectateCenter.x,
+      y: spectateCenter.y,
+      scale: spectateScale,
+    }));
+    return;
+  }
+  if (!alive) return;
+  const worldX = cam.x + (mouseX - viewportWidth / 2) * cam.scale;
+  const worldY = cam.y + (mouseY - viewportHeight / 2) * cam.scale;
+  ws.send(JSON.stringify({ type: 'target', x: worldX, y: worldY }));
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !alive) return;
+  if (e.code === 'Space') {
+    if (e.repeat || inputHeld.has('Space')) return;
+    e.preventDefault();
+    inputHeld.add('Space');
+    ws.send(JSON.stringify({ type: 'split' }));
+  }
+  if (e.code === 'KeyW') {
+    if (e.repeat || inputHeld.has('KeyW')) return;
+    inputHeld.add('KeyW');
+    ws.send(JSON.stringify({ type: 'eject' }));
+  }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') inputHeld.delete('Space');
+  if (e.code === 'KeyW') inputHeld.delete('KeyW');
+});
+
+document.getElementById('playBtn').addEventListener('click', spawn);
+document.getElementById('spectateBtn').addEventListener('click', () => setSpectating(true));
+document.getElementById('exitSpectateBtn').addEventListener('click', () => setSpectating(false));
+document.getElementById('nickInput').addEventListener('keydown', (e) => { if (e.code === 'Enter') spawn(); });
+
+function returnToLobby(sendMsg = true) {
+  if (sendMsg && ws && ws.readyState === WebSocket.OPEN && alive) {
+    ws.send(JSON.stringify({ type: 'return_lobby' }));
+  }
+  alive = false;
+  spectating = false;
+  score = 0;
+  peakScoreThisMatch = 0;
+  document.getElementById('hud').classList.remove('active');
+  document.getElementById('deathScreen').classList.remove('show');
+  document.getElementById('exitSpectateBtn').classList.remove('show');
+  applyHudVisibility();
+  setMenuVisible(true);
+  document.getElementById('nickInput').focus();
+}
+
+function setSpectating(enabled) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  if (enabled) {
+    if (alive) return;
+    spectating = true;
+    setSettingsPanelOpen(false);
+    setStatsPanelOpen(false);
+    setSkinPanelVisible(false);
+    setMenuVisible(false);
+    document.getElementById('hud').classList.add('active');
+    document.getElementById('deathScreen').classList.remove('show');
+    document.getElementById('exitSpectateBtn').classList.add('show');
+    spectateCenter = { x: serverViewCenter.x, y: serverViewCenter.y };
+    spectateScale = Math.max(1.6, serverViewScale || spectateScale);
+    applyHudVisibility();
+    ws.send(JSON.stringify({ type: 'spectate', enabled: true, scale: spectateScale }));
+    ws.send(JSON.stringify({ type: 'spectate_view', x: spectateCenter.x, y: spectateCenter.y, scale: spectateScale }));
+  } else {
+    spectating = false;
+    spectateDragging = false;
+    document.getElementById('exitSpectateBtn').classList.remove('show');
+    document.getElementById('hud').classList.remove('active');
+    ws.send(JSON.stringify({ type: 'spectate', enabled: false }));
+    applyHudVisibility();
+    setMenuVisible(true);
+    setSkinPanelVisible(true);
+    document.getElementById('nickInput').focus();
+  }
+}
+
+document.getElementById('continueBtn').addEventListener('click', () => {
+  returnToLobby(false);
+});
+document.getElementById('lobbyDeathBtn').addEventListener('click', () => {
+  returnToLobby(false);
+});
+document.getElementById('lobbyBtn').addEventListener('click', () => {
+  returnToLobby(true);
+});
+
+function setSettingsPanelOpen(open) {
+  settingsPanelOpen = open;
+  document.getElementById('settingsPanel').classList.toggle('show', open);
+  document.getElementById('settingsToggle').textContent = open ? 'Hide' : 'Customize';
+  if (open) setSkinPanelVisible(false);
+}
+
+document.getElementById('settingsToggle').addEventListener('click', () => setSettingsPanelOpen(!settingsPanelOpen));
+document.getElementById('openStatsBtn').addEventListener('click', () => {
+  setSettingsPanelOpen(false);
+  updateDetailedStatsUI();
+  setStatsPanelOpen(true);
+});
+document.getElementById('closeStatsBtn').addEventListener('click', () => setStatsPanelOpen(false));
+document.getElementById('skinsBtn').addEventListener('click', async () => {
+  setSettingsPanelOpen(false);
+  setStatsPanelOpen(false);
+  setSkinPanelVisible(!skinPanelVisible);
+  if (skinPanelVisible) await loadBootstrap(true);
+});
+document.getElementById('regenerateWorldBtn').addEventListener('click', async () => { await regenerateWorld(); });
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  const { serverPatch, clientPatch } = collectSettingsPatch();
+  const changedClient = applyClientSettingsPatch(clientPatch);
+  if (Object.keys(serverPatch).length > 0) {
+    await applySettingsPatch(serverPatch);
+    return;
+  }
+  if (changedClient) {
+    showToast('Client settings applied');
+  } else {
+    showToast('No setting changes to apply');
+  }
+});
+document.getElementById('resetSettingsBtn').addEventListener('click', async () => { await resetSettings(); });
+document.getElementById('closeSettingsBtn').addEventListener('click', () => setSettingsPanelOpen(false));
+document.getElementById('settingsSearch').addEventListener('input', (e) => {
+  settingsSearchQuery = e.target.value || '';
+  renderSettings();
+});
+document.getElementById('themeToggle').addEventListener('change', (e) => applyTheme(e.target.checked ? 'light' : 'dark'));
+document.getElementById('leaderboardToggle').addEventListener('click', () => {
+  leaderboardCollapsed = !leaderboardCollapsed;
+  document.getElementById('leaderboard').classList.toggle('collapsed', leaderboardCollapsed);
+  document.getElementById('leaderboardToggle').textContent = leaderboardCollapsed ? '<' : '>';
+  document.getElementById('leaderboardToggle').style.right = leaderboardCollapsed ? '10px' : '280px';
+});
+document.getElementById('teamChartToggle').addEventListener('click', () => {
+  clientSettings.showTeamChart = !clientSettings.showTeamChart;
+  saveClientSettings();
+  applyHudVisibility();
+});
+document.getElementById('ffaModeBtn').addEventListener('click', async () => {
+  if ((runtimeConfig.gameMode || currentMode) === 'ffa') return;
+  await applySettingsPatch({ gameMode: 'ffa' });
+});
+document.getElementById('teamModeBtn').addEventListener('click', async () => {
+  if ((runtimeConfig.gameMode || currentMode) === 'teams') return;
+  await applySettingsPatch({ gameMode: 'teams' });
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Escape' && spectating) {
+    setSpectating(false);
+  } else if (e.code === 'Escape' && statsPanelOpen) {
+    setStatsPanelOpen(false);
+  } else if (e.code === 'Escape' && settingsPanelOpen) {
+    setSettingsPanelOpen(false);
+  }
+});
+
+function spawn() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  if (spectating) {
+    ws.send(JSON.stringify({ type: 'spectate', enabled: false }));
+    spectating = false;
+    document.getElementById('exitSpectateBtn').classList.remove('show');
+  }
+  const name = document.getElementById('nickInput').value.trim();
+  const preferredSkin = sanitizeSkinName(selectedSkin);
+  selectedSkin = preferredSkin;
+  const activeSkin = currentMode === 'teams' ? null : preferredSkin;
+  appliedPlayerSkin = activeSkin || null;
+  if (currentMode === 'teams' && preferredSkin) {
+    showToast('Skin saved for next non-team round', 1500);
+  }
+  peakScoreThisMatch = 0;
+  stats.gamesPlayed += 1;
+  saveStats();
+  updateStatsUI();
+  ws.send(JSON.stringify({ type: 'spawn', name, skin: activeSkin || '' }));
+}
+
+function isCellHiddenUnderVirus(cell, viruses) {
+  if (!cell || !viruses || viruses.length === 0) return false;
+  for (const v of viruses) {
+    if (!v) continue;
+    if (v.kind !== 'spawner') continue;
+    if (cell.mass >= v.mass) continue;
+    const vr = Math.sqrt(v.mass) * 6 * 1.02;
+    const dx = cell.x - v.x;
+    const dy = cell.y - v.y;
+    if (dx * dx + dy * dy < vr * vr) return true;
+  }
+  return false;
+}
+
+function render(timestamp) {
+  requestAnimationFrame(render);
+  const dtMs = Math.max(1, Math.min(80, timestamp - (lastPhysicsAt || timestamp)));
+  const dtSec = dtMs / 1000;
+  lastPhysicsAt = timestamp;
+  const fpsCap = Math.max(0, Math.round(Number(clientSettings.fpsCap) || 0));
+  if (fpsCap > 0 && lastRenderAt > 0) {
+    const minFrameMs = 1000 / fpsCap;
+    if (timestamp - lastRenderAt < minFrameMs) return;
+  }
+  lastRenderAt = timestamp;
+  fpsFrames++;
+  fpsTimer += timestamp - (lastFrameTime || timestamp);
+  lastFrameTime = timestamp;
+  if (fpsTimer >= 1000) { fps = fpsFrames; fpsFrames = 0; fpsTimer = 0; }
+
+  interpEntities(cellMap, dtSec);
+  interpEntities(foodMap, dtSec);
+  interpEntities(virusMap, dtSec);
+
+  if (alive && !spectating) {
+    const mineCenter = getLocalPlayerCenter();
+    if (mineCenter) {
+      predictedPlayerCenter.x = mineCenter.x;
+      predictedPlayerCenter.y = mineCenter.y;
+    } else {
+      const centerFollow = 1 - Math.exp(-12 * dtSec);
+      predictedPlayerCenter.x += (serverViewCenter.x - predictedPlayerCenter.x) * centerFollow;
+      predictedPlayerCenter.y += (serverViewCenter.y - predictedPlayerCenter.y) * centerFollow;
+    }
+  } else if (!spectating) {
+    predictedPlayerCenter.x = serverViewCenter.x;
+    predictedPlayerCenter.y = serverViewCenter.y;
+  }
+
+  const baseScale = spectating
+    ? Math.max(0.6, Math.min(8.5, serverViewScale || spectateScale))
+    : (menuVisible && !alive
+      ? Math.max(2.8, serverViewScale)
+      : serverViewScale);
+  const targetScale = Math.max(0.5, Math.min(8.5, baseScale * (spectating ? 1 : userZoom)));
+  const targetCenter = spectating ? spectateCenter : (alive ? predictedPlayerCenter : serverViewCenter);
+  const camFollow = 1 - Math.exp(-8.5 * dtSec);
+  const camScaleFollow = 1 - Math.exp(-7.2 * dtSec);
+  cam.x += (targetCenter.x - cam.x) * camFollow;
+  cam.y += (targetCenter.y - cam.y) * camFollow;
+  cam.scale += (targetScale - cam.scale) * camScaleFollow;
+
+  const w = viewportWidth, h = viewportHeight;
+  const scale = 1 / cam.scale;
+
+  ctx.setTransform(canvasDpr, 0, 0, canvasDpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  ctx.scale(scale, scale);
+  ctx.translate(-cam.x, -cam.y);
+
+  drawGrid();
+  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--map-border').trim() || '#5f7295';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(0, 0, mapWidth, mapHeight);
+
+  const renderDistance = Math.max(0.45, Math.min(1.6, Number(clientSettings.renderDistance) || 1));
+  const halfW = (viewportWidth * cam.scale * renderDistance) / 2 + 250;
+  const halfH = (viewportHeight * cam.scale * renderDistance) / 2 + 250;
+  const minRenderX = cam.x - halfW;
+  const maxRenderX = cam.x + halfW;
+  const minRenderY = cam.y - halfH;
+  const maxRenderY = cam.y + halfH;
+  const isInRenderBounds = (x, y) => x >= minRenderX && x <= maxRenderX && y >= minRenderY && y <= maxRenderY;
+
+  for (const [, f] of foodMap) {
+    if (!isInRenderBounds(f.x, f.y)) continue;
+    const r = f.type === 'ejected' ? 7 : (f.type === 'spawner' ? 3.7 : 3.1);
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = f.type === 'spawner' ? '#ffb0cf' : (f.color || '#aaa');
+    ctx.fill();
+    if (f.type === 'spawner') {
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, r + 0.6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+      ctx.lineWidth = 0.9;
+      ctx.stroke();
+    }
+  }
+
+  const visibleViruses = [...virusMap.values()].filter((v) => isInRenderBounds(v.x, v.y));
+  const sortedCells = [...cellMap.values()]
+    .filter((c) => isInRenderBounds(c.x, c.y))
+    .sort((a, b) => a.mass - b.mass);
+  const hiddenUnderVirus = [];
+  const visibleAboveVirus = [];
+  for (const c of sortedCells) {
+    if (isCellHiddenUnderVirus(c, visibleViruses)) hiddenUnderVirus.push(c);
+    else visibleAboveVirus.push(c);
+  }
+  for (const c of hiddenUnderVirus) {
+    drawCell(c.x, c.y, Math.sqrt(c.mass) * 6, c.color, c.name, c.mass, c.mine, c.skin, c.ownerId, c.teamId);
+  }
+  for (const v of visibleViruses) drawVirus(v);
+  for (const c of visibleAboveVirus) {
+    drawCell(c.x, c.y, Math.sqrt(c.mass) * 6, c.color, c.name, c.mass, c.mine, c.skin, c.ownerId, c.teamId);
+  }
+
+  ctx.restore();
+
+  if (alive || spectating) {
+    document.getElementById('scoreDisplay').textContent = alive ? `Score: ${Math.round(score)}` : 'Spectating';
+    updateLeaderboard();
+    drawMinimap();
+    drawTeamChart();
+  }
+  updateStatsUI();
+  document.getElementById('fpsCounter').textContent = fpsCap > 0 ? `${fps} FPS (${fpsCap} cap)` : `${fps} FPS`;
+}
+
+function drawGrid() {
+  const gridSize = 32;
+  const style = getComputedStyle(document.body);
+  ctx.fillStyle = style.getPropertyValue('--grid-bg').trim() || '#161f35';
+  ctx.fillRect(0, 0, mapWidth, mapHeight);
+  ctx.strokeStyle = style.getPropertyValue('--grid-line').trim() || 'rgba(255,255,255,0.055)';
+  ctx.lineWidth = 1;
+  const left = Math.max(0, Math.floor((cam.x - viewportWidth * cam.scale / 2) / gridSize) * gridSize);
+  const right = Math.min(mapWidth, cam.x + viewportWidth * cam.scale / 2 + gridSize);
+  const top = Math.max(0, Math.floor((cam.y - viewportHeight * cam.scale / 2) / gridSize) * gridSize);
+  const bottom = Math.min(mapHeight, cam.y + viewportHeight * cam.scale / 2 + gridSize);
+  ctx.beginPath();
+  for (let x = left; x <= right; x += gridSize) { ctx.moveTo(x, top); ctx.lineTo(x, bottom); }
+  for (let y = top; y <= bottom; y += gridSize) { ctx.moveTo(left, y); ctx.lineTo(right, y); }
+  ctx.stroke();
+}
+
+function drawCell(x, y, r, color, name, mass, mine, skin, ownerId, teamId) {
+  const rank = ownerId != null ? leaderRankByOwner.get(ownerId) : null;
+  const medal = getRankMedal(rank || 0);
+  const skinName = (clientSettings.hideSkins || currentMode === 'teams') ? null : (skin || (mine ? appliedPlayerSkin : null));
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.clip();
+  const skinImg = skinName && r > 12 ? fetchSkinImage(skinName) : null;
+  if (skinImg && skinImg.complete && skinImg.naturalWidth > 0) {
+    ctx.drawImage(skinImg, x - r, y - r, r * 2, r * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  } else {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = color || '#7ea0d4';
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = skinImg && skinImg.complete ? 'rgba(255,255,255,0.5)' : darkenColor(color, 0.72);
+  ctx.lineWidth = Math.max(3, r * 0.07);
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.stroke();
+
+  if (mine) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, r + 2.5, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(121, 255, 220, 0.92)';
+    ctx.shadowColor = 'rgba(121, 255, 220, 0.65)';
+    ctx.shadowBlur = 16;
+    ctx.lineWidth = Math.max(2.2, r * 0.09);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.beginPath();
+    ctx.arc(x, y, r + 7, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  }
+
+  const canShowName = !clientSettings.hideNames && !!name && r > 18;
+  const allowMassForCell = mine || !!clientSettings.showOtherMass;
+  const canShowMass = allowMassForCell && !clientSettings.hideMass && r > (mine ? 20 : 34) && (!canShowName || r >= 40);
+  if (canShowName || canShowMass) {
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const fontSize = Math.max(14, Math.min(r * 0.5, 70));
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+    ctx.lineWidth = Math.max(2, fontSize * 0.08);
+    ctx.lineJoin = 'round';
+    let nameY = y;
+    if (canShowName) {
+      nameY = r > 35 ? y - fontSize * 0.28 : y;
+      ctx.font = `700 ${fontSize}px Manrope, sans-serif`;
+      ctx.strokeText(name, x, nameY);
+      ctx.fillText(name, x, nameY);
+    }
+    if (canShowMass) {
+      const massSize = Math.max(11, fontSize * 0.52);
+      const massY = canShowName ? y + fontSize * 0.62 : y;
+      ctx.font = `700 ${massSize}px Manrope, sans-serif`;
+      ctx.strokeText(Math.round(mass), x, massY);
+      ctx.fillText(Math.round(mass), x, massY);
+    }
+    if (canShowName && medal && r > 28) {
+      ctx.font = `700 ${Math.max(14, fontSize * 0.52)}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+      const medalY = y + fontSize * (r > 35 ? 0.9 : 0.45);
+      ctx.strokeText(medal, x, medalY);
+      ctx.fillText(medal, x, medalY);
+    }
+  }
+}
+
+function drawVirus(v) {
+  const x = v.x;
+  const y = v.y;
+  const r = Math.sqrt(v.mass) * 6;
+  const isSpawner = v.kind === 'spawner';
+
+  if (isSpawner) {
+    // ── Mother Cell / Spawner: smooth pink circle, no spikes, inner ring ──
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    const grad = ctx.createRadialGradient(x - r * 0.28, y - r * 0.3, r * 0.1, x, y, r * 1.05);
+    grad.addColorStop(0, '#f4a8c7');
+    grad.addColorStop(0.55, '#e8749f');
+    grad.addColorStop(1, '#d4568a');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = '#c0447a';
+    ctx.lineWidth = Math.max(3, r * 0.09);
+    ctx.stroke();
+    // inner ring to show it's a pellet dispenser
+    if (r > 14) {
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.42, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = Math.max(1.5, r * 0.055);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.16, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fill();
+    }
+  } else {
+    // ── Normal Virus: green spiky weapon ──
+    const spikes = 16;
+    const inner = r * 0.9;
+    const outer = r * 1.04;
+
+    let hideAngle = null;
+    let hideDist = Infinity;
+    for (const [, cell] of cellMap) {
+      if (!cell || cell.mass > v.mass * 1.2) continue;
+      const dx = cell.x - x;
+      const dy = cell.y - y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < r * 0.93 && d < hideDist) {
+        hideDist = d;
+        hideAngle = Math.atan2(dy, dx);
+      }
+    }
+
+    ctx.beginPath();
+    for (let i = 0; i <= spikes * 2; i++) {
+      const angle = (i / (spikes * 2)) * Math.PI * 2;
+      let rr = i % 2 === 0 ? outer : inner;
+      if (hideAngle !== null) {
+        const delta = Math.atan2(Math.sin(angle - hideAngle), Math.cos(angle - hideAngle));
+        const dent = Math.exp(-Math.pow(delta / 0.75, 2));
+        rr *= 1 - dent * 0.08;
+      }
+      const px = x + Math.cos(angle) * rr;
+      const py = y + Math.sin(angle) * rr;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+
+    const grad = ctx.createRadialGradient(x - r * 0.28, y - r * 0.3, r * 0.15, x, y, r * 1.1);
+    grad.addColorStop(0, '#7ee87a');
+    grad.addColorStop(0.55, '#4cba48');
+    grad.addColorStop(1, '#2e9e2a');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = '#237320';
+    ctx.lineWidth = Math.max(3, r * 0.1);
+    ctx.stroke();
+  }
+}
+
+function updateLeaderboard() {
+  leaderRankByOwner = new Map();
+  for (const e of leaderboard || []) {
+    leaderRankByOwner.set(e.id, e.rank);
+  }
+
+  let html = `<h3>Leaderboard (${leaderboard.length})</h3>`;
+  for (const e of leaderboard) {
+    const isMe = e.id === playerId;
+    const medal = getRankMedal(e.rank);
+    const name = `${medal ? `${medal} ` : ''}${e.rank}. ${escapeHtml(e.name)}`;
+    let scoreHtml = `${e.score}`;
+    if (currentMode === 'teams' && Number.isInteger(e.teamId)) {
+      const team = teamStats.find((t) => Number(t.teamId) === Number(e.teamId));
+      const teamColor = team && team.color ? team.color : '#9ab6e6';
+      scoreHtml = `<span class="lb-score"><span class="lb-team-dot" style="background:${teamColor};"></span>${e.score}</span>`;
+    }
+    html += `<div class="lb-entry${isMe ? ' me' : ''}"><span class="lb-name">${name}</span><span>${scoreHtml}</span></div>`;
+  }
+  document.getElementById('leaderboard').innerHTML = html;
+}
+
+function drawTeamChart() {
+  if (currentMode !== 'teams' || !clientSettings.showTeamChart) return;
+  const tc = teamChartCtx;
+  const ordered = [...teamStats].sort((a, b) => (b.mass || 0) - (a.mass || 0));
+  const entries = ordered.length;
+  const cssW = 250;
+  const maxCssH = Math.max(150, teamChartCanvas.clientHeight || 260);
+  const cssH = Math.min(maxCssH, Math.max(178, 34 + entries * 16));
+  const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+  teamChartCanvas.style.width = `${cssW}px`;
+  teamChartCanvas.style.height = `${cssH}px`;
+  const w = teamChartCanvas.width = Math.round(cssW * dpr);
+  const h = teamChartCanvas.height = Math.round(cssH * dpr);
+  tc.setTransform(1, 0, 0, 1, 0, 0);
+  tc.clearRect(0, 0, w, h);
+  tc.setTransform(dpr, 0, 0, dpr, 0, 0);
+  tc.fillStyle = 'rgba(10,18,35,0.58)';
+  tc.fillRect(0, 0, cssW, cssH);
+
+  const cx = 54;
+  const cy = 58;
+  const radius = 31;
+  const total = ordered.reduce((sum, t) => sum + (Number(t.mass) || 0), 0);
+  if (total <= 0) return;
+
+  let start = -Math.PI / 2;
+  for (const t of ordered) {
+    const mass = Number(t.mass) || 0;
+    const frac = mass / total;
+    if (frac <= 0) continue;
+    const end = start + frac * Math.PI * 2;
+    tc.beginPath();
+    tc.moveTo(cx, cy);
+    tc.arc(cx, cy, radius, start, end);
+    tc.closePath();
+    tc.fillStyle = t.color || '#6ea2f2';
+    tc.fill();
+    start = end;
+  }
+  tc.beginPath();
+  tc.arc(cx, cy, radius + 0.5, 0, Math.PI * 2);
+  tc.strokeStyle = 'rgba(255,255,255,0.3)';
+  tc.lineWidth = 1;
+  tc.stroke();
+
+  tc.fillStyle = '#f2f6ff';
+  tc.font = '700 11px Manrope, sans-serif';
+  tc.fillText('Team Control', 12, 15);
+  tc.font = '700 10px Manrope, sans-serif';
+  for (let i = 0; i < ordered.length; i++) {
+    const t = ordered[i];
+    const mass = Number(t.mass) || 0;
+    const pct = total > 0 ? Math.round((mass / total) * 100) : 0;
+    const y = 32 + i * 16;
+    const name = (t.name || `Team ${Number(t.teamId) + 1}`).slice(0, 16);
+    tc.fillStyle = t.color || '#6ea2f2';
+    tc.fillRect(100, y - 8, 8, 8);
+    tc.fillStyle = '#dce8ff';
+    tc.fillText(`${name} ${pct}%`, 113, y - 1);
+  }
+}
+
+function getLocalPlayerCenter() {
+  let totalMass = 0;
+  let sx = 0;
+  let sy = 0;
+  for (const [, c] of cellMap) {
+    if (!c || !c.mine) continue;
+    const m = Math.max(1, Number(c.mass) || 0);
+    totalMass += m;
+    sx += c.x * m;
+    sy += c.y * m;
+  }
+  if (totalMass <= 0) return null;
+  return { x: sx / totalMass, y: sy / totalMass };
+}
+
+function drawMinimap() {
+  if (!clientSettings.showMinimap) return;
+  const mc = minimapCtx;
+  const mw = minimapCanvas.width;
+  const mh = minimapCanvas.height;
+  mc.clearRect(0, 0, mw, mh);
+  mc.fillStyle = 'rgba(10,18,35,0.45)';
+  mc.fillRect(0, 0, mw, mh);
+  const sx = mw / mapWidth, sy = mh / mapHeight;
+  for (const [, c] of cellMap) {
+    mc.beginPath();
+    mc.arc(c.x * sx, c.y * sy, Math.max(1.5, Math.sqrt(c.mass) * 0.33), 0, Math.PI * 2);
+    mc.fillStyle = c.mine ? '#63ff72' : (c.color || '#8eb1df');
+    mc.fill();
+  }
+  const vw = viewportWidth * cam.scale * sx;
+  const vh = viewportHeight * cam.scale * sy;
+  mc.strokeStyle = 'rgba(255,255,255,0.38)';
+  mc.lineWidth = 1;
+  mc.strokeRect(cam.x * sx - vw / 2, cam.y * sy - vh / 2, vw, vh);
+  mc.strokeStyle = 'rgba(255,255,255,0.2)';
+  mc.strokeRect(0, 0, mw, mh);
+}
+
+function darkenColor(hex, factor) {
+  if (!hex || hex[0] !== '#') return '#445';
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${Math.round(r * factor)},${Math.round(g * factor)},${Math.round(b * factor)})`;
+}
+
+function escapeHtml(text) {
+  return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+(async function init() {
+  setMenuVisible(true);
+  setSkinPanelVisible(true);
+  loadClientSettings();
+  loadTheme();
+  loadStats();
+  updateStatsUI();
+  await loadBootstrap(false);
+  applyHudVisibility();
+  connect();
+  requestAnimationFrame(render);
+  setInterval(sendTarget, 20);
+})();
+</script>
+</body>
+</html>
