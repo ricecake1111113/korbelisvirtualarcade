@@ -50,13 +50,17 @@ class Game {
         this.availableSkins = [];
         this.availableSkinSet = new Set();
         this.teamMassDistribution = [];
+        this.lastBotPopulationSyncAt = 0;
+        this.chatLog = [];
+        this.chatSeq = 1;
+        this.nextBountyPelletAt = 0;
         this.refreshRuntimeFromConfig();
     }
 
     start() {
         for (let i = 0; i < this.config.maxFood; i++) this.spawnFood();
         for (let i = 0; i < this.config.maxViruses; i++) this.spawnVirus();
-        this.syncBotPopulation();
+        this.syncBotPopulation(true);
         this.ensureBotRoleMix();
 
         this.tickInterval = setInterval(() => this.tick(), 1000 / this.config.tickRate);
@@ -64,6 +68,17 @@ class Game {
 
     generateId() {
         return nextId++;
+    }
+
+    radiusFromMass(mass) {
+        return Math.pow(Math.max(1, Number(mass) || 1), this.massRadiusExponent) * this.massRadiusScale;
+    }
+
+    shouldShowSkinForPlayer(player) {
+        if (!player) return false;
+        if (!player.skin) return false;
+        if (this.isTeamsMode() && player.isBot) return false;
+        return true;
     }
 
     refreshRuntimeFromConfig() {
@@ -76,18 +91,36 @@ class Game {
             Math.floor(this.config.maxVisibleCellsPerPlayer ?? ((this.config.botCount + 2) * Math.max(1, this.config.maxCells)))
         );
         this.stateIntervalMs = 1000 / (this.config.stateBroadcastRate ?? this.config.tickRate);
+        this.massRadiusScale = Math.max(3.2, Math.min(8.5, this.config.massRadiusScale ?? 4.9));
+        this.massRadiusExponent = Math.max(0.35, Math.min(0.65, this.config.massRadiusExponent ?? 0.46));
+        this.baseFoodMass = Math.max(0.1, Math.min(3, this.config.baseFoodMass ?? 0.42));
+        this.goldenFoodChance = Math.max(0, Math.min(0.15, this.config.goldenFoodChance ?? 0.014));
+        this.goldenFoodMass = Math.max(this.baseFoodMass, Math.min(12, this.config.goldenFoodMass ?? 2.2));
+        this.ejectedPelletMass = Math.max(1, Math.min(20, this.config.ejectedPelletMass ?? 6));
+        this.ejectedPelletCost = Math.max(this.ejectedPelletMass + 1, Math.min(50, this.config.ejectedPelletCost ?? 13));
+        this.ejectMinCellMass = Math.max(this.config.startMass + 4, this.ejectedPelletCost + this.config.startMass * 0.7);
+        Cell.setRadiusTuning(this.massRadiusScale, this.massRadiusExponent);
         this.leaderboardSize = this.config.leaderboardSize ?? 10;
-        this.gameMode = this.config.gameMode === 'teams' ? 'teams' : 'ffa';
+        const mode = `${this.config.gameMode || 'ffa'}`.toLowerCase();
+        this.gameMode = mode === 'teams' || mode === 'experimental' ? mode : 'ffa';
+        this.instaMerge = !!this.config.instaMerge;
+        this.allowExperimentalInClassicModes = !!this.config.allowExperimentalInClassicModes;
+        this.plasmaFoodChance = Math.max(0, Math.min(0.25, this.config.plasmaFoodChance ?? 0.018));
+        this.plasmaFoodMass = Math.max(this.baseFoodMass, Math.min(12, this.config.plasmaFoodMass ?? 1.45));
         this.teamCount = Math.max(2, Math.min(12, Math.floor(this.config.teamCount ?? 3)));
         this.spawnerVirusesInFFA = !!this.config.spawnerVirusesInFFA;
         this.spawnerVirusChance = Math.max(0, Math.min(1, this.config.spawnerVirusChance ?? 0.22));
         this.forceSpawnerVirusesInTeams = this.config.forceSpawnerVirusesInTeams !== false;
+        this.forceSpawnerVirusesInExperimental = this.config.forceSpawnerVirusesInExperimental !== false;
         this.normalVirusCanKill = !!this.config.normalVirusCanKill;
         this.spawnerDispenseRate = Math.max(0.1, Math.min(4, this.config.spawnerDispenseRate ?? 0.45));
         this.spawnerPassiveRatePerSec = Math.max(0, Math.min(6, this.config.spawnerPassiveRatePerSec ?? 1));
         this.spawnerPelletMass = Math.max(0.25, Math.min(6, this.config.spawnerPelletMass ?? 0.7));
         this.virusSmallCellKillRatio = Math.max(0.1, Math.min(0.95, this.config.virusSmallCellKillRatio ?? 0.52));
         this.virusHideRatio = Math.max(0.2, Math.min(1.4, this.config.virusHideRatio ?? 0.9));
+        this.cellEatMassRatio = Math.max(1.05, Math.min(2.5, this.config.cellEatMassRatio ?? 1.22));
+        this.cellEatCenterInsideRatio = Math.max(0.1, Math.min(0.95, this.config.cellEatCenterInsideRatio ?? 0.42));
+        this.cellEatCoverageRatio = Math.max(0.45, Math.min(0.98, this.config.cellEatCoverageRatio ?? 0.88));
 
         this.virusBaseMass = this.config.virusBaseMass ?? 100;
         this.virusFeedMassGain = this.config.virusFeedMassGain ?? 14;
@@ -101,6 +134,15 @@ class Game {
         this.botSenseFoodSampleLimit = this.config.botSenseFoodSampleLimit ?? 260;
         this.botSenseVirusScanLimit = this.config.botSenseVirusScanLimit ?? 120;
         this.botBoldnessBase = Math.max(0, Math.min(1, this.config.botBoldnessBase ?? 0.45));
+        this.botSmartnessScale = Math.max(0.2, Math.min(3, this.config.botSmartnessScale ?? 1));
+        this.botAffectionScale = Math.max(0.2, Math.min(3, this.config.botAffectionScale ?? 1));
+        this.botBoldnessScale = Math.max(0.2, Math.min(3, this.config.botBoldnessScale ?? 1));
+        this.botGreedinessScale = Math.max(0.2, Math.min(3, this.config.botGreedinessScale ?? 1));
+        this.botSheepishnessScale = Math.max(0.2, Math.min(3, this.config.botSheepishnessScale ?? 1));
+        this.botHumanityScale = Math.max(0.2, Math.min(3, this.config.botHumanityScale ?? 1));
+        this.botTrickinessScale = Math.max(0.2, Math.min(3, this.config.botTrickinessScale ?? 1));
+        this.botOpportunismScale = Math.max(0.2, Math.min(3, this.config.botOpportunismScale ?? 1));
+        this.botHerdResistanceScale = Math.max(0.2, Math.min(3, this.config.botHerdResistanceScale ?? 1));
         this.botBoldSplitBurstChance = Math.max(0, Math.min(1, this.config.botBoldSplitBurstChance ?? 0.1));
         this.botPanicRetreatChance = Math.max(0, Math.min(1, this.config.botPanicRetreatChance ?? 0.18));
         this.botPanicRetreatMinMass = Math.max(20, Math.min(10000, this.config.botPanicRetreatMinMass ?? 110));
@@ -142,16 +184,55 @@ class Game {
         this.botVirusWeaponChance = Math.max(0, Math.min(1, this.config.botVirusWeaponChance ?? 0.22));
         this.botVirusWeaponCooldownMs = Math.max(100, Math.min(20000, this.config.botVirusWeaponCooldownMs ?? 2600));
         this.botVirusWeaponMinMass = Math.max(20, Math.min(5000, this.config.botVirusWeaponMinMass ?? 80));
+        this.botPopulationAdjustIntervalMs = Math.max(250, Math.min(12000, Math.floor(this.config.botPopulationAdjustIntervalMs ?? 900)));
+        this.botPopulationRampPerStep = Math.max(1, Math.min(120, Math.floor(this.config.botPopulationRampPerStep ?? Math.max(2, Math.round((this.config.botCount || 0) / 18)))));
+        this.botPopulationHoverMinRatio = Math.max(0.5, Math.min(1, this.config.botPopulationHoverMinRatio ?? 0.9));
+        this.botPopulationHoverVariance = Math.max(0, Math.min(2000, Math.floor(this.config.botPopulationHoverVariance ?? Math.max(2, Math.round((this.config.botCount || 0) * 0.08)))));
+        this.preserveAliveBots = this.config.preserveAliveBots !== false;
+        this.enableBotChat = !!this.config.enableBotChat;
+        this.botChatChancePerSecond = Math.max(0, Math.min(2, this.config.botChatChancePerSecond ?? 0.32));
+        this.botChatMaxBacklog = Math.max(10, Math.min(400, Math.floor(this.config.botChatMaxBacklog ?? 80)));
+        this.enableBountyPellets = this.config.enableBountyPellets !== false;
+        this.bountyPelletIntervalMs = Math.max(1500, Math.min(30000, Math.floor(this.config.bountyPelletIntervalMs ?? 7000)));
+        this.bountyPelletMass = Math.max(this.baseFoodMass, Math.min(20, this.config.bountyPelletMass ?? 3.4));
+        this.bountyLeaderMinMass = Math.max(40, Math.min(25000, this.config.bountyLeaderMinMass ?? 180));
 
         this.botCircleSpitChancePerTick = this.config.botCircleSpitChancePerTick ?? 0.00012;
         this.botCircleSpitCooldownMs = this.config.botCircleSpitCooldownMs ?? 15000;
         this.botCircleSpitMinMass = this.config.botCircleSpitMinMass ?? 170;
         this.botCircleSpitPelletsMin = this.config.botCircleSpitPelletsMin ?? 6;
         this.botCircleSpitPelletsMax = this.config.botCircleSpitPelletsMax ?? 12;
+        if (!this.nextBountyPelletAt) {
+            this.nextBountyPelletAt = Date.now() + Math.round(this.bountyPelletIntervalMs * (0.55 + Math.random() * 0.7));
+        }
     }
 
     isTeamsMode() {
         return this.gameMode === 'teams';
+    }
+
+    isExperimentalMode() {
+        return this.gameMode === 'experimental';
+    }
+
+    useExperimentalMechanics() {
+        return this.isExperimentalMode() || !!this.allowExperimentalInClassicModes;
+    }
+
+    canSpawnSpawnerViruses() {
+        if (this.isExperimentalMode()) return !!this.forceSpawnerVirusesInExperimental;
+        if (this.isTeamsMode()) return false;
+        return !!this.spawnerVirusesInFFA;
+    }
+
+    forceAllSpawnerViruses() {
+        if (this.isExperimentalMode()) return !!this.forceSpawnerVirusesInExperimental;
+        if (this.isTeamsMode()) return false;
+        return false;
+    }
+
+    getMergeDelayMs() {
+        return this.instaMerge ? 130 : (this.config.mergeTime * 1000);
     }
 
     getActiveTeamCount() {
@@ -222,7 +303,7 @@ class Game {
         if (!player) return;
         if (this.isTeamsMode()) {
             this.ensurePlayerTeam(player);
-            player.skin = null;
+            if (player.isBot) player.skin = null;
         } else if (!player.color) {
             player.color = this.randomColor();
         }
@@ -232,13 +313,14 @@ class Game {
         for (const cell of player.cells) {
             cell.color = color;
             cell.teamId = this.isTeamsMode() ? player.teamId : null;
-            if (this.isTeamsMode()) cell.skin = null;
+            cell.skin = this.shouldShowSkinForPlayer(player) ? (player.skin || cell.skin || null) : null;
         }
     }
 
     updateRuntimeConfig(nextConfig) {
         const prevTickRate = this.config.tickRate;
-        const prevMode = this.config.gameMode === 'teams' ? 'teams' : 'ffa';
+        const prevModeRaw = `${this.config.gameMode || 'ffa'}`.toLowerCase();
+        const prevMode = prevModeRaw === 'teams' || prevModeRaw === 'experimental' ? prevModeRaw : 'ffa';
         const prevTeamCount = Math.max(2, Math.min(12, Math.floor(this.config.teamCount ?? 3)));
         const prevMapWidth = this.config.mapWidth;
         const prevMapHeight = this.config.mapHeight;
@@ -246,7 +328,7 @@ class Game {
         this.refreshRuntimeFromConfig();
         const mapSizeChanged = prevMapWidth !== this.config.mapWidth || prevMapHeight !== this.config.mapHeight;
         if (mapSizeChanged) this.clampWorldToBounds();
-        this.syncBotPopulation();
+        this.syncBotPopulation(true);
         this.ensureBotRoleMix();
         const modeChanged = prevMode !== this.gameMode;
         const teamCountChanged = prevTeamCount !== this.teamCount;
@@ -267,12 +349,16 @@ class Game {
             bot.humanAssistChance = this.botHumanAssistChance;
             bot.maxSupportersPerHuman = this.botMaxSupportersPerHuman;
             bot.spectatorFollowHumanChance = this.spectatorFollowHumanChance;
-            bot.boldness = Math.max(0, Math.min(1, (this.botBoldnessBase ?? 0.45) + (Math.random() - 0.5) * 0.2));
-            if (Math.random() > 0.5) {
-                bot.likesHelpingHumans = Math.random() < this.botHumanAssistChance;
-            }
-            if (Math.random() > 0.5) {
-                bot.prefersHumanSpectate = Math.random() < this.spectatorFollowHumanChance;
+            if (typeof bot.applyPersonalityScales === 'function') {
+                bot.applyPersonalityScales(this, Math.random() < 0.65);
+            } else {
+                bot.boldness = Math.max(0, Math.min(1, (this.botBoldnessBase ?? 0.45) + (Math.random() - 0.5) * 0.2));
+                if (Math.random() > 0.5) {
+                    bot.likesHelpingHumans = Math.random() < this.botHumanAssistChance;
+                }
+                if (Math.random() > 0.5) {
+                    bot.prefersHumanSpectate = Math.random() < this.spectatorFollowHumanChance;
+                }
             }
             if (!this.enableBotTeaming) {
                 this.clearBotTeam(bot);
@@ -285,7 +371,7 @@ class Game {
             const ids = [...this.viruses.keys()].slice(0, remove);
             for (const id of ids) this.viruses.delete(id);
         }
-        if (this.isTeamsMode() && this.forceSpawnerVirusesInTeams) {
+        if (this.forceAllSpawnerViruses()) {
             for (const [, virus] of this.viruses) {
                 if (virus.kind === 'spawner') continue;
                 virus.kind = 'spawner';
@@ -294,7 +380,7 @@ class Game {
                 virus.feedCount = 0;
             }
         }
-        if (!this.isTeamsMode() && !this.spawnerVirusesInFFA) {
+        if (!this.canSpawnSpawnerViruses()) {
             for (const [, virus] of this.viruses) {
                 if (virus.kind === 'spawner') {
                     virus.kind = 'normal';
@@ -339,6 +425,19 @@ class Game {
             }
         }
 
+        if (!this.useExperimentalMechanics()) {
+            for (const [, food] of this.food) {
+                if (!food) continue;
+                if (food.type === 'golden' || food.type === 'bounty' || food.type === 'plasma') {
+                    food.type = 'food';
+                    food.mass = this.baseFoodMass;
+                    if (!food.color || food.color === '#ffd34a' || food.color === '#ff9f3f' || food.color === '#4bd4ff') {
+                        food.color = this.randomColor();
+                    }
+                }
+            }
+        }
+
         if (this.tickInterval && prevTickRate !== this.config.tickRate) {
             clearInterval(this.tickInterval);
             this.tickInterval = setInterval(() => this.tick(), 1000 / this.config.tickRate);
@@ -377,7 +476,7 @@ class Game {
     }
 
     assignPlayerSkin(player, requestedSkin = null, isBot = false) {
-        if (this.isTeamsMode()) {
+        if (this.isTeamsMode() && isBot) {
             player.skin = null;
             return;
         }
@@ -431,46 +530,93 @@ class Game {
 
     getDesiredBotPopulation() {
         if (this.deferBotsUntilHumans && !this.hasAliveHumans()) {
-            return { normal: 0, spectator: 0 };
+            return {
+                normal: 0,
+                normalMax: 0,
+                spectator: 0,
+                spectatorMax: 0,
+            };
         }
+        const configuredNormal = Math.max(0, Math.floor(this.config.botCount || 0));
+        const configuredSpectator = Math.max(0, Math.floor(this.spectatorBotCount || 0));
+        const minNormal = Math.floor(configuredNormal * this.botPopulationHoverMinRatio);
+        const dynamicWindow = Math.max(0, configuredNormal - minNormal);
+        const jitter = dynamicWindow > 0
+            ? Math.floor(Math.random() * (Math.min(dynamicWindow, this.botPopulationHoverVariance) + 1))
+            : 0;
+        const targetNormal = Math.max(minNormal, configuredNormal - jitter);
         return {
-            normal: Math.max(0, Math.floor(this.config.botCount || 0)),
-            spectator: Math.max(0, Math.floor(this.spectatorBotCount || 0)),
+            normal: targetNormal,
+            normalMax: configuredNormal,
+            spectator: configuredSpectator,
+            spectatorMax: configuredSpectator,
         };
     }
 
-    syncBotPopulation() {
+    syncBotPopulation(force = false) {
+        const now = Date.now();
+        if (!force && (now - this.lastBotPopulationSyncAt) < this.botPopulationAdjustIntervalMs) {
+            return false;
+        }
+        this.lastBotPopulationSyncAt = now;
+
         const desired = this.getDesiredBotPopulation();
         const targetNormal = desired.normal;
+        const normalHardCap = desired.normalMax;
         const targetSpectators = desired.spectator;
+        const spectatorHardCap = desired.spectatorMax;
 
         const normalBots = this.bots.filter((b) => b.kind !== 'spectator');
-        const spectatorBots = this.bots.filter((b) => b.kind === 'spectator');
-
-        if (normalBots.length > targetNormal) {
-            const removeCount = normalBots.length - targetNormal;
+        const baseStep = Math.max(1, this.botPopulationRampPerStep);
+        const maxAddStep = force ? Math.max(2, baseStep * 4) : baseStep;
+        const maxDropStep = force ? Math.max(2, baseStep * 6) : Math.max(2, baseStep * 2);
+        const removeBotsFromPool = (pool, requestedCount) => {
+            const count = Math.max(0, Math.floor(requestedCount));
+            if (count <= 0 || pool.length === 0) return 0;
+            const removable = this.preserveAliveBots
+                ? pool.filter((b) => !this.isPlayerAlive(b))
+                : pool;
+            if (removable.length === 0) return 0;
+            const removeCount = Math.min(count, removable.length);
             for (let i = 0; i < removeCount; i++) {
-                this.removeBot(normalBots[normalBots.length - 1 - i]);
+                this.removeBot(removable[removable.length - 1 - i]);
+            }
+            return removeCount;
+        };
+        let changed = false;
+
+        if (normalBots.length > normalHardCap) {
+            const removeCount = removeBotsFromPool(normalBots, Math.min(maxDropStep, normalBots.length - normalHardCap));
+            changed = removeCount > 0 || changed;
+        } else if (normalBots.length > targetNormal) {
+            const shouldTrim = force || Math.random() < 0.55;
+            if (shouldTrim) {
+                const removeCount = removeBotsFromPool(normalBots, Math.min(baseStep, normalBots.length - targetNormal));
+                changed = removeCount > 0 || changed;
             }
         } else if (normalBots.length < targetNormal) {
-            const addCount = targetNormal - normalBots.length;
+            const addCount = Math.min(maxAddStep, targetNormal - normalBots.length);
             for (let i = 0; i < addCount; i++) {
                 this.createBot('normal');
             }
+            changed = addCount > 0 || changed;
         }
 
         const spectatorsNow = this.bots.filter((b) => b.kind === 'spectator');
-        if (spectatorsNow.length > targetSpectators) {
-            const removeCount = spectatorsNow.length - targetSpectators;
-            for (let i = 0; i < removeCount; i++) {
-                this.removeBot(spectatorsNow[spectatorsNow.length - 1 - i]);
-            }
+        if (spectatorsNow.length > spectatorHardCap) {
+            const removeCount = removeBotsFromPool(spectatorsNow, Math.min(maxDropStep, spectatorsNow.length - spectatorHardCap));
+            changed = removeCount > 0 || changed;
+        } else if (spectatorsNow.length > targetSpectators) {
+            const removeCount = removeBotsFromPool(spectatorsNow, Math.min(baseStep, spectatorsNow.length - targetSpectators));
+            changed = removeCount > 0 || changed;
         } else if (spectatorsNow.length < targetSpectators) {
-            const addCount = targetSpectators - spectatorsNow.length;
+            const addCount = Math.min(maxAddStep, targetSpectators - spectatorsNow.length);
             for (let i = 0; i < addCount; i++) {
                 this.createBot('spectator');
             }
+            changed = addCount > 0 || changed;
         }
+        return changed;
     }
 
     getBotSpawnReferenceMass(mode) {
@@ -577,7 +723,7 @@ class Game {
         const mass = bot.kind === 'spectator'
             ? Math.max(8, this.config.startMass * (0.85 + Math.random() * 0.4))
             : this.getBotSpawnMass(mode);
-        const spawnRadius = Math.sqrt(Math.max(1, mass)) * 6;
+        const spawnRadius = this.radiusFromMass(mass);
         const spawnPos = this.findSafeSpawnPosition(spawnRadius);
         this.ensurePlayerTeam(bot);
         if (!this.isTeamsMode() && !bot.skin && Math.random() < this.botSkinChance) {
@@ -611,21 +757,33 @@ class Game {
             owner: bot,
             name: bot.name
         });
-        cell.skin = this.isTeamsMode() ? null : (bot.skin || null);
+        cell.skin = this.shouldShowSkinForPlayer(bot) ? (bot.skin || null) : null;
         cell.teamId = this.isTeamsMode() ? bot.teamId : null;
         bot.cells = [cell];
         bot.alive = true;
         bot.teamPartnerId = null;
         bot.teamExpiresAt = 0;
+        bot.nextChatAt = 0;
         bot.nextTeamSeekAt = 0;
         bot.lastTeamFeedAt = 0;
         bot.lastTeamSplitAt = 0;
         bot.lastCircleSpitAt = 0;
+        bot.betrayCooldownUntil = 0;
+        bot.retreatLockUntil = 0;
+        bot.retreatPolarity = Math.random() < 0.5 ? -1 : 1;
+        bot.homeAnchor = {
+            x: this.config.mapWidth * (0.14 + Math.random() * 0.72),
+            y: this.config.mapHeight * (0.14 + Math.random() * 0.72),
+        };
+        bot.homeAnchorRefreshAt = Date.now() + 6000 + Math.random() * 9000;
         bot.humanAssistChance = this.botHumanAssistChance;
         bot.maxSupportersPerHuman = this.botMaxSupportersPerHuman;
         bot.spectatorFollowHumanChance = this.spectatorFollowHumanChance;
         bot.likesHelpingHumans = Math.random() < this.botHumanAssistChance;
         bot.prefersHumanSpectate = Math.random() < this.spectatorFollowHumanChance;
+        if (typeof bot.applyPersonalityScales === 'function') {
+            bot.applyPersonalityScales(this, true);
+        }
         bot.target.x = cell.x;
         bot.target.y = cell.y;
         bot.desiredTarget.x = cell.x;
@@ -636,7 +794,8 @@ class Game {
     countBaseFood() {
         let total = 0;
         for (const [, food] of this.food) {
-            if (!food || food.type === 'ejected') continue;
+            if (!food) continue;
+            if (food.type === 'ejected' || food.type === 'spawner' || food.type === 'bounty') continue;
             total++;
         }
         return total;
@@ -689,7 +848,7 @@ class Game {
                 this.viruses.delete(id);
                 continue;
             }
-            const r = Math.sqrt(Math.max(1, virus.mass || this.virusBaseMass || 100)) * 6;
+            const r = this.radiusFromMass(virus.mass || this.virusBaseMass || 100);
             const virusMaxX = Math.max(r, maxX - r);
             const virusMaxY = Math.max(r, maxY - r);
             virus.x = clamp(virus.x, r, virusMaxX, maxX / 2);
@@ -718,13 +877,29 @@ class Game {
 
     spawnFood() {
         const id = this.generateId();
+        const useExperimentalPellets = this.useExperimentalMechanics();
+        const roll = Math.random();
+        const isGolden = useExperimentalPellets && roll < this.goldenFoodChance;
+        const isPlasma = useExperimentalPellets && !isGolden && roll < (this.goldenFoodChance + this.plasmaFoodChance);
+        let mass = this.baseFoodMass;
+        let color = this.randomColor();
+        let type = 'food';
+        if (isGolden) {
+            mass = this.goldenFoodMass;
+            color = '#ffd34a';
+            type = 'golden';
+        } else if (isPlasma) {
+            mass = this.plasmaFoodMass;
+            color = '#4bd4ff';
+            type = 'plasma';
+        }
         const food = {
             id,
             x: Math.random() * this.config.mapWidth,
             y: Math.random() * this.config.mapHeight,
-            mass: 0.7,
-            color: this.randomColor(),
-            type: 'food'
+            mass,
+            color,
+            type,
         };
         this.food.set(id, food);
         return food;
@@ -732,9 +907,10 @@ class Game {
 
     spawnVirus(x, y, options = {}) {
         const id = this.generateId();
-        const allowSpawner = this.isTeamsMode() || this.spawnerVirusesInFFA;
+        const allowSpawner = this.canSpawnSpawnerViruses();
+        const forceSpawner = this.forceAllSpawnerViruses();
         const kind = options.kind
-            || (this.isTeamsMode() && this.forceSpawnerVirusesInTeams
+            || (forceSpawner
                 ? 'spawner'
                 : (allowSpawner && Math.random() < this.spawnerVirusChance ? 'spawner' : 'normal'));
         const virus = {
@@ -763,6 +939,31 @@ class Game {
             ? Math.max(1, Math.floor(player.maxCellsCap))
             : hardMax;
         return Math.min(hardMax, playerCap);
+    }
+
+    getCircleOverlapArea(r1, r2, d) {
+        const radiusA = Math.max(0, Number(r1) || 0);
+        const radiusB = Math.max(0, Number(r2) || 0);
+        const dist = Math.max(0, Number(d) || 0);
+        if (radiusA <= 0 || radiusB <= 0) return 0;
+        if (dist >= radiusA + radiusB) return 0;
+        if (dist <= Math.abs(radiusA - radiusB)) {
+            const inner = Math.min(radiusA, radiusB);
+            return Math.PI * inner * inner;
+        }
+        const safeA = Math.max(-1, Math.min(1, (dist * dist + radiusA * radiusA - radiusB * radiusB) / (2 * dist * radiusA)));
+        const safeB = Math.max(-1, Math.min(1, (dist * dist + radiusB * radiusB - radiusA * radiusA) / (2 * dist * radiusB)));
+        const alpha = 2 * Math.acos(safeA);
+        const beta = 2 * Math.acos(safeB);
+        const areaA = 0.5 * radiusA * radiusA * (alpha - Math.sin(alpha));
+        const areaB = 0.5 * radiusB * radiusB * (beta - Math.sin(beta));
+        return areaA + areaB;
+    }
+
+    getEatCoverageRatio(eaterRadius, preyRadius, dist) {
+        const overlapArea = this.getCircleOverlapArea(eaterRadius, preyRadius, dist);
+        const preyArea = Math.PI * Math.max(1e-6, preyRadius * preyRadius);
+        return overlapArea / preyArea;
     }
 
     sampleMapValues(sourceMap, maxItems, filterFn) {
@@ -849,7 +1050,7 @@ class Game {
         return contestedCount === 0;
     }
 
-    getLargestCell(player, minMass = 35) {
+    getLargestCell(player, minMass = this.ejectMinCellMass) {
         if (!player || !player.cells || player.cells.length === 0) return null;
         let best = null;
         for (const c of player.cells) {
@@ -867,7 +1068,7 @@ class Game {
             id,
             x: cell.x + Math.cos(angle) * cell.radius(),
             y: cell.y + Math.sin(angle) * cell.radius(),
-            mass: 11,
+            mass: this.ejectedPelletMass,
             color: cell.color,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
@@ -884,13 +1085,13 @@ class Game {
 
         let done = 0;
         for (let i = 0; i < shots; i++) {
-            const donor = this.getLargestCell(player, 35);
+            const donor = this.getLargestCell(player, this.ejectMinCellMass);
             if (!donor) break;
 
             const angle = Math.atan2(target.y - donor.y, target.x - donor.x);
-            donor.mass -= 16;
+            donor.mass -= this.ejectedPelletCost;
             if (!this.spawnEjectedMassFromCell(donor, angle, 20)) {
-                donor.mass += 16;
+                donor.mass += this.ejectedPelletCost;
                 break;
             }
             done++;
@@ -905,13 +1106,13 @@ class Game {
         let done = 0;
         const baseAngle = Math.random() * Math.PI * 2;
         for (let i = 0; i < count; i++) {
-            const donor = this.getLargestCell(player, 35);
+            const donor = this.getLargestCell(player, this.ejectMinCellMass);
             if (!donor) break;
 
             const angle = baseAngle + (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.12;
-            donor.mass -= 16;
+            donor.mass -= this.ejectedPelletCost;
             if (!this.spawnEjectedMassFromCell(donor, angle, 16 + Math.random() * 6)) {
-                donor.mass += 16;
+                donor.mass += this.ejectedPelletCost;
                 break;
             }
             done++;
@@ -938,20 +1139,25 @@ class Game {
             return null;
         }
 
-        if (bot.teamPartnerId && (this.botTeamsStickUntilDeath || bot.teamExpiresAt > now)) {
+        if (bot.teamPartnerId) {
             const partner = this.resolvePlayerById(bot.teamPartnerId);
             if (this.isPlayerAlive(partner)) {
-                if (this.botTeamsStickUntilDeath) {
+                const stickyPair = !!(bot.isBot && partner.isBot && this.botTeamsStickUntilDeath);
+                if (stickyPair) {
                     return partner;
                 }
-                const myPos = this.getPlayerCenter(bot);
-                const partnerPos = this.getPlayerCenter(partner);
-                if (myPos && partnerPos) {
-                    const dx = myPos.x - partnerPos.x;
-                    const dy = myPos.y - partnerPos.y;
-                    const distSq = dx * dx + dy * dy;
-                    if (distSq <= (this.botTeamMaxDistance * 2.4) ** 2) {
-                        return partner;
+                if ((bot.teamExpiresAt || 0) <= now) {
+                    this.clearBotTeam(bot);
+                } else {
+                    const myPos = this.getPlayerCenter(bot);
+                    const partnerPos = this.getPlayerCenter(partner);
+                    if (myPos && partnerPos) {
+                        const dx = myPos.x - partnerPos.x;
+                        const dy = myPos.y - partnerPos.y;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq <= (this.botTeamMaxDistance * 2.4) ** 2) {
+                            return partner;
+                        }
                     }
                 }
             }
@@ -969,7 +1175,9 @@ class Game {
         const allowCrossTeam = teamsMode && Math.random() < this.crossTeamTeamingChance;
 
         let candidates = [];
-        const canSeekHuman = !!bot.likesHelpingHumans && Math.random() < this.botHumanAssistChance;
+        const affectionBias = Math.max(0.25, Math.min(2.2, bot.affection || 0.9));
+        const canSeekHuman = !!bot.likesHelpingHumans
+            && Math.random() < Math.min(1, this.botHumanAssistChance * (0.55 + affectionBias * 0.36));
         const preferHuman = canSeekHuman && aliveHumans.length > 0 && Math.random() < this.botTeamWithHumanChance;
         if (preferHuman) {
             candidates = aliveHumans.filter((human) => {
@@ -1009,7 +1217,7 @@ class Game {
             if (teamsMode && c.teamId !== bot.teamId) score -= 380;
             if (hasRecentHelp && c.id === bot.recentBenefactorId) {
                 const gullibleBoost = (this.config.botGullibleTeamBonus ?? 0.28) * (bot.gullibility ?? 0.2);
-                score += 240 + gullibleBoost * 420;
+                score += 240 + gullibleBoost * 420 + affectionBias * 75;
             }
             if (score > bestScore) {
                 bestScore = score;
@@ -1019,7 +1227,8 @@ class Game {
 
         if (!best) return null;
 
-        let expiresAt = this.botTeamsStickUntilDeath
+        const stickyPair = !!(bot.isBot && best.isBot && this.botTeamsStickUntilDeath);
+        let expiresAt = stickyPair
             ? now + (1000 * 60 * 60 * 24 * 365 * 5)
             : now + this.botTeamDurationMs * (0.7 + Math.random() * 0.8);
         if (hasRecentHelp && best.id === bot.recentBenefactorId) {
@@ -1051,10 +1260,14 @@ class Game {
             return;
         }
         if (!bot.teamPartnerId) return;
-        if (!this.botTeamsStickUntilDeath && bot.teamExpiresAt <= now) return;
 
         const partner = this.resolvePlayerById(bot.teamPartnerId);
         if (!this.isPlayerAlive(partner)) {
+            this.clearBotTeam(bot);
+            return;
+        }
+        const stickyPair = !!(bot.isBot && partner.isBot && this.botTeamsStickUntilDeath);
+        if (!stickyPair && (bot.teamExpiresAt || 0) <= now) {
             this.clearBotTeam(bot);
             return;
         }
@@ -1073,7 +1286,7 @@ class Game {
         const dx = partnerPos.x - myPos.x;
         const dy = partnerPos.y - myPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (!this.botTeamsStickUntilDeath && dist > this.botTeamMaxDistance * 2.4) {
+        if (!stickyPair && dist > this.botTeamMaxDistance * 2.4) {
             this.clearBotTeam(bot);
             return;
         }
@@ -1091,7 +1304,9 @@ class Game {
             : this.canBotSupportHumanTarget(partner.id, botMass);
 
         if (allowHumanSupport && now - (bot.lastTeamFeedAt || 0) >= this.botTeamFeedCooldownMs) {
-            if (botMass >= this.botTeamFeedMinMass && Math.random() < this.botTeamFeedChance) {
+            const affectionBias = Math.max(0.25, Math.min(2.2, bot.affection || 0.9));
+            const feedChance = Math.min(0.98, this.botTeamFeedChance * (0.7 + affectionBias * 0.24));
+            if (botMass >= this.botTeamFeedMinMass && Math.random() < feedChance) {
                 const partnerNeedsFood = partner.isBot
                     ? (partnerMass < botMass * 1.3 || partnerMass > botMass * 1.55)
                     : partnerMass < Math.min(botMass * 0.78, this.config.startMass * 2.2);
@@ -1118,6 +1333,30 @@ class Game {
                 bot.lastTeamSplitAt = now;
             }
         }
+
+        if (
+            partner.isBot &&
+            (bot.betrayCooldownUntil || 0) <= now &&
+            dist < Math.max(230, this.botTeamMaxDistance * 0.33)
+        ) {
+            const betrayalChance = Math.max(0, Math.min(
+                0.82,
+                (bot.betrayChance || 0.03) * (0.35 + (bot.opportunism || 0.75) * 0.45)
+            ));
+            if (botMass > partnerMass * 1.32 && Math.random() < betrayalChance) {
+                this.clearBotTeam(bot);
+                if (partner.teamPartnerId === bot.id && Math.random() < 0.86) {
+                    this.clearBotTeam(partner);
+                }
+                if (Math.random() < 0.5) {
+                    this.emitBotChat(bot, 'sorry not sorry');
+                }
+                bot.betrayCooldownUntil = now + 7000 + Math.random() * 10000;
+                bot.desiredTarget.x = partnerPos.x + (Math.random() - 0.5) * 40;
+                bot.desiredTarget.y = partnerPos.y + (Math.random() - 0.5) * 40;
+                bot.targetLerp = Math.max(bot.targetLerp, 0.16);
+            }
+        }
     }
 
     maybeTriggerBotCircleSpit(bot, now) {
@@ -1137,6 +1376,78 @@ class Game {
         }
     }
 
+    emitBotChat(bot, text, options = {}) {
+        if (!this.enableBotChat) return;
+        if (!bot || !bot.isBot || !text) return;
+        const now = Date.now();
+        const force = !!options.force;
+        const cooldownMs = Math.max(250, Math.min(20000, Math.floor(options.cooldownMs ?? 2200)));
+        if (!force && now < (bot.nextChatAt || 0)) return;
+        const cleaned = String(text).replace(/\s+/g, ' ').trim().slice(0, 90);
+        if (!cleaned) return;
+        bot.nextChatAt = now + Math.floor(cooldownMs * (0.8 + Math.random() * 0.7));
+        this.chatLog.push({
+            id: this.chatSeq++,
+            name: (bot.name || `Bot${bot.id}`).slice(0, 24),
+            text: cleaned,
+            at: now,
+        });
+        if (this.chatLog.length > this.botChatMaxBacklog) {
+            this.chatLog.splice(0, this.chatLog.length - this.botChatMaxBacklog);
+        }
+    }
+
+    maybeEmitAmbientBotChat(now, aliveBots, alivePlayers) {
+        if (!this.enableBotChat) return;
+        if (!aliveBots || aliveBots.length === 0) return;
+        const tickSec = 1 / Math.max(1, this.config.tickRate || 1);
+        if (Math.random() > this.botChatChancePerSecond * tickSec) return;
+
+        const bot = aliveBots[Math.floor(Math.random() * aliveBots.length)];
+        if (!bot) return;
+        const myMass = this.getPlayerMass(bot);
+        const myPos = this.getPlayerCenter(bot);
+        if (!myPos || myMass <= 0) return;
+
+        let nearestBigger = null;
+        let nearestBiggerDistSq = Infinity;
+        for (const p of alivePlayers || []) {
+            if (!p || p.id === bot.id || !p.pos || p.mass <= 0) continue;
+            if (p.mass <= myMass * this.cellEatMassRatio) continue;
+            const dx = p.pos.x - myPos.x;
+            const dy = p.pos.y - myPos.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < nearestBiggerDistSq) {
+                nearestBiggerDistSq = distSq;
+                nearestBigger = p;
+            }
+        }
+
+        let line = null;
+        if (bot.teamPartnerId && Math.random() < 0.2) {
+            line = Math.random() < 0.5 ? 'team?' : 'hold this side';
+        } else if (nearestBigger && Math.sqrt(nearestBiggerDistSq) < 650) {
+            const targetName = (nearestBigger.name || `P${nearestBigger.id}` || 'you').slice(0, 18);
+            line = Math.random() < 0.55 ? `ugh i hate you ${targetName}` : `run run ${targetName} is huge`;
+        } else if (myMass < this.config.startMass * 2.2) {
+            line = Math.random() < 0.5 ? 'need food...' : 'tiny life';
+        } else if (myMass > this.config.startMass * 22 && Math.random() < 0.45) {
+            line = Math.random() < 0.5 ? 'hunt the big one' : 'corner time';
+        } else {
+            const chatter = [
+                'split now?',
+                'no panic',
+                'flanking left',
+                'baiting...',
+                'watch virus',
+                'who fed me',
+                'eco is wild',
+            ];
+            line = chatter[Math.floor(Math.random() * chatter.length)];
+        }
+        this.emitBotChat(bot, line, { cooldownMs: 2500 });
+    }
+
     updateViruses() {
         for (const [, virus] of this.viruses) {
             if (!virus.vx && !virus.vy) continue;
@@ -1149,7 +1460,7 @@ class Game {
             if (Math.abs(virus.vx) < 0.05) virus.vx = 0;
             if (Math.abs(virus.vy) < 0.05) virus.vy = 0;
 
-            const r = Math.sqrt(virus.mass) * 6;
+            const r = this.radiusFromMass(virus.mass);
             if (virus.x < r || virus.x > this.config.mapWidth - r) {
                 virus.x = Math.max(r, Math.min(this.config.mapWidth - r, virus.x));
                 virus.vx = 0;
@@ -1179,7 +1490,7 @@ class Game {
             const launchAngle = typeof virus.lastFeedAngle === 'number'
                 ? virus.lastFeedAngle
                 : Math.random() * Math.PI * 2;
-            const launchRadius = Math.sqrt(this.virusBaseMass) * 6;
+            const launchRadius = this.radiusFromMass(this.virusBaseMass);
             const launchX = virus.x + Math.cos(launchAngle) * launchRadius * 1.8;
             const launchY = virus.y + Math.sin(launchAngle) * launchRadius * 1.8;
             this.spawnVirus(
@@ -1229,7 +1540,7 @@ class Game {
         const twoPi = Math.PI * 2;
         for (const [, virus] of this.viruses) {
             if (virus.kind !== 'spawner') continue;
-            const radius = Math.sqrt(Math.max(virus.mass, this.virusBaseMass)) * 6;
+            const radius = this.radiusFromMass(Math.max(virus.mass, this.virusBaseMass));
             if (typeof virus.ringAngle !== 'number') virus.ringAngle = Math.random() * twoPi;
 
             const emitPellet = (pelletMass, speedRange = [3.5, 7], fixedAngle = null, allowReplace = false, pelletType = 'food') => {
@@ -1326,7 +1637,7 @@ class Game {
             for (const [, virus] of this.viruses) {
                 const dx = food.x - virus.x;
                 const dy = food.y - virus.y;
-                const virusRadius = Math.sqrt(virus.mass) * 6;
+                const virusRadius = this.radiusFromMass(virus.mass);
                 const catchRadius = virusRadius + 12;
                 if (dx * dx + dy * dy > catchRadius * catchRadius) continue;
 
@@ -1456,7 +1767,7 @@ class Game {
         }
 
         for (const [, virus] of this.viruses) {
-            const vr = Math.sqrt(Math.max(1, virus.mass)) * 6;
+            const vr = this.radiusFromMass(virus.mass);
             const dx = x - virus.x;
             const dy = y - virus.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -1491,7 +1802,7 @@ class Game {
         }
 
         for (const [, virus] of this.viruses) {
-            const vr = Math.sqrt(Math.max(1, virus.mass)) * 6;
+            const vr = this.radiusFromMass(virus.mass);
             const required = radius + vr + buffer;
             const dx = x - virus.x;
             const dy = y - virus.y;
@@ -1538,7 +1849,7 @@ class Game {
     spawnPlayer(player) {
         this.ensurePlayerTeam(player);
         const id = this.generateId();
-        const spawnRadius = Math.sqrt(Math.max(1, this.config.startMass)) * 6;
+        const spawnRadius = this.radiusFromMass(this.config.startMass);
         const spawnPos = this.findSafeSpawnPosition(spawnRadius);
         const cell = new Cell({
             id,
@@ -1549,7 +1860,7 @@ class Game {
             owner: player,
             name: player.name || ''
         });
-        cell.skin = this.isTeamsMode() ? null : (player.skin || null);
+        cell.skin = this.shouldShowSkinForPlayer(player) ? (player.skin || null) : null;
         cell.teamId = this.isTeamsMode() ? player.teamId : null;
         if (!player.cells) player.cells = [];
         player.cells.push(cell);
@@ -1567,6 +1878,8 @@ class Game {
             color: this.randomColor(),
             skin: null,
             teamId: null,
+            teamPartnerId: null,
+            teamExpiresAt: 0,
             target: { x: 0, y: 0 },
             isBot: false,
             score: 0,
@@ -1614,6 +1927,8 @@ class Game {
                 player.alive = true;
                 player.maxScore = Math.max(player.maxScore || 0, this.config.startMass);
                 player.cells = [];
+                player.teamPartnerId = null;
+                player.teamExpiresAt = 0;
                 this.spawnPlayer(player);
                 ws.send(JSON.stringify({
                     type: 'spawned',
@@ -1692,11 +2007,22 @@ class Game {
     }
 
     // ── Original agar.io split: shoots new cell towards cursor ──
-    splitPlayer(player) {
+    splitPlayer(player, options = {}) {
         const newCells = [];
         const maxCells = this.getMaxCellsForPlayer(player);
+        // Bots should only split one cell per call (the largest eligible one),
+        // otherwise each burst call can split every existing cell simultaneously.
+        const splitOnlyOne = !!options.singleCell || (player.isBot && !options.allowAll);
+        let eligible = [...player.cells];
+        if (splitOnlyOne) {
+            // Pick the cell with the most mass that faces the target
+            eligible = eligible
+                .filter((c) => c.mass >= this.config.minSplitMass)
+                .sort((a, b) => b.mass - a.mass)
+                .slice(0, 1);
+        }
 
-        for (const cell of [...player.cells]) {
+        for (const cell of eligible) {
             if (player.cells.length + newCells.length >= maxCells) break;
             if (cell.mass < this.config.minSplitMass) continue;
 
@@ -1718,12 +2044,13 @@ class Game {
                 owner: player,
                 name: player.name
             });
-            newCell.skin = this.isTeamsMode() ? null : (player.skin || cell.skin || null);
+            newCell.skin = this.shouldShowSkinForPlayer(player) ? (player.skin || cell.skin || null) : null;
             newCell.teamId = this.isTeamsMode() ? player.teamId : null;
             newCell.vx = Math.cos(angle) * splitBoost;
             newCell.vy = Math.sin(angle) * splitBoost;
-            newCell.mergeTime = Date.now() + this.config.mergeTime * 1000;
-            cell.mergeTime = Date.now() + this.config.mergeTime * 1000;
+            const mergeDelayMs = this.getMergeDelayMs();
+            newCell.mergeTime = Date.now() + mergeDelayMs;
+            cell.mergeTime = Date.now() + mergeDelayMs;
 
             newCells.push(newCell);
             this.cells.set(id, newCell);
@@ -1733,26 +2060,34 @@ class Game {
 
     ejectMass(player) {
         for (const cell of player.cells) {
-            if (cell.mass < 35) continue;
+            if (cell.mass < this.ejectMinCellMass) continue;
             const angle = Math.atan2(player.target.y - cell.y, player.target.x - cell.x);
-            cell.mass -= 16;
+            cell.mass -= this.ejectedPelletCost;
             if (!this.spawnEjectedMassFromCell(cell, angle, 20)) {
-                cell.mass += 16;
+                cell.mass += this.ejectedPelletCost;
                 break;
             }
         }
     }
 
     tick() {
+        const now = Date.now();
+        this._tickCount = (this._tickCount || 0) + 1;
+        const botPopulationChanged = this.syncBotPopulation();
+        if (botPopulationChanged) this.ensureBotRoleMix();
         this.updateCells();
         this.updateFood();
         this.updateViruses();
         this.handleVirusFeeding();
         this.updateSpawnerViruses();
+        this.maybeSpawnBountyPellet(now);
         this.checkCollisions();
         this.respawnFood();
         this.updateBots();
-        this.updateLeaderboard();
+        // Throttle leaderboard rebuild: skip every other tick when many bots are alive
+        // to reduce the O(n log n) sort cost. sendState still uses last computed values.
+        const skipLeaderboard = this.bots.length >= 60 && (this._tickCount % 2 === 0);
+        if (!skipLeaderboard) this.updateLeaderboard();
         this.sendState();
     }
 
@@ -1783,8 +2118,9 @@ class Game {
 
         for (let i = 0; i < this.config.maxFood; i++) this.spawnFood();
         for (let i = 0; i < this.config.maxViruses; i++) this.spawnVirus();
+        this.nextBountyPelletAt = Date.now() + Math.round(this.bountyPelletIntervalMs * (0.7 + Math.random() * 0.8));
 
-        this.syncBotPopulation();
+        this.syncBotPopulation(true);
         this.ensureBotRoleMix();
         this.clampWorldToBounds();
         this.updateLeaderboard();
@@ -1876,7 +2212,7 @@ class Game {
                 const dy = a.y - b.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < Math.max(a.radius(), b.radius())) {
+                if (dist <= Math.max(a.radius(), b.radius()) + 0.5) {
                     const [big, small] = a.mass >= b.mass ? [a, b] : [b, a];
                     big.mass += small.mass;
                     player.cells.splice(player.cells.indexOf(small), 1);
@@ -1924,7 +2260,7 @@ class Game {
                     const dy = cell.y - food.y;
                     const eatRange = r - food.mass;
                     if (eatRange <= 0) return;
-                    if (dx * dx + dy * dy < eatRange * eatRange) {
+                    if (dx * dx + dy * dy <= eatRange * eatRange) {
                         cell.mass += food.mass;
                         if (
                             food.type === 'ejected' &&
@@ -1935,14 +2271,35 @@ class Game {
                         ) {
                             const helper = this.resolvePlayerById(food.ownerId);
                             if (helper && helper.id !== cell.owner.id) {
-                                cell.owner.recentBenefactorId = helper.id;
-                                cell.owner.recentHelpUntil = Date.now() + (this.config.botHelpMemoryMs || 26000);
+                                const now = Date.now();
+                                const botEater = cell.owner;
+                                const affection = Math.max(0.2, Math.min(2.2, botEater.affection || 1));
+                                const memoryMs = this.config.botHelpMemoryMs || 26000;
+                                botEater.recentBenefactorId = helper.id;
+                                botEater.recentHelpUntil = now + Math.round(memoryMs * (0.8 + affection * 0.35));
+                                if (Math.random() < (0.16 + Math.min(0.22, affection * 0.05))) {
+                                    this.emitBotChat(botEater, helper.isBot ? 'team?' : 'ty for feed');
+                                }
                                 const sameTeamOrAllowed = !this.isTeamsMode()
-                                    || helper.teamId === cell.owner.teamId
+                                    || helper.teamId === botEater.teamId
                                     || Math.random() < this.crossTeamTeamingChance;
-                                if (sameTeamOrAllowed && Math.random() < (cell.owner.gullibility ?? 0.15)) {
-                                    cell.owner.teamPartnerId = helper.id;
-                                    cell.owner.teamExpiresAt = Date.now() + Math.round((this.config.botTeamDurationMs ?? 18000) * 0.7);
+                                const trustChance = Math.min(0.96, (botEater.gullibility ?? 0.15) * (0.75 + affection * 0.55));
+                                if (sameTeamOrAllowed && Math.random() < trustChance) {
+                                    const allianceMs = Math.max(
+                                        2500,
+                                        Math.round((this.botTeamDurationMs ?? 18000) * (0.75 + affection * 0.55))
+                                    );
+                                    botEater.teamPartnerId = helper.id;
+                                    botEater.teamExpiresAt = now + allianceMs;
+                                    if (helper.isBot) {
+                                        if (!helper.teamPartnerId || helper.teamPartnerId === botEater.id || (helper.teamExpiresAt || 0) <= now || Math.random() < 0.68) {
+                                            helper.teamPartnerId = botEater.id;
+                                            helper.teamExpiresAt = now + allianceMs;
+                                            if (Math.random() < 0.35) {
+                                                this.emitBotChat(helper, 'sure');
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1951,6 +2308,8 @@ class Game {
                 });
 
                 // Eat other cells using spatial hash
+                const now_eat = Date.now();
+                const cellIsSplit = cell.mergeTime > now_eat;
                 this.forEachNearbyCell(cell.x, cell.y, r + 200, (otherCell) => {
                     if (otherCell.owner === player) return; // skip own cells
                     if (this.areAlliedPlayers(player, otherCell.owner)) return;
@@ -1958,9 +2317,29 @@ class Game {
                     const dx = cell.x - otherCell.x;
                     const dy = cell.y - otherCell.y;
                     const distSq = dx * dx + dy * dy;
+                    const dist = Math.sqrt(distSq);
                     const otherRadius = otherCell.radius();
-                    const eatRange = r - otherRadius * 0.25;
-                    if (cell.mass > otherCell.mass * 1.2 && eatRange > 0 && distSq < eatRange * eatRange) {
+                    const eatRange = r - otherRadius * this.cellEatCenterInsideRatio;
+                    const deepOverlap = (r + otherRadius) - dist;
+                    const coverageRatio = this.getEatCoverageRatio(r, otherRadius, dist);
+                    const requiredCoverage = this.cellEatCoverageRatio;
+                    const massCapture = cell.mass + 0.001 >= otherCell.mass * this.cellEatMassRatio;
+                    const decisiveMass = cell.mass + 0.001 >= otherCell.mass * (this.cellEatMassRatio + 0.24);
+                    // coverageCapture and overlapCapture require deep overlap so they are
+                    // self-limiting even for split cells. classicCapture is range-based so
+                    // we allow it freely — the eatRange formula already requires the eater
+                    // edge to substantially cover the prey center.
+                    const coverageCapture = massCapture
+                        && coverageRatio >= requiredCoverage
+                        && dist <= Math.max(r, otherRadius) * 0.92;
+                    const overlapCapture = decisiveMass
+                        && deepOverlap > otherRadius * 0.68
+                        && coverageRatio >= Math.max(0.9, requiredCoverage * 0.98);
+                    const classicCapture = massCapture
+                        && eatRange > 0
+                        && distSq <= (eatRange + 0.4) * (eatRange + 0.4)
+                        && coverageRatio >= requiredCoverage;
+                    if (classicCapture || overlapCapture || coverageCapture) {
                         cell.mass += otherCell.mass;
                         const idx = otherCell.owner.cells.indexOf(otherCell);
                         if (idx >= 0) otherCell.owner.cells.splice(idx, 1);
@@ -1979,7 +2358,7 @@ class Game {
                     const dx = cell.x - virus.x;
                     const dy = cell.y - virus.y;
                     const distSq = dx * dx + dy * dy;
-                    const virusRadius = Math.sqrt(virus.mass) * 6;
+                    const virusRadius = this.radiusFromMass(virus.mass);
                     const hideRadius = virusRadius * this.virusHideRatio;
                     const engulfRadius = Math.max(4, r - virusRadius * 0.24);
                     const hideHitRadius = Math.min(r, hideRadius);
@@ -2010,8 +2389,11 @@ class Game {
         });
     }
 
-    virusPop(player, cell) {
-        const playerMaxCells = this.getMaxCellsForPlayer(player);
+    virusPop(player, cell, options = {}) {
+        const forceHardCap = !!options.forceHardCap || !!(player && player.isBot);
+        const playerMaxCells = forceHardCap
+            ? Math.max(1, Math.floor(this.config.maxCells || 1))
+            : this.getMaxCellsForPlayer(player);
         const maxSplits = Math.min(playerMaxCells - player.cells.length, 8);
         if (maxSplits <= 0) return;
 
@@ -2028,21 +2410,71 @@ class Game {
                 owner: player,
                 name: player.name
             });
-            newCell.skin = this.isTeamsMode() ? null : (player.skin || cell.skin || null);
+            newCell.skin = this.shouldShowSkinForPlayer(player) ? (player.skin || cell.skin || null) : null;
             newCell.teamId = this.isTeamsMode() ? player.teamId : null;
             newCell.vx = Math.cos(angle) * 18;
             newCell.vy = Math.sin(angle) * 18;
-            newCell.mergeTime = Date.now() + this.config.mergeTime * 1000;
+            newCell.mergeTime = Date.now() + this.getMergeDelayMs();
             player.cells.push(newCell);
             this.cells.set(id, newCell);
         }
-        cell.mergeTime = Date.now() + this.config.mergeTime * 1000;
+        cell.mergeTime = Date.now() + this.getMergeDelayMs();
     }
 
     respawnFood() {
         while (this.countBaseFood() < this.config.maxFood && this.food.size < this.maxFoodEntities) {
             this.spawnFood();
         }
+    }
+
+    getDominantPlayerSnapshot() {
+        let top = null;
+        let secondMass = 0;
+        this._forEachPlayer((p) => {
+            if (!p || !this.isPlayerAlive(p)) return;
+            const mass = this.getPlayerMass(p);
+            if (mass <= 0) return;
+            const pos = this.getPlayerCenter(p);
+            if (!pos) return;
+            if (!top || mass > top.mass) {
+                if (top) secondMass = Math.max(secondMass, top.mass);
+                top = { player: p, mass, pos };
+            } else if (mass > secondMass) {
+                secondMass = mass;
+            }
+        });
+        if (!top) return null;
+        return {
+            ...top,
+            secondMass,
+            ratio: top.mass / Math.max(1, secondMass || this.config.startMass || 1),
+        };
+    }
+
+    maybeSpawnBountyPellet(now) {
+        if (!this.useExperimentalMechanics()) return;
+        if (!this.enableBountyPellets) return;
+        if (now < (this.nextBountyPelletAt || 0)) return;
+        this.nextBountyPelletAt = now + Math.round(this.bountyPelletIntervalMs * (0.75 + Math.random() * 0.8));
+        if (this.food.size >= this.maxFoodEntities) return;
+
+        const dominant = this.getDominantPlayerSnapshot();
+        if (!dominant || dominant.mass < this.bountyLeaderMinMass) return;
+        if (dominant.ratio < 1.3 && dominant.mass < this.bountyLeaderMinMass * 2) return;
+
+        const id = this.generateId();
+        const angle = Math.random() * Math.PI * 2;
+        const spawnDist = 34 + Math.random() * 55;
+        const x = Math.max(0, Math.min(this.config.mapWidth, dominant.pos.x + Math.cos(angle) * spawnDist));
+        const y = Math.max(0, Math.min(this.config.mapHeight, dominant.pos.y + Math.sin(angle) * spawnDist));
+        this.food.set(id, {
+            id,
+            x,
+            y,
+            mass: this.bountyPelletMass,
+            color: '#ff9f3f',
+            type: 'bounty',
+        });
     }
 
     updateBots() {
@@ -2082,6 +2514,7 @@ class Game {
         const alivePlayers = [
             ...aliveHumans.map((human) => ({
                 id: human.id,
+                name: human.name || '',
                 mass: this.getPlayerMass(human),
                 pos: this.getPlayerCenter(human),
                 isHuman: true,
@@ -2090,6 +2523,7 @@ class Game {
             })),
             ...aliveBots.map((bot) => ({
                 id: bot.id,
+                name: bot.name || '',
                 mass: this.getPlayerMass(bot),
                 pos: this.getPlayerCenter(bot),
                 isHuman: false,
@@ -2098,10 +2532,41 @@ class Game {
             })),
         ].filter((p) => p.pos);
 
+        const dominantSorted = [...alivePlayers].sort((a, b) => b.mass - a.mass);
+        const dominant = dominantSorted[0] || null;
+        const second = dominantSorted[1] || null;
+        const dominantRatio = dominant
+            ? dominant.mass / Math.max(1, second ? second.mass : this.config.startMass)
+            : 1;
+
+        // Sleep/offload config — hoisted here so adaptive limits can reference it
+        const botSleepThreshold = this.config.botSleepThreshold ?? 40;
+        const botSleepDistSq = ((this.config.botSleepDistance ?? 1400) ** 2);
+        const botSleepMs = this.config.botSleepMs ?? 3000;
+        const shouldOffload = aliveBots.length >= botSleepThreshold;
+
+        // Adaptively reduce scan limits when there are many bots to keep the tick budget small.
+        // The scan lists are shared across all bots in a tick, so lower limits help at high counts.
+        const botLoadFactor = Math.max(1, aliveBots.length / Math.max(1, botSleepThreshold));
+        const adaptiveCellLimit = Math.max(80, Math.round(this.botSenseCellScanLimit / botLoadFactor));
+        const adaptiveFoodLimit = Math.max(50, Math.round(this.botSenseFoodSampleLimit / botLoadFactor));
+        const adaptiveVirusLimit = Math.max(20, Math.round(this.botSenseVirusScanLimit / botLoadFactor));
+
+        // Cache the expensive sampleMapValues calls for 2 ticks when there are many bots.
+        // Bots use slightly stale data but this halves the sampling cost at high counts.
+        const contextCacheInterval = aliveBots.length >= 60 ? 2 : 1;
+        if (!this._botContextCache || (this._tickCount % contextCacheInterval === 0)) {
+            this._botContextCache = {
+                cells: this.sampleMapValues(this.cells, adaptiveCellLimit),
+                viruses: this.sampleMapValues(this.viruses, adaptiveVirusLimit),
+                food: this.sampleMapValues(this.food, adaptiveFoodLimit),
+            };
+        }
+
         const botContext = {
-            cells: this.sampleMapValues(this.cells, this.botSenseCellScanLimit),
-            viruses: this.sampleMapValues(this.viruses, this.botSenseVirusScanLimit),
-            food: this.sampleMapValues(this.food, this.botSenseFoodSampleLimit),
+            cells: this._botContextCache.cells,
+            viruses: this._botContextCache.viruses,
+            food: this._botContextCache.food,
             humans: aliveHumans.map((human) => ({
                 id: human.id,
                 mass: this.getPlayerMass(human),
@@ -2109,10 +2574,52 @@ class Game {
                 supportLoad: humanSupportLoad.get(human.id) || 0,
                 teamId: human.teamId,
             })).filter((h) => h.pos),
-            players: alivePlayers
+            players: alivePlayers,
+            dominantPlayerId: dominant ? dominant.id : null,
+            dominantMass: dominant ? dominant.mass : 0,
+            dominantRatio,
         };
 
+        // ── Bot sleep/wake offloading ──────────────────────────────────────────────
+        // When there are many bots (>= botSleepThreshold), bots that are far from
+        // all humans enter a "sleeping" state. Sleeping bots skip think() — their
+        // cells stay in the world and continue moving via the normal physics tick,
+        // but no AI is computed for them. They wake when a human gets close.
+
         for (const bot of aliveBots) {
+            const botPos = bot.cells.length > 0 ? (bot.getCenter ? bot.getCenter() : null) : null;
+
+            if (shouldOffload && botPos) {
+                // Check proximity to any human
+                let nearestHumanDistSq = Infinity;
+                for (const human of aliveHumans) {
+                    const hPos = this.getPlayerCenter(human);
+                    if (!hPos) continue;
+                    const dx = hPos.x - botPos.x;
+                    const dy = hPos.y - botPos.y;
+                    const dsq = dx * dx + dy * dy;
+                    if (dsq < nearestHumanDistSq) nearestHumanDistSq = dsq;
+                }
+
+                if (nearestHumanDistSq > botSleepDistSq) {
+                    // Bot is far from all humans — put to sleep or keep sleeping
+                    if (!bot._sleeping) {
+                        bot._sleeping = true;
+                        bot._sleepUntil = now + botSleepMs + Math.random() * botSleepMs;
+                    }
+                } else if (bot._sleeping && nearestHumanDistSq <= botSleepDistSq * 0.64) {
+                    // Human is close enough — wake up
+                    bot._sleeping = false;
+                    bot._sleepUntil = 0;
+                }
+            } else if (bot._sleeping) {
+                bot._sleeping = false;
+                bot._sleepUntil = 0;
+            }
+
+            const isSleeping = bot._sleeping && now < (bot._sleepUntil || 0);
+            if (isSleeping) continue; // Skip AI for sleeping bots
+
             if (bot.role !== 'spectator_support') {
                 this.refreshBotTeam(bot, now, aliveBots, aliveHumans, humanSupportLoad);
             }
@@ -2122,6 +2629,7 @@ class Game {
                 this.maybeTriggerBotCircleSpit(bot, now);
             }
         }
+        this.maybeEmitAmbientBotChat(now, aliveBots, alivePlayers);
     }
 
     areTeammates(a, b) {
@@ -2135,10 +2643,65 @@ class Game {
         if (!this.enableBotTeaming) return false;
         if (!a || !b) return false;
         if (a.id == null || b.id == null) return false;
+        if (!(a.isBot && b.isBot)) {
+            if (a.isBot && !b.isBot && a.teamPartnerId === b.id) {
+                this.clearBotTeam(a);
+            }
+            if (b.isBot && !a.isBot && b.teamPartnerId === a.id) {
+                this.clearBotTeam(b);
+            }
+            if (!a.isBot) {
+                a.teamPartnerId = null;
+                a.teamExpiresAt = 0;
+            }
+            if (!b.isBot) {
+                b.teamPartnerId = null;
+                b.teamExpiresAt = 0;
+            }
+            return false;
+        }
         const now = Date.now();
-        const aLinked = a.teamPartnerId === b.id && (this.botTeamsStickUntilDeath || (a.teamExpiresAt || 0) > now);
-        const bLinked = b.teamPartnerId === a.id && (this.botTeamsStickUntilDeath || (b.teamExpiresAt || 0) > now);
-        return aLinked || bLinked;
+        const bothBots = true;
+        const stickyPair = !!this.botTeamsStickUntilDeath;
+        const maxStickyMs = Math.max(6000, Math.floor((this.botTeamDurationMs || 18000) * 2.6));
+        const maxHumanAllianceMs = Math.max(4000, Math.floor((this.botTeamDurationMs || 18000) * 4));
+        const normalizePlayerLink = (p) => {
+            if (p && !p.isBot) {
+                p.teamPartnerId = null;
+                p.teamExpiresAt = 0;
+            } else if (p && p.isBot) {
+                this.clearBotTeam(p);
+            }
+        };
+        const hasValidLink = (from, to) => {
+            if (!from || !to) return false;
+            if (from.teamPartnerId !== to.id) return false;
+            const expiry = Number(from.teamExpiresAt) || 0;
+            if (stickyPair) {
+                if (expiry > 0 && now <= (expiry + maxStickyMs)) return true;
+                normalizePlayerLink(from);
+                return false;
+            }
+            if (expiry <= now) {
+                normalizePlayerLink(from);
+                return false;
+            }
+            if (!bothBots && expiry - now > maxHumanAllianceMs) {
+                normalizePlayerLink(from);
+                return false;
+            }
+            return true;
+        };
+        const aLinked = hasValidLink(a, b);
+        const bLinked = hasValidLink(b, a);
+        const linked = bothBots ? (aLinked || bLinked) : (aLinked && bLinked);
+        if (!linked) return false;
+        const aPos = this.getPlayerCenter(a);
+        const bPos = this.getPlayerCenter(b);
+        if (!aPos || !bPos) return false;
+        const dx = aPos.x - bPos.x;
+        const dy = aPos.y - bPos.y;
+        return dx * dx + dy * dy <= (this.botTeamMaxDistance * 2.8) ** 2;
     }
 
     areAlliedPlayers(a, b) {
@@ -2149,7 +2712,13 @@ class Game {
 
     onPlayerEliminated(player, killerName = 'A virus') {
         player.alive = false;
+        player.teamPartnerId = null;
+        player.teamExpiresAt = 0;
         if (player.isBot) {
+            const killerLabel = String(killerName || 'you').trim().slice(0, 18) || 'you';
+            if (Math.random() < 0.55) {
+                this.emitBotChat(player, `ugh i hate you ${killerLabel}`, { force: true, cooldownMs: 1000 });
+            }
             const respawnDelay = 2000 + Math.random() * 3000;
             setTimeout(() => {
                 if (this.bots.includes(player)) {
@@ -2185,7 +2754,7 @@ class Game {
                     teamId: this.isTeamsMode() ? player.teamId : null,
                 }));
             } catch (e) {}
-            this.syncBotPopulation();
+            this.syncBotPopulation(true);
             this.ensureBotRoleMix();
         }
     }
@@ -2242,6 +2811,7 @@ class Game {
                 }))
                 .sort((a, b) => b.mass - a.mass)
             : [];
+        const chatFeed = this.enableBotChat ? this.chatLog.slice(-18) : [];
         const playerCellIds = new Map();
         for (const [ws, player] of this.players) {
             const ids = [];
@@ -2299,7 +2869,7 @@ class Game {
                         id: cell.id,
                         x: Math.round(cell.x * 10) / 10,
                         y: Math.round(cell.y * 10) / 10,
-                        mass: Math.round(cell.mass),
+                        mass: Math.round(cell.mass * 100) / 100,
                         color: cell.color,
                         name: cell.name,
                         mine: cell.owner === player,
@@ -2312,10 +2882,13 @@ class Game {
             }
 
             const visibleFood = [];
-            const visibleEjected = [];
+            const visibleFoodSpawner = [];
+            const visibleFoodEjected = [];
             const visibleFoodBase = [];
             for (const [, f] of this.food) {
                 if (!(f.x > minX && f.x < maxX && f.y > minY && f.y < maxY)) continue;
+                const dx = f.x - cx;
+                const dy = f.y - cy;
                 const payload = {
                     id: f.id,
                     x: Math.round(f.x),
@@ -2323,21 +2896,50 @@ class Game {
                     mass: f.mass,
                     color: f.color,
                     type: f.type,
+                    _d: dx * dx + dy * dy,
                 };
-                if (f.type === 'spawner') visibleFood.push(payload);
-                else if (f.type === 'ejected') visibleEjected.push(payload);
+                if (f.type === 'spawner') visibleFoodSpawner.push(payload);
+                else if (f.type === 'ejected') visibleFoodEjected.push(payload);
                 else visibleFoodBase.push(payload);
             }
-            if (visibleFood.length < maxVisibleFood) {
-                const remainingAfterSpawner = maxVisibleFood - visibleFood.length;
-                visibleFood.push(...visibleEjected.slice(0, remainingAfterSpawner));
+            visibleFoodSpawner.sort((a, b) => a._d - b._d);
+            visibleFoodEjected.sort((a, b) => a._d - b._d);
+            visibleFoodBase.sort((a, b) => a._d - b._d);
+
+            const reservedBase = Math.min(
+                visibleFoodBase.length,
+                Math.max(130, Math.floor(maxVisibleFood * 0.65))
+            );
+            if (reservedBase > 0) {
+                visibleFood.push(...visibleFoodBase.slice(0, reservedBase));
             }
-            if (visibleFood.length < maxVisibleFood) {
-                const remainingAfterEjected = maxVisibleFood - visibleFood.length;
-                visibleFood.push(...visibleFoodBase.slice(0, remainingAfterEjected));
+
+            let baseIdx = reservedBase;
+            let ejectedIdx = 0;
+            let spawnerIdx = 0;
+            while (visibleFood.length < maxVisibleFood) {
+                let appended = false;
+                if (spawnerIdx < visibleFoodSpawner.length) {
+                    visibleFood.push(visibleFoodSpawner[spawnerIdx++]);
+                    appended = true;
+                    if (visibleFood.length >= maxVisibleFood) break;
+                }
+                if (ejectedIdx < visibleFoodEjected.length) {
+                    visibleFood.push(visibleFoodEjected[ejectedIdx++]);
+                    appended = true;
+                    if (visibleFood.length >= maxVisibleFood) break;
+                }
+                if (baseIdx < visibleFoodBase.length) {
+                    visibleFood.push(visibleFoodBase[baseIdx++]);
+                    appended = true;
+                }
+                if (!appended) break;
             }
             if (visibleFood.length > maxVisibleFood) {
                 visibleFood.length = maxVisibleFood;
+            }
+            for (const f of visibleFood) {
+                delete f._d;
             }
 
             const visibleViruses = [];
@@ -2347,7 +2949,7 @@ class Game {
                         id: v.id,
                         x: Math.round(v.x),
                         y: Math.round(v.y),
-                        mass: v.mass,
+                        mass: Math.round(Number(v.mass || 0) * 100) / 100,
                         kind: v.kind || 'normal',
                     });
                     if (visibleViruses.length >= maxVisibleViruses) break;
@@ -2364,11 +2966,14 @@ class Game {
                     mode: this.gameMode,
                     teamCount: this.getActiveTeamCount(),
                     teamStats,
+                    chat: chatFeed,
                     playerTeamId: this.isTeamsMode() ? player.teamId : null,
                     playerCells: playerCellIds.get(ws),
                     spectating: playerIsSpectating,
                     mapWidth: this.config.mapWidth,
                     mapHeight: this.config.mapHeight,
+                    massRadiusScale: this.massRadiusScale,
+                    massRadiusExponent: this.massRadiusExponent,
                     viewCenter: { x: Math.round(cx * 10) / 10, y: Math.round(cy * 10) / 10 },
                     viewScale,
                 }));

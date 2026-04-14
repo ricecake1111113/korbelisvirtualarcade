@@ -55,8 +55,8 @@ body.menu-open #canvas {
 }
 #menu.hidden { display: none; }
 .phone {
-  width: min(980px, 56vw);
-  height: min(700px, 90vh);
+  width: min(1220px, 94vw);
+  height: min(860px, 94vh);
   border-radius: 14px;
   padding: 10px;
   background: linear-gradient(180deg, rgba(214,227,243,0.18), rgba(186,203,224,0.14) 45%, rgba(162,186,213,0.16));
@@ -69,50 +69,73 @@ body.menu-open #canvas {
   height: 100%;
   border-radius: 10px;
   display: grid;
-  grid-template-columns: 82px minmax(360px, 1fr);
-  gap: 10px;
+  grid-template-columns: minmax(240px, 0.95fr) minmax(470px, 1.35fr) minmax(250px, 0.98fr);
+  gap: 12px;
   padding: 10px;
   background:
-    linear-gradient(0deg, rgba(245,251,255,0.48), rgba(245,251,255,0.48)),
-    linear-gradient(0deg, rgba(15,71,148,0.065) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15,71,148,0.065) 1px, transparent 1px);
-  background-size: 100% 100%, 26px 26px, 26px 26px;
+    linear-gradient(0deg, rgba(239,247,255,0.56), rgba(239,247,255,0.56)),
+    linear-gradient(0deg, rgba(21,56,98,0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21,56,98,0.075) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px, 24px 24px;
   backdrop-filter: blur(4px);
 }
-.rail { display: flex; flex-direction: column; gap: 10px; }
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(21,74,126,0.24);
+  background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(244,250,255,0.78));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  padding: 10px;
+}
 .rail button {
-  height: 58px;
-  border: none;
-  border-radius: 7px;
+  height: 38px;
+  border: 1px solid rgba(21,88,150,0.28);
+  border-radius: 8px;
   color: #fff;
   font-family: 'Sora', sans-serif;
-  font-size: 15px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
 }
-#skinsBtn { background: linear-gradient(180deg,#39c8ff,#1aa0d8); }
-#openStatsBtn { background: linear-gradient(180deg,#53d64d,#34a535); }
-.center { display: flex; flex-direction: column; min-width: 0; overflow: auto; padding-right: 4px; }
-.title { text-align: center; margin-top: 6px; }
+#skinsBtn { background: linear-gradient(180deg,#1f8fe1,#176db2); }
+#openStatsBtn { background: linear-gradient(180deg,#18aa78,#12845c); }
+.center { display: flex; flex-direction: column; min-width: 0; overflow: hidden; padding-right: 0; }
+.title { text-align: center; margin-top: 4px; }
 .title h1 {
   font-family: 'Sora', sans-serif;
-  font-size: clamp(56px, 7vw, 88px);
-  color: #42566f;
+  font-size: clamp(36px, 5vw, 58px);
+  color: #2f4967;
   line-height: 1;
   letter-spacing: -0.02em;
+  text-shadow:
+    -1px -1px 0 rgba(244,250,255,0.8),
+    1px -1px 0 rgba(244,250,255,0.8),
+    -1px 1px 0 rgba(244,250,255,0.8),
+    1px 1px 0 rgba(244,250,255,0.8);
 }
-.title p { color: #637690; font-size: 18px; font-weight: 800; }
+.title p {
+  color: #4a6687;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .name-row {
-  margin: 16px auto 8px;
-  width: min(560px,100%);
+  margin: 8px auto 6px;
+  width: min(640px,100%);
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 10px;
+  gap: 8px;
 }
 #nickInput {
   border: 2px solid rgba(26,88,152,0.24);
   border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 20px;
+  padding: 7px 10px;
+  font-size: 18px;
   font-weight: 800;
   color: #30475f;
   background: rgba(255,255,255,0.72);
@@ -131,24 +154,24 @@ body.menu-open #canvas {
   font-weight: 800;
 }
 .actions {
-  width: min(560px,100%);
-  margin: 6px auto;
+  width: min(640px,100%);
+  margin: 4px auto;
   display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4,1fr);
+  gap: 7px;
 }
 .mode-row {
-  width: min(560px,100%);
-  margin: 6px auto 0;
+  width: min(640px,100%);
+  margin: 4px auto 0;
   display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3,1fr);
+  gap: 6px;
 }
 .mode-btn {
   border: 2px solid rgba(21,88,161,0.24);
-  border-radius: 12px;
-  padding: 8px 10px;
-  font-size: 14px;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
   font-weight: 800;
   color: #456185;
   background: rgba(255,255,255,0.82);
@@ -160,76 +183,408 @@ body.menu-open #canvas {
   background: linear-gradient(180deg,#1ea5ff,#1a74dc);
 }
 .actions button {
-  border: none;
-  border-radius: 7px;
-  padding: 13px;
+  border: 1px solid rgba(28,95,160,0.22);
+  border-radius: 9px;
+  padding: 8px;
   font-family: 'Sora', sans-serif;
-  font-size: 20px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
-#playBtn { background: linear-gradient(180deg,#ff9d1f,#f47e00); color: #fff; }
-#settingsToggle { background: linear-gradient(180deg,#ffd43a,#f3b304); color: #6a4d08; }
-#spectateBtn { background: linear-gradient(180deg,#35c78d,#1f9f6c); color: #fff; }
-.skin-block {
-  width: min(560px,100%);
-  margin: 10px auto 0;
+#playBtn { background: linear-gradient(180deg,#ef9342,#d87826); color: #fff; }
+#settingsToggle { background: linear-gradient(180deg,#355e8c,#294d73); color: #eef6ff; }
+#spectateBtn { background: linear-gradient(180deg,#3c84cf,#2b66a4); color: #fff; }
+#openStatsBtnCenter { background: linear-gradient(180deg,#1ba56c,#147f53); color: #fff; }
+.quick-center {
+  width: min(640px,100%);
+  margin: 6px auto 0;
+  border-radius: 10px;
+  border: 1px solid rgba(33,88,143,0.22);
+  background: rgba(255,255,255,0.76);
+  padding: 7px 8px 6px;
+  min-height: 0;
+  flex-shrink: 1;
+}
+.quick-center h4 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #49688c;
+  margin-bottom: 5px;
+}
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 5px;
+}
+.quick-item {
+  border: 1px solid rgba(42,101,165,0.2);
+  border-radius: 6px;
+  background: rgba(252,255,255,0.88);
+  padding: 4px 5px;
+}
+.quick-item label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #3e6088;
+  width: 100%;
+}
+.quick-item input, .quick-item select {
+  width: 100%;
+  border-radius: 5px;
+  border: 1px solid rgba(44,98,160,0.28);
+  background: #fff;
+  color: #224368;
+  padding: 2px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+.quick-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 5px;
+}
+.quick-actions button {
+  border: 1px solid rgba(40,106,170,0.3);
   border-radius: 7px;
+  background: linear-gradient(180deg,#2092ea,#1a6fbd);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+
+.skin-block {
+  width: 100%;
+  margin: 0;
+  border-radius: 9px;
   border: 2px solid rgba(29,96,163,0.18);
   background: rgba(255,255,255,0.62);
-  padding: 8px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
-.skin-block.hidden { display: none; }
-.skin-title { font-size: 12px; color: #4f627f; font-weight: 800; margin-bottom: 6px; letter-spacing: .05em; }
+
+.skin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.skin-title {
+  font-size: 12px;
+  color: #4f627f;
+  font-weight: 800;
+  letter-spacing: .05em;
+  flex-shrink: 0;
+}
+
+.skin-search {
+  width: 120px;
+  padding: 4px 8px;
+  border: 1px solid rgba(43,98,165,0.25);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.92);
+  color: #24476f;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'Manrope', sans-serif;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.skin-search:focus {
+  border-color: rgba(29,141,255,0.6);
+  box-shadow: 0 0 0 2px rgba(29,141,255,0.15);
+}
+
+.skin-search::placeholder {
+  color: #7a97b8;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
 .skin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(84px,1fr));
-  gap: 7px;
-  max-height: 220px;
-  overflow: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 3px 2px;
+  align-content: start;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30,90,165,0.25) transparent;
+  min-height: 180px;
 }
+
+.skin-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.skin-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.skin-grid::-webkit-scrollbar-thumb {
+  background: rgba(30,90,165,0.25);
+  border-radius: 4px;
+}
+
 .skin-chip {
   border: 2px solid rgba(20,84,160,0.16);
-  border-radius: 6px;
-  padding: 4px;
-  background: rgba(255,255,255,0.72);
+  border-radius: 10px;
+  padding: 10px 6px 8px;
+  background: rgba(255,255,255,0.78);
   color: #2e4664;
-  font-size: 9px;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
   text-align: center;
-  line-height: 1.15;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s, background 0.15s;
+  min-height: 95px;
+  height: auto;
 }
-.skin-chip.active { border-color: #1d8dff; }
-.skin-chip img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eef5ff; }
+
+.skin-chip.hidden {
+  display: none;
+}
+
+.skin-chip.active {
+  border-color: #1d8dff;
+  background: rgba(220,238,255,0.88);
+}
+
+.skin-chip img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  background: #eef5ff;
+  flex-shrink: 0;
+  display: block;
+  border: 1px solid rgba(0,0,0,0.08);
+  margin: 0 auto;
+}
+
 .skin-chip span {
   display: block;
   width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  max-width: 85px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 3px;
+  font-size: clamp(8px, 2.2vw, 10px);
+  font-weight: 800;
+  color: #3a5878;
+  line-height: 1.3;
+  margin: 0 auto;
 }
-.right { display: none; }
-.card {
-  border-radius: 9px;
-  border: 2px solid rgba(23,77,136,0.2);
-  background: rgba(255,255,255,0.68);
-  color: #2f4868;
+
+.skin-no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 20px;
+  color: #7a97b8;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Adjust rail to give more space to skin panel */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(21,74,126,0.24);
+  background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(244,250,255,0.78));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
   padding: 10px;
+  flex: 1.2;
 }
-.card h3 { font-size: 21px; margin-bottom: 8px; color: #395779; }
-.stat-grid { display: grid; grid-template-columns: repeat(2,minmax(88px,1fr)); gap: 8px; }
+
+/* For responsive layouts */
+@media (max-width: 1080px) {
+  .rail {
+    min-height: 320px;
+    flex: auto;
+  }
+  .skin-chip span {
+    font-size: clamp(7.5px, 2.5vw, 9.5px);
+    max-width: 80px;
+  }
+  .skin-search {
+    width: 100px;
+  }
+}
+
+@media (max-width: 720px) {
+  .skin-grid {
+    grid-template-columns: 1fr;
+  }
+  .skin-chip {
+    min-height: 100px;
+    padding: 12px 8px 10px;
+  }
+  .skin-chip img {
+    width: 60px;
+    height: 60px;
+  }
+  .skin-chip span {
+    font-size: clamp(9px, 3vw, 11px);
+    max-width: 120px;
+  }
+  .skin-header {
+    flex-wrap: wrap;
+  }
+  .skin-search {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1400px) {
+  .skin-chip {
+    min-height: 105px;
+    padding: 12px 8px 10px;
+  }
+  .skin-chip img {
+    width: 62px;
+    height: 62px;
+  }
+  .skin-chip span {
+    font-size: clamp(9px, 1.5vw, 11px);
+    max-width: 95px;
+  }
+  .skin-search {
+    width: 130px;
+  }
+}
+
+/* For medium-large screens */
+@media (min-width: 1600px) {
+  .skin-chip {
+    min-height: 110px;
+  }
+  .skin-chip img {
+    width: 68px;
+    height: 68px;
+  }
+  .skin-chip span {
+    font-size: clamp(9.5px, 1.3vw, 11.5px);
+    max-width: 100px;
+  }
+}
+
+/* For very small screens, adjust columns */
+@media (max-width: 420px) {
+  .skin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .skin-chip {
+    min-height: 100px;
+  }
+  .skin-chip img {
+    width: 62px;
+    height: 62px;
+  }
+  .skin-chip span {
+    font-size: 9.5px;
+    max-width: 80px;
+  }
+}
+
+@media (max-width: 360px) {
+  .skin-chip img {
+    width: 54px;
+    height: 54px;
+  }
+  .skin-chip span {
+    font-size: 8.5px;
+    max-width: 68px;
+  }
+}
+
+/* For very small screens, adjust columns */
+@media (max-width: 380px) {
+  .skin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .skin-chip img {
+    width: 48px;
+    height: 48px;
+  }
+  .skin-chip span {
+    font-size: 8px;
+    max-width: 58px;
+  }
+}
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(21,74,126,0.24);
+  background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(244,250,255,0.78));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  padding: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30,90,165,0.25) transparent;
+}
+.right::-webkit-scrollbar { width: 5px; }
+.right::-webkit-scrollbar-track { background: transparent; }
+.right::-webkit-scrollbar-thumb { background: rgba(30,90,165,0.28); border-radius: 4px; }
+.card {
+  border-radius: 8px;
+  border: 1px solid rgba(23,77,136,0.24);
+  background: rgba(255,255,255,0.78);
+  color: #2f4868;
+  padding: 7px 8px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.card h3 {
+  font-size: 11px;
+  margin-bottom: 5px;
+  color: #37597e;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+.stat-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; }
 .stat {
-  border-radius: 10px;
-  background: rgba(16,80,154,0.08);
-  border: 1px solid rgba(16,80,154,0.18);
-  padding: 8px;
+  border-radius: 6px;
+  background: rgba(16,80,154,0.07);
+  border: 1px solid rgba(16,80,154,0.14);
+  padding: 4px 6px;
 }
-.stat .k { font-size: 11px; color: #567293; text-transform: uppercase; font-weight: 700; }
-.stat .v { font-size: 24px; color: #264a78; font-weight: 800; }
+.stat .k { font-size: 9px; color: #567293; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; line-height: 1.2; }
+.stat .v { font-size: 15px; color: #264a78; font-weight: 800; line-height: 1.3; }
 #settingsPanel {
   position: fixed;
   inset: 0;
@@ -278,7 +633,14 @@ body.menu-open #canvas {
 #saveSettingsBtn { background: #2d9b3e; }
 #resetSettingsBtn { background: #ea7f2d; }
 #closeSettingsBtn { background: #65748a; }
-#settingsList { overflow: auto; min-height: 0; }
+#settingsList {
+  overflow: auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+  align-content: start;
+}
 .settings-group { margin-bottom: 10px; }
 .settings-group h5 {
   font-size: 11px;
@@ -308,22 +670,44 @@ body.menu-open #canvas {
   font-weight: 700;
 }
 .setting-row .desc { margin-top: 2px; color: #6a87ac; font-size: 10px; line-height: 1.2; }
-.num-wrap { display: inline-flex; align-items: stretch; }
-.num-wrap input { width: 92px; border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.num-steps { display: flex; flex-direction: column; width: 22px; }
-.num-step {
-  border: 1px solid rgba(43,98,165,0.25);
-  border-left: none;
-  background: rgba(241,248,255,0.94);
-  color: #2f4f77;
-  font-size: 9px;
-  font-weight: 900;
-  line-height: 1;
-  cursor: pointer;
-  user-select: none;
+.settings-presets {
+  grid-column: 1 / -1;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(54,98,154,0.2);
+  background: rgba(255,255,255,0.82);
+  padding: 8px;
 }
-.num-step:first-child { border-top-right-radius: 5px; border-bottom: none; }
-.num-step:last-child { border-bottom-right-radius: 5px; }
+.settings-presets h5 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: #3f5e85;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(132px,1fr));
+  gap: 6px;
+}
+.preset-btn {
+  border: 1px solid rgba(43,98,165,0.25);
+  background: rgba(241,248,255,0.96);
+  color: #264769;
+  border-radius: 7px;
+  padding: 6px 7px;
+  text-align: left;
+  font-size: 11px;
+  cursor: pointer;
+}
+.preset-btn:hover { background: rgba(224,239,255,0.98); border-color: rgba(43,98,165,0.45); }
+.preset-btn.active {
+  border-color: rgba(24,111,200,0.72);
+  background: linear-gradient(180deg, rgba(39,148,255,0.26), rgba(31,112,221,0.18));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.42);
+}
+.preset-title { font-weight: 900; display: block; margin-bottom: 2px; }
+.preset-note { font-size: 10px; color: #5678a1; line-height: 1.2; display: block; }
 .note { margin-top: 8px; font-size: 12px; color: #5a779d; text-align: center; }
 #deathScreen {
   position: fixed;
@@ -367,6 +751,35 @@ body.menu-open #canvas {
 #fpsCounter { left: 10px; top: 10px; padding: 7px 10px; font-size: 12px; }
 #hudStats { left: 10px; top: 50px; padding: 10px; width: 188px; font-size: 14px; }
 #hudStats .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+#chatBox {
+  position: absolute;
+  left: 10px;
+  bottom: 56px;
+  width: min(390px, 46vw);
+  max-height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+.chat-line {
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 5px 8px;
+  backdrop-filter: blur(4px);
+  max-width: 100%;
+  word-break: break-word;
+}
+.chat-name {
+  color: #9de6ff;
+  margin-right: 6px;
+  font-weight: 800;
+}
 #leaderboardToggle {
   position: absolute;
   right: 280px;
@@ -498,11 +911,18 @@ body.menu-open #canvas {
 @media (max-width: 1080px) {
   .phone { width: 100%; height: 100%; border-radius: 12px; padding: 8px; }
   .screen { border-radius: 16px; grid-template-columns: 1fr; grid-auto-rows: min-content; overflow: auto; }
-  .rail { flex-direction: row; }
+  .rail { min-height: 280px; }
+  .right { order: 3; }
+  .quick-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .actions { grid-template-columns: repeat(2,1fr); }
+  .mode-row { grid-template-columns: repeat(3,1fr); }
   #settingsPanel { padding: 8px; }
+  #settingsList { grid-template-columns: 1fr; overflow: auto; }
+  #chatBox { width: min(95vw, 440px); max-height: 160px; bottom: 62px; }
   .stats-grid { grid-template-columns: repeat(2,minmax(130px,1fr)); }
 }
 @media (max-width: 720px) {
+  .quick-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -516,8 +936,12 @@ body.menu-open #canvas {
   <div class="phone">
     <div class="screen">
       <aside class="rail">
-        <button id="skinsBtn">Skins</button>
-        <button id="openStatsBtn">Stats</button>
+        <button id="skinsBtn">Hide Skins</button>
+        <button id="openStatsBtn">Detailed Stats</button>
+        <div id="skinBlock" class="skin-block">
+          <div class="skin-title">Skins</div>
+          <div id="skinGrid" class="skin-grid"></div>
+        </div>
       </aside>
       <main class="center">
         <div class="title"><h1>Agar.io</h1><p>Custom Private Server</p></div>
@@ -529,14 +953,33 @@ body.menu-open #canvas {
           <button id="playBtn">Play</button>
           <button id="settingsToggle">Customize</button>
           <button id="spectateBtn">Spectate</button>
+          <button id="openStatsBtnCenter">Stats</button>
         </div>
         <div class="mode-row">
           <button id="ffaModeBtn" class="mode-btn active">FFA Mode</button>
           <button id="teamModeBtn" class="mode-btn">Team Mode</button>
+          <button id="experimentalModeBtn" class="mode-btn">Experimental</button>
         </div>
-        <div id="skinBlock" class="skin-block">
-          <div class="skin-title">Skins</div>
-          <div id="skinGrid" class="skin-grid"></div>
+        <div class="quick-center">
+          <h4>Quick Match Settings</h4>
+          <div class="quick-grid">
+            <div class="quick-item"><label>Bot Count <input id="quickBotCountInput" type="number" min="0" step="1"></label></div>
+            <div class="quick-item"><label>Start Mass <input id="quickStartMassInput" type="number" min="1" step="1"></label></div>
+            <div class="quick-item"><label>Max Food <input id="quickMaxFoodInput" type="number" min="100" step="10"></label></div>
+            <div class="quick-item"><label>Max Viruses <input id="quickMaxVirusesInput" type="number" min="0" step="1"></label></div>
+            <div class="quick-item"><label>Map Size <select id="quickMapPresetSelect"><option value="standard">Standard</option><option value="small">Small</option><option value="large">Large</option></select></label></div>
+            <div class="quick-item"><label>Insta-Merge <input id="quickInstaMergeToggle" type="checkbox"></label></div>
+            <div class="quick-item"><label>Decay Rate <input id="quickDecayRateInput" type="number" min="0" max="0.02" step="0.0001"></label></div>
+            <div class="quick-item"><label>Bot Spawn Mode <select id="quickBotSpawnSelect">
+              <option value="varied">Varied</option>
+              <option value="player_start">Player Start Mass</option>
+              <option value="player_current">Player Current Mass</option>
+            </select></label></div>
+            <div class="quick-item"><label>Bots Only After Join <input id="quickDeferBotsToggle" type="checkbox"></label></div>
+          </div>
+          <div class="quick-actions">
+            <button id="quickApplyBtn" type="button">Apply Quick Settings</button>
+          </div>
         </div>
         <div id="settingsPanel">
           <div class="settings-surface">
@@ -557,19 +1000,29 @@ body.menu-open #canvas {
       </main>
       <aside class="right">
         <div class="card">
-          <h3>Career Stats</h3>
+          <h3>Round Stats</h3>
           <div class="stat-grid">
-            <div class="stat"><div class="k">High Score</div><div id="statHighScore" class="v">0</div></div>
-            <div class="stat"><div class="k">Total Score</div><div id="statTotalScore" class="v">0</div></div>
-            <div class="stat"><div class="k">Games Played</div><div id="statGamesPlayed" class="v">0</div></div>
-            <div class="stat"><div class="k">Times Eaten</div><div id="statTimesEaten" class="v">0</div></div>
+            <div class="stat"><div class="k">Round High</div><div id="statHighScore" class="v">0</div></div>
+            <div class="stat"><div class="k">Round Total</div><div id="statTotalScore" class="v">0</div></div>
+            <div class="stat"><div class="k">Times Eaten</div><div id="statGamesPlayed" class="v">0</div></div>
+            <div class="stat"><div class="k">Best Rank</div><div id="statTimesEaten" class="v">-</div></div>
+            <div class="stat"><div class="k">Alive Time</div><div id="statRoundSurvival" class="v">0s</div></div>
+            <div class="stat"><div class="k">Distance</div><div id="statRoundDistance" class="v">0</div></div>
+            <div class="stat"><div class="k">Avg Speed</div><div id="statRoundSpeed" class="v">0</div></div>
+            <div class="stat"><div class="k">Split Time</div><div id="statRoundSplitTime" class="v">0s</div></div>
           </div>
         </div>
         <div class="card">
-          <h3>Last Match</h3>
+          <h3>All-Time</h3>
           <div class="stat-grid">
-            <div class="stat"><div class="k">Score</div><div id="lastScore" class="v">0</div></div>
-            <div class="stat"><div class="k">Best Rank</div><div id="lastRank" class="v">-</div></div>
+            <div class="stat"><div class="k">High Ever</div><div id="lastScore" class="v">0</div></div>
+            <div class="stat"><div class="k">Total Ever</div><div id="lastRank" class="v">0</div></div>
+            <div class="stat"><div class="k">Games / Wins</div><div id="statGamesWins" class="v">0 / 0</div></div>
+            <div class="stat"><div class="k">Top 10 Finishes</div><div id="statTop10" class="v">0</div></div>
+            <div class="stat"><div class="k">Longest Survival</div><div id="statLongestSurvival" class="v">0s</div></div>
+            <div class="stat"><div class="k">Peak Rank</div><div id="statPeakRank" class="v">-</div></div>
+            <div class="stat"><div class="k">Fastest #1</div><div id="statFastestFirst" class="v">-</div></div>
+            <div class="stat"><div class="k">Fastest 100 / 1000</div><div id="statFastestMass" class="v">- / -</div></div>
           </div>
         </div>
       </aside>
@@ -584,17 +1037,25 @@ body.menu-open #canvas {
       <button id="closeStatsBtn">Close</button>
     </div>
     <div class="stats-grid">
-      <div class="dstat"><div class="k">Highest Score Ever</div><div id="dHighScore" class="v">0</div></div>
-      <div class="dstat"><div class="k">Total Score</div><div id="dTotalScore" class="v">0</div></div>
-      <div class="dstat"><div class="k">Games Played</div><div id="dGamesPlayed" class="v">0</div></div>
-      <div class="dstat"><div class="k">Times Eaten</div><div id="dTimesEaten" class="v">0</div></div>
-      <div class="dstat"><div class="k">Average Score</div><div id="dAvgScore" class="v">0</div></div>
-      <div class="dstat"><div class="k">Last Match Score</div><div id="dLastScore" class="v">0</div></div>
-      <div class="dstat"><div class="k">Best Rank This Match</div><div id="dBestRank" class="v">-</div></div>
-      <div class="dstat"><div class="k">Peak This Match</div><div id="dPeakScore" class="v">0</div></div>
-      <div class="dstat"><div class="k">Current Mode</div><div id="dCurrentMode" class="v">FFA</div></div>
-      <div class="dstat"><div class="k">Current Team</div><div id="dCurrentTeam" class="v">-</div></div>
-      <div class="dstat"><div class="k">Team Count</div><div id="dTeamCount" class="v">3</div></div>
+      <div class="dstat"><div class="k">Highest Mass Ever</div><div id="dHighScore" class="v">0</div></div>
+      <div class="dstat"><div class="k">Average Mass per Game</div><div id="dAvgScore" class="v">0</div></div>
+      <div class="dstat"><div class="k">Longest Survival Time</div><div id="dLongestSurvival" class="v">0s</div></div>
+      <div class="dstat"><div class="k">Games Played / Wins</div><div id="dGamesWins" class="v">0 / 0</div></div>
+      <div class="dstat"><div class="k">Top 10 Finishes</div><div id="dTop10" class="v">0</div></div>
+      <div class="dstat"><div class="k">Time Spent Alive (Total)</div><div id="dTimeAliveTotal" class="v">0s</div></div>
+      <div class="dstat"><div class="k">Peak Rank Achieved</div><div id="dPeakRank" class="v">-</div></div>
+      <div class="dstat"><div class="k">Times Eaten (Total)</div><div id="dCurrentMode" class="v">0</div></div>
+      <div class="dstat"><div class="k">Mass Gain / Loss Ratio</div><div id="dMassRatio" class="v">0.00</div></div>
+      <div class="dstat"><div class="k">Biggest Single Gain</div><div id="dBiggestEat" class="v">0</div></div>
+      <div class="dstat"><div class="k">Distance Traveled (Round)</div><div id="dDistanceRound" class="v">0</div></div>
+      <div class="dstat"><div class="k">Average Speed (Round)</div><div id="dAvgSpeedRound" class="v">0</div></div>
+      <div class="dstat"><div class="k">Time Split / Single (Round)</div><div id="dSplitSingleRound" class="v">0s / 0s</div></div>
+      <div class="dstat"><div class="k">Fastest Time to #1</div><div id="dFastestFirst" class="v">-</div></div>
+      <div class="dstat"><div class="k">Fastest Time to 100 Mass</div><div id="dFastest100" class="v">-</div></div>
+      <div class="dstat"><div class="k">Fastest Time to 1000 Mass</div><div id="dFastest1000" class="v">-</div></div>
+      <div class="dstat"><div class="k">Fastest Death</div><div id="dFastestDeath" class="v">-</div></div>
+      <div class="dstat"><div class="k">Total Playtime</div><div id="dPlaytime" class="v">0s</div></div>
+      <div class="dstat"><div class="k">Current Mode</div><div id="dTeamCount" class="v">FFA</div></div>
       <div class="dstat"><div class="k">Selected Skin</div><div id="dSelectedSkin" class="v">None</div></div>
     </div>
   </div>
@@ -621,11 +1082,12 @@ body.menu-open #canvas {
   <button id="lobbyBtn">Return To Lobby</button>
   <div id="fpsCounter" class="hud-card"></div>
   <div id="hudStats" class="hud-card">
-    <div class="row"><span>High</span><strong id="hudHigh">0</strong></div>
-    <div class="row"><span>Total</span><strong id="hudTotal">0</strong></div>
-    <div class="row"><span>Games</span><strong id="hudGames">0</strong></div>
-    <div class="row"><span>Eaten</span><strong id="hudEaten">0</strong></div>
+    <div class="row"><span>Round High</span><strong id="hudHigh">0</strong></div>
+    <div class="row"><span>Round Total</span><strong id="hudTotal">0</strong></div>
+    <div class="row"><span>All Games</span><strong id="hudGames">0</strong></div>
+    <div class="row"><span>Round Eaten</span><strong id="hudEaten">0</strong></div>
   </div>
+  <div id="chatBox"></div>
 </div>
 
 <script>
@@ -645,14 +1107,15 @@ const clientSettingsDefaults = {
   showOtherMass: false,
   hideSkins: false,
   renderDistance: 1.0,
+  gridSize: 18,
   showMinimap: true,
   showTeamChart: true,
   ownCellLerp: 0.56,
   globalLerp: 0.42,
 };
 const clientSettingsSchema = [
-  { key: 'fpsCap', label: 'FPS Cap', description: 'Maximum FPS. 0 = unlimited.', type: 'number', min: 0, max: 240, step: 1, group: 'Client' },
   { key: 'renderDistance', label: 'Render Distance', description: 'Lower values draw fewer entities for better performance.', type: 'number', min: 0.45, max: 1.6, step: 0.05, group: 'Client' },
+  { key: 'gridSize', label: 'Grid Size', description: 'Size of background grid squares. Lower = more squares.', type: 'number', min: 14, max: 64, step: 1, group: 'Client' },
   { key: 'globalLerp', label: 'Entity Smoothing', description: 'Interpolation amount for other entities. Lower = snappier.', type: 'number', min: 0.1, max: 0.8, step: 0.01, group: 'Client' },
   { key: 'ownCellLerp', label: 'Own Cell Smoothing', description: 'Interpolation amount for your own cells.', type: 'number', min: 0.1, max: 0.8, step: 0.01, group: 'Client' },
   { key: 'hideNames', label: 'Hide Names', description: 'Disable player name labels.', type: 'boolean', group: 'Client' },
@@ -681,6 +1144,8 @@ let currentTeamCount = 3;
 let teamStats = [];
 let leaderboardCollapsed = false;
 let leaderRankByOwner = new Map();
+let botChatFeed = [];
+const seenChatIds = new Set();
 
 let leaderboard = [];
 let serverViewCenter = { x: 2500, y: 2500 };
@@ -721,8 +1186,49 @@ const inputHeld = new Set();
 // Client-side prediction for smooth local player movement
 let predictedPlayerCenter = { x: 2500, y: 2500 };
 let predictedPlayerMass = 0;
+let roundStartAt = 0;
+let lastStatsSampleAt = 0;
+let lastStatsCenter = null;
+let lastStatsMass = 0;
 
-const stats = { highScore: 0, totalScore: 0, gamesPlayed: 0, timesEaten: 0, lastScore: 0, lastRank: '-' };
+const stats = {
+  roundHighScore: 0,
+  roundTotalScore: 0,
+  roundEaten: 0,
+  roundBestRank: '-',
+  allTimeHighScore: 0,
+  allTimeTotalScore: 0,
+  allTimeGamesPlayed: 0,
+  allTimeTotalEaten: 0,
+  lastScore: 0,
+  lastRank: '-',
+  roundSurvivalMs: 0,
+  roundDistance: 0,
+  roundSplitMs: 0,
+  roundSingleMs: 0,
+  roundMassGained: 0,
+  roundMassLost: 0,
+  roundBiggestSingleGain: 0,
+  roundFastestToFirstMs: 0,
+  roundFastestTo100Ms: 0,
+  roundFastestTo1000Ms: 0,
+  allTimeWins: 0,
+  allTimeTop10Finishes: 0,
+  allTimeTimeAliveMs: 0,
+  allTimeLongestSurvivalMs: 0,
+  allTimePeakRank: null,
+  allTimeFastestToFirstMs: 0,
+  allTimeFastestTo100Ms: 0,
+  allTimeFastestTo1000Ms: 0,
+  allTimeFastestDeathMs: 0,
+  allTimeDistance: 0,
+  allTimeSplitMs: 0,
+  allTimeSingleMs: 0,
+  allTimePlaytimeMs: 0,
+  allTimeMassGained: 0,
+  allTimeMassLost: 0,
+  allTimeBiggestSingleGain: 0,
+};
 
 function showToast(text, ms = 1800) {
   const el = document.getElementById('toast');
@@ -730,6 +1236,45 @@ function showToast(text, ms = 1800) {
   el.style.display = 'block';
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(() => { el.style.display = 'none'; }, ms);
+}
+
+function ingestChat(entries) {
+  if (!runtimeConfig.enableBotChat) return;
+  if (!Array.isArray(entries) || entries.length === 0) return;
+  let changed = false;
+  for (const item of entries) {
+    if (!item || item.id == null) continue;
+    if (seenChatIds.has(item.id)) continue;
+    seenChatIds.add(item.id);
+    botChatFeed.push({
+      id: item.id,
+      name: String(item.name || 'Bot').slice(0, 24),
+      text: String(item.text || '').slice(0, 90),
+      at: Number(item.at) || Date.now(),
+    });
+    changed = true;
+  }
+  if (!changed) return;
+  botChatFeed.sort((a, b) => a.id - b.id);
+  if (botChatFeed.length > 36) {
+    const drop = botChatFeed.length - 36;
+    const removed = botChatFeed.splice(0, drop);
+    for (const msg of removed) seenChatIds.delete(msg.id);
+  }
+  renderChatFeed();
+}
+
+function renderChatFeed() {
+  const el = document.getElementById('chatBox');
+  if (!el) return;
+  if (!runtimeConfig.enableBotChat) {
+    el.innerHTML = '';
+    return;
+  }
+  const latest = botChatFeed.slice(-8);
+  el.innerHTML = latest
+    .map((m) => `<div class="chat-line"><span class="chat-name">${escapeHtml(m.name)}:</span>${escapeHtml(m.text)}</div>`)
+    .join('');
 }
 
 function clampClientSetting(key, value) {
@@ -740,6 +1285,10 @@ function clampClientSetting(key, value) {
   if (key === 'renderDistance') {
     const n = Number(value);
     return Number.isFinite(n) ? Math.max(0.45, Math.min(1.6, n)) : clientSettingsDefaults.renderDistance;
+  }
+  if (key === 'gridSize') {
+    const n = Math.round(Number(value));
+    return Number.isFinite(n) ? Math.max(14, Math.min(64, n)) : clientSettingsDefaults.gridSize;
   }
   if (key === 'globalLerp' || key === 'ownCellLerp') {
     const n = Number(value);
@@ -791,6 +1340,300 @@ function getServerSettingDefault(key, fallback) {
   return fallback;
 }
 
+const importantSettingOrder = [
+  'gameMode',
+  'instaMerge',
+  'quick.mode',
+  'quick.instaMerge',
+  'teamCount',
+  'mapWidth',
+  'mapHeight',
+  'botCount',
+  'startMass',
+  'maxFood',
+  'maxViruses',
+  'virusBaseMass',
+  'baseFoodMass',
+  'goldenFoodChance',
+  'plasmaFoodChance',
+  'ejectedPelletMass',
+  'ejectedPelletCost',
+  'mergeTime',
+  'cellEatMassRatio',
+  'cellEatCenterInsideRatio',
+  'cellEatCoverageRatio',
+  'botSkinChance',
+  'enableBotChat',
+  'massRadiusScale',
+  'massRadiusExponent',
+  'quick.virusesEnabled',
+  'quick.botSameSize',
+  'quick.fpsCap',
+  'botSmartnessScale',
+  'botHumanityScale',
+  'botTrickinessScale',
+  'botOpportunismScale',
+  'botHerdResistanceScale',
+  'botAffectionScale',
+  'botBoldnessScale',
+  'botGreedinessScale',
+  'botSheepishnessScale',
+  'botPopulationHoverMinRatio',
+  'botPopulationRampPerStep',
+  'botPopulationAdjustIntervalMs',
+  'client.gridSize',
+  'client.renderDistance',
+  'client.globalLerp',
+  'client.ownCellLerp',
+  'tickRate',
+  'stateBroadcastRate',
+];
+const importantSettingMap = new Map(importantSettingOrder.map((key, idx) => [key, idx]));
+
+const settingsPresets = [
+  {
+    id: 'small_map',
+    group: 'map_size',
+    label: 'Small Map',
+    note: 'Fast fights and constant pressure.',
+    serverPatch: {
+      mapWidth: 3600,
+      mapHeight: 3600,
+      maxFood: 1650,
+      maxViruses: 14,
+      botCount: 34,
+      maxVisibleFoodPerPlayer: 1800,
+      maxVisibleCellsPerPlayer: 3200,
+    },
+  },
+  {
+    id: 'large_map',
+    group: 'map_size',
+    label: 'Large Map',
+    note: 'Big ecosystem with long macro rotations.',
+    serverPatch: {
+      mapWidth: 9200,
+      mapHeight: 9200,
+      maxFood: 5600,
+      maxViruses: 38,
+      botCount: 120,
+      maxVisibleFoodPerPlayer: 3200,
+      maxVisibleCellsPerPlayer: 9000,
+    },
+  },
+  {
+    id: 'classic_ffa',
+    group: 'mode_profile',
+    label: 'Classic FFA',
+    note: 'Original-style free-for-all with green viruses and no experimental pellets.',
+    serverPatch: {
+      gameMode: 'ffa',
+      instaMerge: false,
+      spawnerVirusesInFFA: false,
+      forceSpawnerVirusesInTeams: false,
+      forceSpawnerVirusesInExperimental: true,
+      allowExperimentalInClassicModes: false,
+      enableBountyPellets: true,
+    },
+  },
+  {
+    id: 'classic_teams',
+    group: 'mode_profile',
+    label: 'Classic Teams',
+    note: 'Team mode with only green viruses, preserving original feel.',
+    serverPatch: {
+      gameMode: 'teams',
+      instaMerge: false,
+      forceSpawnerVirusesInTeams: false,
+      allowExperimentalInClassicModes: false,
+    },
+  },
+  {
+    id: 'experimental_labs',
+    group: 'mode_profile',
+    label: 'Experimental Labs',
+    note: 'Pink viruses and special pellets live only here.',
+    serverPatch: {
+      gameMode: 'experimental',
+      forceSpawnerVirusesInExperimental: true,
+      allowExperimentalInClassicModes: false,
+      enableBountyPellets: true,
+      goldenFoodChance: 0.02,
+      plasmaFoodChance: 0.028,
+    },
+  },
+  {
+    id: 'insta_merge',
+    label: 'Insta-Merge',
+    note: 'Very fast recombine and aggressive pacing.',
+    serverPatch: { instaMerge: true, mergeTime: 1, minSplitMass: 30, cellEatMassRatio: 1.18, cellEatCenterInsideRatio: 0.32 },
+  },
+  {
+    id: 'mean_bots',
+    label: 'Mean Bots',
+    note: 'Sharper and more punishing bot behavior.',
+    serverPatch: {
+      botCount: 58,
+      botSmartnessScale: 1.55,
+      botHumanityScale: 1.25,
+      botTrickinessScale: 1.65,
+      botOpportunismScale: 1.6,
+      botHerdResistanceScale: 1.6,
+      botBoldnessScale: 1.6,
+      botGreedinessScale: 1.7,
+      botSheepishnessScale: 0.65,
+      botTeamAssignChance: 0.12,
+      botPopulationHoverMinRatio: 0.92,
+    },
+  },
+  {
+    id: 'everyone_teaming',
+    label: 'Everyone Teaming',
+    note: 'Bots form alliances, feed back, and mob targets.',
+    serverPatch: {
+      enableBotTeaming: true,
+      botTeamAssignChance: 0.95,
+      botTeamDurationMs: 55000,
+      botTeamFeedChance: 0.95,
+      botTeamSplitChance: 0.48,
+      botAffectionScale: 1.9,
+      botHumanityScale: 1.65,
+      botTeamsStickUntilDeath: true,
+      crossTeamTeamingChance: 0.08,
+    },
+  },
+  {
+    id: 'juggernaut',
+    label: 'Juggernaut',
+    note: 'Large starts, heavier pressure, brutal mid-game.',
+    serverPatch: { startMass: 24, decayRate: 0.0007, maxCells: 24, minSplitMass: 48, botCount: 56, maxFood: 1700, virusBaseMass: 70 },
+  },
+  {
+    id: 'agar_like',
+    label: 'Agar-Like',
+    note: 'Balanced, cleaner sizing and growth pacing.',
+    serverPatch: { massRadiusScale: 4.8, massRadiusExponent: 0.46, baseFoodMass: 0.34, ejectedPelletMass: 5.2, ejectedPelletCost: 11.6, cellEatMassRatio: 1.22, cellEatCenterInsideRatio: 0.42, cellEatCoverageRatio: 0.88, virusBaseMass: 64, virusEatBonusMass: 9 },
+  },
+  {
+    id: 'party_mode',
+    label: 'Party Mode',
+    note: 'Pellet storms, frequent events, and chaos.',
+    serverPatch: { gameMode: 'experimental', maxFood: 2600, forceSpawnerVirusesInExperimental: true, spawnerVirusChance: 0.45, botCircleSpitChancePerTick: 0.00022, botCircleSpitCooldownMs: 9000, botCount: 40, enableBountyPellets: true, bountyPelletIntervalMs: 5200, goldenFoodChance: 0.03, plasmaFoodChance: 0.04 },
+    clientPatch: { fpsCap: 90 },
+  },
+  {
+    id: 'treasure_hunt',
+    label: 'Treasure Hunt',
+    note: 'More golden pellets and bounty pickups for high-risk routing.',
+    serverPatch: {
+      gameMode: 'experimental',
+      goldenFoodChance: 0.045,
+      goldenFoodMass: 3.2,
+      plasmaFoodChance: 0.05,
+      enableBountyPellets: true,
+      bountyPelletIntervalMs: 3800,
+      bountyPelletMass: 4.2,
+      bountyLeaderMinMass: 150,
+      botGreedinessScale: 1.4,
+      botSmartnessScale: 1.2,
+    },
+  },
+  {
+    id: 'comeback_chaos',
+    label: 'Comeback Chaos',
+    note: 'Dominant leaders leak bounty opportunities to keep rounds competitive.',
+    serverPatch: {
+      gameMode: 'experimental',
+      enableBountyPellets: true,
+      bountyPelletIntervalMs: 2800,
+      bountyPelletMass: 5.6,
+      bountyLeaderMinMass: 130,
+      botOpportunismScale: 1.7,
+      botHumanityScale: 1.35,
+      botHerdResistanceScale: 1.6,
+      botCount: 90,
+    },
+  },
+  {
+    id: 'betrayal_city',
+    label: 'Betrayal City',
+    note: 'Bots fake teamwork then snap for surprise kills.',
+    serverPatch: {
+      enableBotTeaming: true,
+      botTeamAssignChance: 0.82,
+      botTeamDurationMs: 38000,
+      botTeamFeedChance: 0.8,
+      botHumanityScale: 1.7,
+      botTrickinessScale: 2.1,
+      botOpportunismScale: 1.9,
+      botAffectionScale: 1.2,
+    },
+  },
+  {
+    id: 'ecosystem',
+    label: 'Ecosystem',
+    note: 'Long-form growth with stable food and bot populations.',
+    serverPatch: {
+      mapWidth: 7000,
+      mapHeight: 7000,
+      maxFood: 4600,
+      baseFoodMass: 0.3,
+      decayRate: 0.00085,
+      botCount: 180,
+      botPopulationHoverMinRatio: 0.88,
+      botPopulationRampPerStep: 8,
+      botPopulationAdjustIntervalMs: 820,
+      maxVisibleFoodPerPlayer: 3400,
+      maxVisibleCellsPerPlayer: 14000,
+    },
+  },
+  {
+    id: 'stealth_hunters',
+    label: 'Stealth Hunters',
+    note: 'Sly bots flank split targets instead of brute chasing.',
+    serverPatch: {
+      botSmartnessScale: 1.45,
+      botHumanityScale: 1.8,
+      botTrickinessScale: 1.95,
+      botOpportunismScale: 1.85,
+      botHerdResistanceScale: 1.9,
+      botSheepishnessScale: 0.8,
+      botTeamAssignChance: 0.38,
+    },
+  },
+  {
+    id: 'mega_swarm',
+    label: 'Mega Swarm',
+    note: 'Hundreds of bots with dynamic hover population.',
+    serverPatch: {
+      botCount: 500,
+      spectatorBotCount: 28,
+      maxFood: 6800,
+      maxVisibleFoodPerPlayer: 4200,
+      maxVisibleCellsPerPlayer: 22000,
+      botPopulationHoverMinRatio: 0.86,
+      botPopulationHoverVariance: 60,
+      botPopulationRampPerStep: 14,
+      botPopulationAdjustIntervalMs: 760,
+    },
+  },
+];
+
+function getMassRadiusScale() {
+  const n = Number(runtimeConfig.massRadiusScale);
+  return Number.isFinite(n) ? Math.max(3.2, Math.min(8.5, n)) : 4.9;
+}
+
+function getMassRadiusExponent() {
+  const n = Number(runtimeConfig.massRadiusExponent);
+  return Number.isFinite(n) ? Math.max(0.35, Math.min(0.65, n)) : 0.46;
+}
+
+function radiusFromMass(mass) {
+  const m = Math.max(1, Number(mass) || 1);
+  return Math.pow(m, getMassRadiusExponent()) * getMassRadiusScale();
+}
+
 function applyHudVisibility() {
   const showHud = alive || spectating;
   const leaderboardEl = document.getElementById('leaderboard');
@@ -799,6 +1642,7 @@ function applyHudVisibility() {
   const teamChartEl = document.getElementById('teamChart');
   const teamChartToggleEl = document.getElementById('teamChartToggle');
   const scoreEl = document.getElementById('scoreDisplay');
+  const chatEl = document.getElementById('chatBox');
 
   leaderboardEl.style.display = showHud ? 'block' : 'none';
   leaderboardToggle.style.display = showHud ? 'block' : 'none';
@@ -807,6 +1651,7 @@ function applyHudVisibility() {
   teamChartToggleEl.style.display = showTeamUi ? 'block' : 'none';
   teamChartEl.style.display = (showTeamUi && clientSettings.showTeamChart) ? 'block' : 'none';
   scoreEl.style.display = showHud ? 'block' : 'none';
+  if (chatEl) chatEl.style.display = (showHud && !!runtimeConfig.enableBotChat) ? 'flex' : 'none';
   teamChartToggleEl.textContent = clientSettings.showTeamChart ? 'Hide Team Chart' : 'Show Team Chart';
   updateHudLayout();
 }
@@ -834,14 +1679,93 @@ function loadStats() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw);
-    for (const k of Object.keys(stats)) stats[k] = Number(parsed[k]) || (k === 'lastRank' ? parsed[k] || '-' : 0);
+    const isV5 = parsed && (parsed.roundHighScore !== undefined || parsed.allTimeHighScore !== undefined);
+    if (isV5) {
+      stats.roundHighScore = Number(parsed.roundHighScore) || 0;
+      stats.roundTotalScore = Number(parsed.roundTotalScore) || 0;
+      stats.roundEaten = Number(parsed.roundEaten) || 0;
+      stats.roundBestRank = typeof parsed.roundBestRank === 'string' ? parsed.roundBestRank : '-';
+      stats.allTimeHighScore = Number(parsed.allTimeHighScore) || 0;
+      stats.allTimeTotalScore = Number(parsed.allTimeTotalScore) || 0;
+      stats.allTimeGamesPlayed = Number(parsed.allTimeGamesPlayed) || 0;
+      stats.allTimeTotalEaten = Number(parsed.allTimeTotalEaten) || 0;
+      stats.lastScore = Number(parsed.lastScore) || 0;
+      stats.lastRank = typeof parsed.lastRank === 'string' ? parsed.lastRank : '-';
+      stats.roundSurvivalMs = Number(parsed.roundSurvivalMs) || 0;
+      stats.roundDistance = Number(parsed.roundDistance) || 0;
+      stats.roundSplitMs = Number(parsed.roundSplitMs) || 0;
+      stats.roundSingleMs = Number(parsed.roundSingleMs) || 0;
+      stats.roundMassGained = Number(parsed.roundMassGained) || 0;
+      stats.roundMassLost = Number(parsed.roundMassLost) || 0;
+      stats.roundBiggestSingleGain = Number(parsed.roundBiggestSingleGain) || 0;
+      stats.roundFastestToFirstMs = Number(parsed.roundFastestToFirstMs) || 0;
+      stats.roundFastestTo100Ms = Number(parsed.roundFastestTo100Ms) || 0;
+      stats.roundFastestTo1000Ms = Number(parsed.roundFastestTo1000Ms) || 0;
+      stats.allTimeWins = Number(parsed.allTimeWins) || 0;
+      stats.allTimeTop10Finishes = Number(parsed.allTimeTop10Finishes) || 0;
+      stats.allTimeTimeAliveMs = Number(parsed.allTimeTimeAliveMs) || 0;
+      stats.allTimeLongestSurvivalMs = Number(parsed.allTimeLongestSurvivalMs) || 0;
+      stats.allTimePeakRank = Number.isFinite(Number(parsed.allTimePeakRank)) ? Number(parsed.allTimePeakRank) : null;
+      stats.allTimeFastestToFirstMs = Number(parsed.allTimeFastestToFirstMs) || 0;
+      stats.allTimeFastestTo100Ms = Number(parsed.allTimeFastestTo100Ms) || 0;
+      stats.allTimeFastestTo1000Ms = Number(parsed.allTimeFastestTo1000Ms) || 0;
+      stats.allTimeFastestDeathMs = Number(parsed.allTimeFastestDeathMs) || 0;
+      stats.allTimeDistance = Number(parsed.allTimeDistance) || 0;
+      stats.allTimeSplitMs = Number(parsed.allTimeSplitMs) || 0;
+      stats.allTimeSingleMs = Number(parsed.allTimeSingleMs) || 0;
+      stats.allTimePlaytimeMs = Number(parsed.allTimePlaytimeMs) || 0;
+      stats.allTimeMassGained = Number(parsed.allTimeMassGained) || 0;
+      stats.allTimeMassLost = Number(parsed.allTimeMassLost) || 0;
+      stats.allTimeBiggestSingleGain = Number(parsed.allTimeBiggestSingleGain) || 0;
+    } else {
+      stats.roundHighScore = 0;
+      stats.roundTotalScore = 0;
+      stats.roundEaten = 0;
+      stats.roundBestRank = typeof parsed.lastRank === 'string' ? parsed.lastRank : '-';
+      stats.allTimeHighScore = Number(parsed.highScore) || 0;
+      stats.allTimeTotalScore = Number(parsed.totalScore) || 0;
+      stats.allTimeGamesPlayed = Number(parsed.gamesPlayed) || 0;
+      stats.allTimeTotalEaten = Number(parsed.timesEaten) || 0;
+      stats.lastScore = Number(parsed.lastScore) || 0;
+      stats.lastRank = typeof parsed.lastRank === 'string' ? parsed.lastRank : '-';
+      stats.roundSurvivalMs = 0;
+      stats.roundDistance = 0;
+      stats.roundSplitMs = 0;
+      stats.roundSingleMs = 0;
+      stats.roundMassGained = 0;
+      stats.roundMassLost = 0;
+      stats.roundBiggestSingleGain = 0;
+      stats.roundFastestToFirstMs = 0;
+      stats.roundFastestTo100Ms = 0;
+      stats.roundFastestTo1000Ms = 0;
+      stats.allTimeWins = 0;
+      stats.allTimeTop10Finishes = 0;
+      stats.allTimeTimeAliveMs = 0;
+      stats.allTimeLongestSurvivalMs = 0;
+      stats.allTimePeakRank = null;
+      stats.allTimeFastestToFirstMs = 0;
+      stats.allTimeFastestTo100Ms = 0;
+      stats.allTimeFastestTo1000Ms = 0;
+      stats.allTimeFastestDeathMs = 0;
+      stats.allTimeDistance = 0;
+      stats.allTimeSplitMs = 0;
+      stats.allTimeSingleMs = 0;
+      stats.allTimePlaytimeMs = 0;
+      stats.allTimeMassGained = 0;
+      stats.allTimeMassLost = 0;
+      stats.allTimeBiggestSingleGain = 0;
+    }
     selectedSkin = typeof parsed.selectedSkin === 'string' ? parsed.selectedSkin : null;
     if (typeof parsed.lastName === 'string') document.getElementById('nickInput').value = parsed.lastName;
   } catch (e) {}
 }
 
 function saveStats() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...stats, selectedSkin, lastName: document.getElementById('nickInput').value.trim() }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    ...stats,
+    selectedSkin,
+    lastName: document.getElementById('nickInput').value.trim(),
+  }));
 }
 
 function applyTheme(theme) {
@@ -853,35 +1777,94 @@ function applyTheme(theme) {
 
 function loadTheme() { applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'); }
 
+function formatDuration(ms) {
+  const totalSec = Math.max(0, Math.floor((Number(ms) || 0) / 1000));
+  if (totalSec < 60) return `${totalSec}s`;
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  if (m < 60) return `${m}m ${s}s`;
+  const h = Math.floor(m / 60);
+  const rm = m % 60;
+  return `${h}h ${rm}m`;
+}
+
+function formatFixed(v, digits = 2) {
+  const n = Number(v) || 0;
+  return n.toFixed(digits);
+}
+
+function formatMsOrDash(ms) {
+  return (Number(ms) || 0) > 0 ? formatDuration(ms) : '-';
+}
+
 function updateStatsUI() {
-  const set = (id, value) => { document.getElementById(id).textContent = value; };
-  set('statHighScore', Math.round(stats.highScore));
-  set('statTotalScore', Math.round(stats.totalScore));
-  set('statGamesPlayed', Math.round(stats.gamesPlayed));
-  set('statTimesEaten', Math.round(stats.timesEaten));
-  set('lastScore', Math.round(stats.lastScore));
-  set('lastRank', stats.lastRank);
-  set('hudHigh', Math.round(stats.highScore));
-  set('hudTotal', Math.round(stats.totalScore));
-  set('hudGames', Math.round(stats.gamesPlayed));
-  set('hudEaten', Math.round(stats.timesEaten));
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+  const roundAliveMs = Math.max(0, Number(stats.roundSurvivalMs) || 0);
+  const roundDistance = Math.max(0, Number(stats.roundDistance) || 0);
+  const roundSpeed = roundAliveMs > 0 ? (roundDistance / Math.max(1, roundAliveMs / 1000)) : 0;
+  const games = Math.max(0, Math.round(stats.allTimeGamesPlayed || 0));
+  const wins = Math.max(0, Math.round(stats.allTimeWins || 0));
+  const top10 = Math.max(0, Math.round(stats.allTimeTop10Finishes || 0));
+  const peakRank = Number.isFinite(Number(stats.allTimePeakRank)) ? Math.max(1, Math.round(Number(stats.allTimePeakRank))) : null;
+
+  set('statHighScore', Math.round(stats.roundHighScore));
+  set('statTotalScore', Math.round(stats.roundTotalScore));
+  set('statGamesPlayed', Math.round(stats.roundEaten));
+  set('statTimesEaten', stats.roundBestRank || '-');
+  set('statRoundSurvival', formatDuration(roundAliveMs));
+  set('statRoundDistance', Math.round(roundDistance));
+  set('statRoundSpeed', formatFixed(roundSpeed, 1));
+  set('statRoundSplitTime', formatDuration(stats.roundSplitMs || 0));
+  set('lastScore', Math.round(stats.allTimeHighScore));
+  set('lastRank', Math.round(stats.allTimeTotalScore));
+  set('statGamesWins', `${games} / ${wins}`);
+  set('statTop10', top10);
+  set('statLongestSurvival', formatDuration(stats.allTimeLongestSurvivalMs || 0));
+  set('statPeakRank', peakRank != null ? `${peakRank}` : '-');
+  set('statFastestFirst', formatMsOrDash(stats.allTimeFastestToFirstMs));
+  set('statFastestMass', `${formatMsOrDash(stats.allTimeFastestTo100Ms)} / ${formatMsOrDash(stats.allTimeFastestTo1000Ms)}`);
+  set('hudHigh', Math.round(stats.roundHighScore));
+  set('hudTotal', Math.round(stats.roundTotalScore));
+  set('hudGames', Math.round(stats.allTimeGamesPlayed));
+  set('hudEaten', Math.round(stats.roundEaten));
   updateDetailedStatsUI();
 }
 
 function updateDetailedStatsUI() {
-  const avg = stats.gamesPlayed > 0 ? (stats.totalScore / stats.gamesPlayed) : 0;
-  const set = (id, value) => { document.getElementById(id).textContent = value; };
-  set('dHighScore', Math.round(stats.highScore));
-  set('dTotalScore', Math.round(stats.totalScore));
-  set('dGamesPlayed', Math.round(stats.gamesPlayed));
-  set('dTimesEaten', Math.round(stats.timesEaten));
+  const avg = stats.allTimeGamesPlayed > 0 ? (stats.allTimeTotalScore / stats.allTimeGamesPlayed) : 0;
+  const gained = Math.max(0, Number(stats.allTimeMassGained) || 0);
+  const lost = Math.max(0, Number(stats.allTimeMassLost) || 0);
+  const massRatio = lost > 0 ? (gained / lost) : (gained > 0 ? gained : 0);
+  const roundAliveMs = Math.max(0, Number(stats.roundSurvivalMs) || 0);
+  const roundDistance = Math.max(0, Number(stats.roundDistance) || 0);
+  const roundAvgSpeed = roundAliveMs > 0 ? (roundDistance / Math.max(1, roundAliveMs / 1000)) : 0;
+  const peakRank = Number.isFinite(Number(stats.allTimePeakRank)) ? Math.max(1, Math.round(Number(stats.allTimePeakRank))) : null;
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+  set('dHighScore', Math.round(stats.allTimeHighScore));
   set('dAvgScore', Math.round(avg));
-  set('dLastScore', Math.round(stats.lastScore));
-  set('dBestRank', stats.lastRank);
-  set('dPeakScore', Math.round(peakScoreThisMatch || 0));
-  set('dCurrentMode', currentMode === 'teams' ? 'Teams' : 'FFA');
-  set('dCurrentTeam', Number.isInteger(currentTeamId) ? `${currentTeamId + 1}` : '-');
-  set('dTeamCount', currentTeamCount || 3);
+  set('dLongestSurvival', formatDuration(stats.allTimeLongestSurvivalMs || 0));
+  set('dGamesWins', `${Math.round(stats.allTimeGamesPlayed || 0)} / ${Math.round(stats.allTimeWins || 0)}`);
+  set('dTop10', Math.round(stats.allTimeTop10Finishes || 0));
+  set('dTimeAliveTotal', formatDuration(stats.allTimeTimeAliveMs || 0));
+  set('dPeakRank', peakRank != null ? `${peakRank}` : '-');
+  set('dCurrentMode', Math.round(stats.allTimeTotalEaten || 0));
+  set('dMassRatio', formatFixed(massRatio, 2));
+  set('dBiggestEat', Math.round(stats.allTimeBiggestSingleGain || 0));
+  set('dDistanceRound', Math.round(roundDistance));
+  set('dAvgSpeedRound', formatFixed(roundAvgSpeed, 2));
+  set('dSplitSingleRound', `${formatDuration(stats.roundSplitMs || 0)} / ${formatDuration(stats.roundSingleMs || 0)}`);
+  set('dFastestFirst', formatMsOrDash(stats.allTimeFastestToFirstMs));
+  set('dFastest100', formatMsOrDash(stats.allTimeFastestTo100Ms));
+  set('dFastest1000', formatMsOrDash(stats.allTimeFastestTo1000Ms));
+  set('dFastestDeath', formatMsOrDash(stats.allTimeFastestDeathMs));
+  set('dPlaytime', formatDuration(stats.allTimePlaytimeMs || 0));
+  set('dTeamCount', currentMode === 'teams' ? 'Teams' : (currentMode === 'experimental' ? 'Experimental' : 'FFA'));
   set('dSelectedSkin', selectedSkin ? selectedSkin.replace(/\.webp$/i, '') : 'None');
 }
 
@@ -891,11 +1874,12 @@ function setStatsPanelOpen(open) {
 }
 
 function setModeButtons(mode) {
-  const nextMode = mode === 'teams' ? 'teams' : 'ffa';
+  const nextMode = mode === 'teams' ? 'teams' : (mode === 'experimental' ? 'experimental' : 'ffa');
   const changed = nextMode !== currentMode;
   currentMode = nextMode;
   document.getElementById('ffaModeBtn').classList.toggle('active', currentMode === 'ffa');
   document.getElementById('teamModeBtn').classList.toggle('active', currentMode === 'teams');
+  document.getElementById('experimentalModeBtn').classList.toggle('active', currentMode === 'experimental');
   document.getElementById('skinsBtn').disabled = false;
   document.getElementById('skinsBtn').style.opacity = '1';
   document.getElementById('skinsBtn').textContent = skinPanelVisible ? 'Hide Skins' : 'Skins';
@@ -923,6 +1907,82 @@ function setSkinPanelVisible(visible) {
   skinPanelVisible = visible;
   document.getElementById('skinBlock').classList.toggle('hidden', !visible);
   document.getElementById('skinsBtn').textContent = visible ? 'Hide Skins' : 'Skins';
+}
+
+function resetRoundTelemetry(startMass) {
+  roundStartAt = Date.now();
+  lastStatsSampleAt = performance.now();
+  lastStatsCenter = null;
+  lastStatsMass = Number(startMass) || 0;
+  stats.roundSurvivalMs = 0;
+  stats.roundDistance = 0;
+  stats.roundSplitMs = 0;
+  stats.roundSingleMs = 0;
+  stats.roundMassGained = 0;
+  stats.roundMassLost = 0;
+  stats.roundBiggestSingleGain = 0;
+  stats.roundFastestToFirstMs = 0;
+  stats.roundFastestTo100Ms = 0;
+  stats.roundFastestTo1000Ms = 0;
+}
+
+function recordRoundTelemetry(dtSec) {
+  if (!alive) return;
+  const dtMs = Math.max(0, dtSec * 1000);
+  stats.roundSurvivalMs += dtMs;
+  stats.allTimeTimeAliveMs += dtMs;
+  stats.allTimePlaytimeMs += dtMs;
+
+  let mineCount = 0;
+  for (const [, c] of cellMap) {
+    if (c && c.mine) mineCount++;
+  }
+  if (mineCount > 1) {
+    stats.roundSplitMs += dtMs;
+    stats.allTimeSplitMs += dtMs;
+  } else {
+    stats.roundSingleMs += dtMs;
+    stats.allTimeSingleMs += dtMs;
+  }
+
+  const center = getLocalPlayerCenter();
+  if (center) {
+    if (lastStatsCenter) {
+      const dx = center.x - lastStatsCenter.x;
+      const dy = center.y - lastStatsCenter.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      stats.roundDistance += dist;
+      stats.allTimeDistance += dist;
+    }
+    lastStatsCenter = { x: center.x, y: center.y };
+  }
+
+  const massDelta = (Number(score) || 0) - (Number(lastStatsMass) || 0);
+  if (massDelta > 0) {
+    stats.roundMassGained += massDelta;
+    stats.allTimeMassGained += massDelta;
+    if (massDelta > stats.roundBiggestSingleGain) stats.roundBiggestSingleGain = massDelta;
+    if (massDelta > stats.allTimeBiggestSingleGain) stats.allTimeBiggestSingleGain = massDelta;
+  } else if (massDelta < 0) {
+    const loss = Math.abs(massDelta);
+    stats.roundMassLost += loss;
+    stats.allTimeMassLost += loss;
+  }
+  lastStatsMass = Number(score) || 0;
+
+  const elapsed = roundStartAt > 0 ? (Date.now() - roundStartAt) : 0;
+  if (!stats.roundFastestTo100Ms && score >= 100) {
+    stats.roundFastestTo100Ms = elapsed;
+    if (!stats.allTimeFastestTo100Ms || elapsed < stats.allTimeFastestTo100Ms) {
+      stats.allTimeFastestTo100Ms = elapsed;
+    }
+  }
+  if (!stats.roundFastestTo1000Ms && score >= 1000) {
+    stats.roundFastestTo1000Ms = elapsed;
+    if (!stats.allTimeFastestTo1000Ms || elapsed < stats.allTimeFastestTo1000Ms) {
+      stats.allTimeFastestTo1000Ms = elapsed;
+    }
+  }
 }
 
 function resize() {
@@ -1015,43 +2075,13 @@ function makeSettingInput(setting) {
   } else {
     input = document.createElement('input');
     input.type = 'number';
-    if (typeof setting.step === 'number') input.step = setting.step;
-    if (typeof setting.min === 'number') input.min = setting.min;
-    if (typeof setting.max === 'number') input.max = setting.max;
+    input.step = 'any';
+    input.inputMode = 'decimal';
     input.value = setting.value;
-
-    const wrap = document.createElement('div');
-    wrap.className = 'num-wrap';
-    wrap.appendChild(input);
-
-    const steps = document.createElement('div');
-    steps.className = 'num-steps';
-    const up = document.createElement('button');
-    up.type = 'button';
-    up.className = 'num-step';
-    up.textContent = '▲';
-    const down = document.createElement('button');
-    down.type = 'button';
-    down.className = 'num-step';
-    down.textContent = '▼';
-    steps.appendChild(up);
-    steps.appendChild(down);
-    wrap.appendChild(steps);
-
-    const stepValue = typeof setting.step === 'number' && setting.step > 0 ? setting.step : 1;
-    const applyDelta = (delta) => {
-      const cur = Number(input.value);
-      if (!Number.isFinite(cur)) return;
-      let next = cur + delta;
-      if (typeof setting.min === 'number') next = Math.max(setting.min, next);
-      if (typeof setting.max === 'number') next = Math.min(setting.max, next);
-      const precision = stepValue < 1 ? Math.max(0, `${stepValue}`.split('.')[1]?.length || 0) : 0;
-      input.value = precision > 0 ? next.toFixed(precision) : `${Math.round(next)}`;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-    up.addEventListener('click', () => applyDelta(stepValue));
-    down.addEventListener('click', () => applyDelta(-stepValue));
-    controlEl = wrap;
+    if (typeof setting.min === 'number' && typeof setting.max === 'number') {
+      input.title = 'Suggested range: ' + setting.min + ' to ' + setting.max;
+    }
+    controlEl = input;
   }
   input.dataset.key = setting.key;
   input.dataset.type = setting.type;
@@ -1065,10 +2095,73 @@ function makeSettingInput(setting) {
   return row;
 }
 
+function presetValueMatches(current, expected) {
+  if (typeof expected === 'number') {
+    const c = Number(current);
+    return Number.isFinite(c) && Math.abs(c - expected) <= 0.0001;
+  }
+  if (typeof expected === 'boolean') return !!current === expected;
+  return `${current}` === `${expected}`;
+}
+
+function presetIsActive(preset) {
+  if (!preset) return false;
+  const serverPatch = preset.serverPatch || {};
+  const clientPatch = preset.clientPatch || {};
+  for (const [key, value] of Object.entries(serverPatch)) {
+    if (!presetValueMatches(runtimeConfig[key], value)) return false;
+  }
+  for (const [key, value] of Object.entries(clientPatch)) {
+    if (!presetValueMatches(clientSettings[key], value)) return false;
+  }
+  return Object.keys(serverPatch).length + Object.keys(clientPatch).length > 0;
+}
+
 function renderSettings() {
   const root = document.getElementById('settingsList');
   root.innerHTML = '';
+  const presetPanel = document.createElement('div');
+  presetPanel.className = 'settings-presets';
+  const presetTitle = document.createElement('h5');
+  presetTitle.textContent = 'Game Presets';
+  const presetGrid = document.createElement('div');
+  presetGrid.className = 'preset-grid';
+  const activePresetByGroup = new Map();
+  for (const preset of settingsPresets) {
+    if (!preset.group) continue;
+    if (!presetIsActive(preset)) continue;
+    if (!activePresetByGroup.has(preset.group)) {
+      activePresetByGroup.set(preset.group, preset.id);
+    }
+  }
+  for (const preset of settingsPresets) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'preset-btn';
+    const isActive = preset.group
+      ? activePresetByGroup.get(preset.group) === preset.id
+      : presetIsActive(preset);
+    if (isActive) btn.classList.add('active');
+    btn.innerHTML = `<span class="preset-title">${preset.label}</span><span class="preset-note">${preset.note}</span>`;
+    btn.addEventListener('click', async () => {
+      await applyPreset(preset);
+    });
+    presetGrid.appendChild(btn);
+  }
+  presetPanel.appendChild(presetTitle);
+  presetPanel.appendChild(presetGrid);
+  root.appendChild(presetPanel);
+
   const quickSettings = [
+    {
+      key: 'quick.mode',
+      label: 'Game Mode',
+      description: 'Fast mode switch without opening mode buttons.',
+      type: 'enum',
+      options: ['ffa', 'teams', 'experimental'],
+      value: runtimeConfig.gameMode || 'ffa',
+      group: 'Quick',
+    },
     {
       key: 'quick.fpsCap',
       label: 'FPS Cap',
@@ -1089,6 +2182,14 @@ function renderSettings() {
       group: 'Quick',
     },
     {
+      key: 'quick.instaMerge',
+      label: 'Insta-Merge',
+      description: 'Enable near-instant recombination for all players.',
+      type: 'boolean',
+      value: !!runtimeConfig.instaMerge,
+      group: 'Quick',
+    },
+    {
       key: 'quick.botSameSize',
       label: 'Bots Spawn Same Size As You',
       description: 'Makes bot spawn and respawn mass match player start mass.',
@@ -1096,6 +2197,17 @@ function renderSettings() {
       value: runtimeConfig.botSpawnMassMode === 'player_start'
         && runtimeConfig.botRespawnMassMode === 'player_start'
         && Math.abs((Number(runtimeConfig.botSpawnPlayerMassScale) || 1) - 1) < 0.001,
+      group: 'Quick',
+    },
+    {
+      key: 'quick.gridSize',
+      label: 'Grid Size',
+      description: 'Background grid square size. Lower = more squares.',
+      type: 'number',
+      min: 14,
+      max: 64,
+      step: 1,
+      value: Math.round(Number(clientSettings.gridSize) || 18),
       group: 'Quick',
     },
   ];
@@ -1112,8 +2224,14 @@ function renderSettings() {
       return hay.includes(query);
     })
     : allSettings;
-  const groups = groupBy(filtered, (s) => s.group || 'Misc');
-  const order = ['Quick', 'Bots', 'Gameplay', 'World', 'Virus', 'Client', 'Performance', 'Events', 'Misc'];
+  const prioritized = [...filtered].sort((a, b) => {
+    const pa = importantSettingMap.has(a.key) ? importantSettingMap.get(a.key) : Number.MAX_SAFE_INTEGER;
+    const pb = importantSettingMap.has(b.key) ? importantSettingMap.get(b.key) : Number.MAX_SAFE_INTEGER;
+    if (pa !== pb) return pa - pb;
+    return String(a.label || '').localeCompare(String(b.label || ''));
+  });
+  const groups = groupBy(prioritized, (s) => s.group || 'Misc');
+  const order = ['Quick', 'Gameplay', 'Bots', 'Virus', 'World', 'Client', 'Performance', 'Events', 'Misc'];
   for (const groupName of order) {
     if (!groups.has(groupName)) continue;
     const section = document.createElement('div');
@@ -1123,6 +2241,104 @@ function renderSettings() {
     section.appendChild(h);
     for (const setting of groups.get(groupName)) section.appendChild(makeSettingInput(setting));
     root.appendChild(section);
+  }
+}
+
+function syncQuickCenterFromRuntime() {
+  const botEl = document.getElementById('quickBotCountInput');
+  const startEl = document.getElementById('quickStartMassInput');
+  const foodEl = document.getElementById('quickMaxFoodInput');
+  const virusEl = document.getElementById('quickMaxVirusesInput');
+  const mergeEl = document.getElementById('quickInstaMergeToggle');
+  const mapEl = document.getElementById('quickMapPresetSelect');
+  const decayEl = document.getElementById('quickDecayRateInput');
+  const spawnEl = document.getElementById('quickBotSpawnSelect');
+  const deferEl = document.getElementById('quickDeferBotsToggle');
+  if (!botEl || !startEl || !foodEl || !virusEl || !mergeEl || !mapEl) return;
+
+  botEl.value = Math.max(0, Math.round(Number(runtimeConfig.botCount) || 0));
+  startEl.value = Math.max(1, Math.round(Number(runtimeConfig.startMass) || 10));
+  foodEl.value = Math.max(100, Math.round(Number(runtimeConfig.maxFood) || 1000));
+  virusEl.value = Math.max(0, Math.round(Number(runtimeConfig.maxViruses) || 0));
+  mergeEl.checked = !!runtimeConfig.instaMerge;
+  if (decayEl) decayEl.value = Number(runtimeConfig.decayRate ?? 0.001).toFixed(4);
+  if (spawnEl && runtimeConfig.botSpawnMassMode) spawnEl.value = runtimeConfig.botSpawnMassMode;
+  if (deferEl) deferEl.checked = !!runtimeConfig.deferBotsUntilHumans;
+
+  const w = Number(runtimeConfig.mapWidth) || 5000;
+  const h = Number(runtimeConfig.mapHeight) || 5000;
+  if (w <= 4200 && h <= 4200) mapEl.value = 'small';
+  else if (w >= 8200 && h >= 8200) mapEl.value = 'large';
+  else mapEl.value = 'standard';
+}
+
+function collectQuickCenterPatch() {
+  const patch = {};
+  const botEl = document.getElementById('quickBotCountInput');
+  const startEl = document.getElementById('quickStartMassInput');
+  const foodEl = document.getElementById('quickMaxFoodInput');
+  const virusEl = document.getElementById('quickMaxVirusesInput');
+  const mergeEl = document.getElementById('quickInstaMergeToggle');
+  const mapEl = document.getElementById('quickMapPresetSelect');
+  const decayEl = document.getElementById('quickDecayRateInput');
+  const spawnEl = document.getElementById('quickBotSpawnSelect');
+  const deferEl = document.getElementById('quickDeferBotsToggle');
+  if (!botEl || !startEl || !foodEl || !virusEl || !mergeEl || !mapEl) return patch;
+
+  const botCount = Math.max(0, Math.round(Number(botEl.value) || 0));
+  const startMass = Math.max(1, Math.round(Number(startEl.value) || 10));
+  const maxFood = Math.max(100, Math.round(Number(foodEl.value) || 100));
+  const maxViruses = Math.max(0, Math.round(Number(virusEl.value) || 0));
+  const instaMerge = !!mergeEl.checked;
+  if (botCount !== Number(runtimeConfig.botCount || 0)) patch.botCount = botCount;
+  if (startMass !== Number(runtimeConfig.startMass || 0)) patch.startMass = startMass;
+  if (maxFood !== Number(runtimeConfig.maxFood || 0)) patch.maxFood = maxFood;
+  if (maxViruses !== Number(runtimeConfig.maxViruses || 0)) patch.maxViruses = maxViruses;
+  if (instaMerge !== !!runtimeConfig.instaMerge) patch.instaMerge = instaMerge;
+  if (decayEl) {
+    const decay = Math.max(0, Math.min(0.02, Number(decayEl.value) || 0.001));
+    if (Math.abs(decay - Number(runtimeConfig.decayRate ?? 0.001)) > 0.00001) patch.decayRate = decay;
+  }
+  if (spawnEl) {
+    const mode = spawnEl.value;
+    if (mode !== (runtimeConfig.botSpawnMassMode || 'varied')) patch.botSpawnMassMode = mode;
+  }
+  if (deferEl) {
+    const defer = !!deferEl.checked;
+    if (defer !== !!runtimeConfig.deferBotsUntilHumans) patch.deferBotsUntilHumans = defer;
+  }
+
+  const mapPreset = mapEl.value;
+  if (mapPreset === 'small') {
+    if (Number(runtimeConfig.mapWidth) !== 3600) patch.mapWidth = 3600;
+    if (Number(runtimeConfig.mapHeight) !== 3600) patch.mapHeight = 3600;
+  } else if (mapPreset === 'large') {
+    if (Number(runtimeConfig.mapWidth) !== 9200) patch.mapWidth = 9200;
+    if (Number(runtimeConfig.mapHeight) !== 9200) patch.mapHeight = 9200;
+  } else {
+    const defaultW = Number(getServerSettingDefault('mapWidth', 5000)) || 5000;
+    const defaultH = Number(getServerSettingDefault('mapHeight', 5000)) || 5000;
+    if (Number(runtimeConfig.mapWidth) !== defaultW) patch.mapWidth = defaultW;
+    if (Number(runtimeConfig.mapHeight) !== defaultH) patch.mapHeight = defaultH;
+  }
+  return patch;
+}
+
+async function applyPreset(preset) {
+  if (!preset) return;
+  const serverPatch = { ...(preset.serverPatch || {}) };
+  const clientPatch = { ...(preset.clientPatch || {}) };
+  const clientChanged = applyClientSettingsPatch(clientPatch);
+  let serverChanged = false;
+  if (Object.keys(serverPatch).length > 0) {
+    await applySettingsPatch(serverPatch);
+    serverChanged = true;
+  }
+  renderSettings();
+  if (serverChanged || clientChanged) {
+    showToast(`${preset.label} preset applied`);
+  } else {
+    showToast(`${preset.label} already active`);
   }
 }
 
@@ -1137,13 +2353,19 @@ function collectSettingsPatch() {
     if (type === 'boolean') value = input.checked;
     else if (type === 'enum') value = input.value;
     else {
-      value = Number(input.value);
+      const raw = `${input.value ?? ''}`.trim();
+      if (raw === '') continue;
+      value = Number(raw);
       if (!Number.isFinite(value)) continue;
     }
 
     if (key.startsWith('client.')) {
       const clientKey = key.slice('client.'.length);
-      if (clientSettings[clientKey] !== value) clientPatch[clientKey] = value;
+      const clientCurrent = clientSettings[clientKey];
+      const clientDiff = (type === 'boolean')
+        ? (!!clientCurrent !== !!value)
+        : (clientCurrent !== value);
+      if (clientDiff) clientPatch[clientKey] = value;
       continue;
     }
 
@@ -1165,9 +2387,31 @@ function collectSettingsPatch() {
       continue;
     }
 
+    if (key === 'quick.mode') {
+      const mode = value === 'teams' ? 'teams' : (value === 'experimental' ? 'experimental' : 'ffa');
+      if ((runtimeConfig.gameMode || currentMode) !== mode) {
+        serverPatch.gameMode = mode;
+      }
+      continue;
+    }
+
+    if (key === 'quick.instaMerge') {
+      const enabled = !!value;
+      if (enabled !== !!runtimeConfig.instaMerge) {
+        serverPatch.instaMerge = enabled;
+      }
+      continue;
+    }
+
     if (key === 'quick.fpsCap') {
       const nextCap = clampClientSetting('fpsCap', value);
       if (clientSettings.fpsCap !== nextCap) clientPatch.fpsCap = nextCap;
+      continue;
+    }
+
+    if (key === 'quick.gridSize') {
+      const nextGrid = clampClientSetting('gridSize', value);
+      if (clientSettings.gridSize !== nextGrid) clientPatch.gridSize = nextGrid;
       continue;
     }
 
@@ -1192,7 +2436,13 @@ function collectSettingsPatch() {
       continue;
     }
 
-    if (runtimeConfig[key] !== value) serverPatch[key] = value;
+    // For booleans, always include in patch when the checkbox is changed to false
+    // (coerce both sides to boolean to prevent undefined !== false mismatches)
+    const current = runtimeConfig[key];
+    const isDifferent = (type === 'boolean')
+      ? (!!current !== !!value)
+      : (current !== value);
+    if (isDifferent) serverPatch[key] = value;
   }
   return { serverPatch, clientPatch };
 }
@@ -1212,6 +2462,7 @@ async function loadBootstrap(showMessage = false) {
     if (runtimeConfig.mapHeight) mapHeight = runtimeConfig.mapHeight;
     renderSkinPicker();
     renderSettings();
+    syncQuickCenterFromRuntime();
     applyHudVisibility();
     if (showMessage) showToast('Settings reloaded');
   } catch (e) {
@@ -1237,6 +2488,7 @@ async function applySettingsPatch(patch) {
     setModeButtons(runtimeConfig.gameMode || currentMode);
     currentTeamCount = Number(runtimeConfig.teamCount) || currentTeamCount;
     renderSettings();
+    syncQuickCenterFromRuntime();
     applyHudVisibility();
     showToast('Settings applied');
   } catch (e) {
@@ -1254,6 +2506,7 @@ async function resetSettings() {
     setModeButtons(runtimeConfig.gameMode || currentMode);
     currentTeamCount = Number(runtimeConfig.teamCount) || currentTeamCount;
     renderSettings();
+    syncQuickCenterFromRuntime();
     applyHudVisibility();
     showToast('Defaults restored');
   } catch (e) {
@@ -1271,6 +2524,7 @@ async function regenerateWorld() {
     if (runtimeConfig.mapWidth) mapWidth = runtimeConfig.mapWidth;
     if (runtimeConfig.mapHeight) mapHeight = runtimeConfig.mapHeight;
     renderSettings();
+    syncQuickCenterFromRuntime();
     showToast('Match regenerated');
   } catch (e) {
     showToast(`Failed to regenerate: ${e.message}`, 2800);
@@ -1294,10 +2548,13 @@ function connect() {
         alive = true;
         spectating = false;
         userZoom = 0.88;
-        appliedPlayerSkin = currentMode === 'teams' ? null : (msg.skin || selectedSkin || null);
+        appliedPlayerSkin = msg.skin || selectedSkin || null;
         bestRankThisMatch = null;
         score = Number(runtimeConfig.startMass) || 10;
         peakScoreThisMatch = score;
+        stats.roundHighScore = Math.max(stats.roundHighScore, score);
+        stats.roundTotalScore = score;
+        resetRoundTelemetry(score);
         predictedPlayerCenter = { x: serverViewCenter.x, y: serverViewCenter.y };
         predictedPlayerMass = runtimeConfig.startMass || 10;
         if (msg.mode) setModeButtons(msg.mode);
@@ -1318,6 +2575,8 @@ function connect() {
         currentTeamCount = Number(msg.teamCount) || currentTeamCount;
         if (msg.mapWidth) mapWidth = msg.mapWidth;
         if (msg.mapHeight) mapHeight = msg.mapHeight;
+        if (Number.isFinite(Number(msg.massRadiusScale))) runtimeConfig.massRadiusScale = Number(msg.massRadiusScale);
+        if (Number.isFinite(Number(msg.massRadiusExponent))) runtimeConfig.massRadiusExponent = Number(msg.massRadiusExponent);
         serverViewCenter = msg.viewCenter;
         serverViewScale = msg.viewScale;
         if (typeof msg.spectating === 'boolean') {
@@ -1327,17 +2586,39 @@ function connect() {
         updateInterpMap(cellMap, msg.cells, clientSettings.globalLerp);
         updateInterpMap(foodMap, msg.food, Math.min(0.75, clientSettings.globalLerp + 0.12));
         updateInterpMap(virusMap, msg.viruses, Math.min(0.75, clientSettings.globalLerp + 0.05));
-        score = msg.cells
+        ingestChat(msg.chat);
+        const computedScore = msg.cells
           .filter((c) => c.mine || c.ownerId === playerId)
           .reduce((s, c) => s + c.mass, 0);
+        score = computedScore;
         predictedPlayerMass = score;
-        peakScoreThisMatch = Math.max(peakScoreThisMatch, score);
-        if (score > stats.highScore) { stats.highScore = score; saveStats(); }
-        if (leaderboard && leaderboard.length > 0) {
-          const me = leaderboard.find((e) => e.id === playerId);
-          if (me && (bestRankThisMatch === null || me.rank < bestRankThisMatch)) {
-            bestRankThisMatch = me.rank;
-            stats.lastRank = `${me.rank}`;
+        if (alive) {
+          peakScoreThisMatch = Math.max(peakScoreThisMatch, score);
+          stats.roundTotalScore = Math.round(score);
+          const prevAllTimeHigh = stats.allTimeHighScore;
+          if (score > stats.roundHighScore) stats.roundHighScore = score;
+          if (stats.roundHighScore > stats.allTimeHighScore) stats.allTimeHighScore = stats.roundHighScore;
+          if (stats.allTimeHighScore !== prevAllTimeHigh) saveStats();
+          if (leaderboard && leaderboard.length > 0) {
+            const me = leaderboard.find((e) => e.id === playerId);
+            if (me && (bestRankThisMatch === null || me.rank < bestRankThisMatch)) {
+              bestRankThisMatch = me.rank;
+              stats.roundBestRank = `${me.rank}`;
+              stats.lastRank = `${me.rank}`;
+            }
+            if (me && Number.isFinite(Number(me.rank))) {
+              const r = Math.max(1, Math.round(Number(me.rank)));
+              if (stats.allTimePeakRank == null || r < stats.allTimePeakRank) {
+                stats.allTimePeakRank = r;
+              }
+              if (r === 1 && !stats.roundFastestToFirstMs && roundStartAt > 0) {
+                const elapsed = Date.now() - roundStartAt;
+                stats.roundFastestToFirstMs = elapsed;
+                if (!stats.allTimeFastestToFirstMs || elapsed < stats.allTimeFastestToFirstMs) {
+                  stats.allTimeFastestToFirstMs = elapsed;
+                }
+              }
+            }
           }
         }
         break;
@@ -1366,9 +2647,25 @@ function connect() {
         const endScore = Math.max(Number(msg.peakScore) || 0, Math.round(peakScoreThisMatch || 0), Math.round(score || 0));
         document.getElementById('deathScore').textContent = `Peak score: ${endScore}`;
         stats.lastScore = endScore;
-        stats.totalScore += stats.lastScore;
-        stats.timesEaten += 1;
-        if (bestRankThisMatch !== null) stats.lastRank = `${bestRankThisMatch}`;
+        stats.roundTotalScore = Math.max(0, endScore);
+        stats.roundHighScore = Math.max(stats.roundHighScore, endScore);
+        stats.roundEaten += 1;
+        stats.allTimeTotalScore += endScore;
+        stats.allTimeTotalEaten += 1;
+        stats.allTimeHighScore = Math.max(stats.allTimeHighScore, stats.roundHighScore);
+        const survivalMs = Math.max(0, Math.round(stats.roundSurvivalMs || (roundStartAt > 0 ? (Date.now() - roundStartAt) : 0)));
+        stats.roundSurvivalMs = survivalMs;
+        stats.allTimeLongestSurvivalMs = Math.max(stats.allTimeLongestSurvivalMs || 0, survivalMs);
+        if (!stats.allTimeFastestDeathMs || survivalMs < stats.allTimeFastestDeathMs) {
+          stats.allTimeFastestDeathMs = survivalMs;
+        }
+        if (bestRankThisMatch === 1) stats.allTimeWins += 1;
+        if (bestRankThisMatch !== null && bestRankThisMatch <= 10) stats.allTimeTop10Finishes += 1;
+        stats.allTimeBiggestSingleGain = Math.max(stats.allTimeBiggestSingleGain || 0, stats.roundBiggestSingleGain || 0);
+        if (bestRankThisMatch !== null) {
+          stats.roundBestRank = `${bestRankThisMatch}`;
+          stats.lastRank = `${bestRankThisMatch}`;
+        }
         if (msg.mode) setModeButtons(msg.mode);
         currentTeamId = Number.isInteger(msg.teamId) ? msg.teamId : currentTeamId;
         saveStats();
@@ -1599,15 +2896,16 @@ function setSettingsPanelOpen(open) {
   settingsPanelOpen = open;
   document.getElementById('settingsPanel').classList.toggle('show', open);
   document.getElementById('settingsToggle').textContent = open ? 'Hide' : 'Customize';
-  if (open) setSkinPanelVisible(false);
 }
 
 document.getElementById('settingsToggle').addEventListener('click', () => setSettingsPanelOpen(!settingsPanelOpen));
-document.getElementById('openStatsBtn').addEventListener('click', () => {
+const openDetailedStats = () => {
   setSettingsPanelOpen(false);
   updateDetailedStatsUI();
   setStatsPanelOpen(true);
-});
+};
+document.getElementById('openStatsBtn').addEventListener('click', openDetailedStats);
+document.getElementById('openStatsBtnCenter').addEventListener('click', openDetailedStats);
 document.getElementById('closeStatsBtn').addEventListener('click', () => setStatsPanelOpen(false));
 document.getElementById('skinsBtn').addEventListener('click', async () => {
   setSettingsPanelOpen(false);
@@ -1616,14 +2914,27 @@ document.getElementById('skinsBtn').addEventListener('click', async () => {
   if (skinPanelVisible) await loadBootstrap(true);
 });
 document.getElementById('regenerateWorldBtn').addEventListener('click', async () => { await regenerateWorld(); });
+document.getElementById('quickApplyBtn').addEventListener('click', async () => {
+  const patch = collectQuickCenterPatch();
+  if (Object.keys(patch).length === 0) {
+    showToast('No quick-setting changes');
+    return;
+  }
+  await applySettingsPatch(patch);
+});
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const { serverPatch, clientPatch } = collectSettingsPatch();
   const changedClient = applyClientSettingsPatch(clientPatch);
   if (Object.keys(serverPatch).length > 0) {
     await applySettingsPatch(serverPatch);
+    if (changedClient) {
+      renderSettings();
+      showToast('Server + client settings applied');
+    }
     return;
   }
   if (changedClient) {
+    renderSettings();
     showToast('Client settings applied');
   } else {
     showToast('No setting changes to apply');
@@ -1655,6 +2966,10 @@ document.getElementById('teamModeBtn').addEventListener('click', async () => {
   if ((runtimeConfig.gameMode || currentMode) === 'teams') return;
   await applySettingsPatch({ gameMode: 'teams' });
 });
+document.getElementById('experimentalModeBtn').addEventListener('click', async () => {
+  if ((runtimeConfig.gameMode || currentMode) === 'experimental') return;
+  await applySettingsPatch({ gameMode: 'experimental' });
+});
 
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && spectating) {
@@ -1676,13 +2991,16 @@ function spawn() {
   const name = document.getElementById('nickInput').value.trim();
   const preferredSkin = sanitizeSkinName(selectedSkin);
   selectedSkin = preferredSkin;
-  const activeSkin = currentMode === 'teams' ? null : preferredSkin;
+  const activeSkin = preferredSkin;
   appliedPlayerSkin = activeSkin || null;
-  if (currentMode === 'teams' && preferredSkin) {
-    showToast('Skin saved for next non-team round', 1500);
-  }
   peakScoreThisMatch = 0;
-  stats.gamesPlayed += 1;
+  bestRankThisMatch = null;
+  stats.roundHighScore = Number(runtimeConfig.startMass) || 10;
+  stats.roundTotalScore = Number(runtimeConfig.startMass) || 10;
+  stats.roundEaten = 0;
+  stats.roundBestRank = '-';
+  resetRoundTelemetry(stats.roundTotalScore);
+  stats.allTimeGamesPlayed += 1;
   saveStats();
   updateStatsUI();
   ws.send(JSON.stringify({ type: 'spawn', name, skin: activeSkin || '' }));
@@ -1690,14 +3008,15 @@ function spawn() {
 
 function isCellHiddenUnderVirus(cell, viruses) {
   if (!cell || !viruses || viruses.length === 0) return false;
+  const cellRadius = radiusFromMass(cell.mass);
   for (const v of viruses) {
     if (!v) continue;
-    if (v.kind !== 'spawner') continue;
-    if (cell.mass >= v.mass) continue;
-    const vr = Math.sqrt(v.mass) * 6 * 1.02;
+    const vr = radiusFromMass(v.mass);
+    if (cellRadius >= vr) continue;
+    const hideRadius = vr * 1.02;
     const dx = cell.x - v.x;
     const dy = cell.y - v.y;
-    if (dx * dx + dy * dy < vr * vr) return true;
+    if (dx * dx + dy * dy < hideRadius * hideRadius) return true;
   }
   return false;
 }
@@ -1776,16 +3095,40 @@ function render(timestamp) {
 
   for (const [, f] of foodMap) {
     if (!isInRenderBounds(f.x, f.y)) continue;
-    const r = f.type === 'ejected' ? 7 : (f.type === 'spawner' ? 3.7 : 3.1);
+    const r = f.type === 'ejected'
+      ? 7.2
+      : (f.type === 'spawner' ? 4.2 : (f.type === 'golden' ? 4.9 : (f.type === 'bounty' ? 5.2 : (f.type === 'plasma' ? 4.7 : 3.8))));
     ctx.beginPath();
     ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = f.type === 'spawner' ? '#ffb0cf' : (f.color || '#aaa');
+    ctx.fillStyle = f.type === 'spawner'
+      ? '#ffb0cf'
+      : (f.type === 'golden' ? '#ffd34a' : (f.type === 'bounty' ? '#ff9f3f' : (f.type === 'plasma' ? '#4bd4ff' : (f.color || '#aaa'))));
     ctx.fill();
     if (f.type === 'spawner') {
       ctx.beginPath();
       ctx.arc(f.x, f.y, r + 0.6, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(255,255,255,0.65)';
       ctx.lineWidth = 0.9;
+      ctx.stroke();
+    } else if (f.type === 'golden' || f.type === 'bounty' || f.type === 'plasma') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, r + 1.1, 0, Math.PI * 2);
+      ctx.strokeStyle = f.type === 'golden'
+        ? 'rgba(255,235,120,0.95)'
+        : (f.type === 'bounty' ? 'rgba(255,210,146,0.9)' : 'rgba(150,235,255,0.92)');
+      ctx.shadowColor = f.type === 'golden'
+        ? 'rgba(255,220,80,0.55)'
+        : (f.type === 'bounty' ? 'rgba(255,170,94,0.55)' : 'rgba(92,205,240,0.55)');
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = 1.3;
+      ctx.stroke();
+      ctx.restore();
+    } else if (f.type !== 'ejected') {
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, r + 0.3, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+      ctx.lineWidth = 0.6;
       ctx.stroke();
     }
   }
@@ -1801,11 +3144,11 @@ function render(timestamp) {
     else visibleAboveVirus.push(c);
   }
   for (const c of hiddenUnderVirus) {
-    drawCell(c.x, c.y, Math.sqrt(c.mass) * 6, c.color, c.name, c.mass, c.mine, c.skin, c.ownerId, c.teamId);
+    drawCell(c.x, c.y, radiusFromMass(c.mass), c.color, c.name, c.mass, c.mine, c.skin, c.ownerId, c.teamId);
   }
   for (const v of visibleViruses) drawVirus(v);
   for (const c of visibleAboveVirus) {
-    drawCell(c.x, c.y, Math.sqrt(c.mass) * 6, c.color, c.name, c.mass, c.mine, c.skin, c.ownerId, c.teamId);
+    drawCell(c.x, c.y, radiusFromMass(c.mass), c.color, c.name, c.mass, c.mine, c.skin, c.ownerId, c.teamId);
   }
 
   ctx.restore();
@@ -1816,12 +3159,15 @@ function render(timestamp) {
     drawMinimap();
     drawTeamChart();
   }
+  if (alive) {
+    recordRoundTelemetry(dtSec);
+  }
   updateStatsUI();
   document.getElementById('fpsCounter').textContent = fpsCap > 0 ? `${fps} FPS (${fpsCap} cap)` : `${fps} FPS`;
 }
 
 function drawGrid() {
-  const gridSize = 32;
+  const gridSize = Math.max(14, Math.min(64, Math.round(Number(clientSettings.gridSize) || 18)));
   const style = getComputedStyle(document.body);
   ctx.fillStyle = style.getPropertyValue('--grid-bg').trim() || '#161f35';
   ctx.fillRect(0, 0, mapWidth, mapHeight);
@@ -1840,65 +3186,57 @@ function drawGrid() {
 function drawCell(x, y, r, color, name, mass, mine, skin, ownerId, teamId) {
   const rank = ownerId != null ? leaderRankByOwner.get(ownerId) : null;
   const medal = getRankMedal(rank || 0);
-  const skinName = (clientSettings.hideSkins || currentMode === 'teams') ? null : (skin || (mine ? appliedPlayerSkin : null));
+  const skinName = clientSettings.hideSkins ? null : (skin || (mine ? appliedPlayerSkin : null));
+  const baseColor = color || '#7ea0d4';
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.clip();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = baseColor;
+  ctx.fill();
   const skinImg = skinName && r > 12 ? fetchSkinImage(skinName) : null;
   if (skinImg && skinImg.complete && skinImg.naturalWidth > 0) {
+    ctx.globalAlpha = 0.88;
     ctx.drawImage(skinImg, x - r, y - r, r * 2, r * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
-  } else {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = color || '#7ea0d4';
-    ctx.fill();
   }
   ctx.restore();
 
-  ctx.strokeStyle = skinImg && skinImg.complete ? 'rgba(255,255,255,0.5)' : darkenColor(color, 0.72);
-  ctx.lineWidth = Math.max(3, r * 0.07);
+  ctx.save();
+  ctx.strokeStyle = mine ? baseColor : darkenColor(baseColor, 0.76);
+  ctx.lineWidth = Math.max(3, r * 0.072);
+  if (mine) {
+    ctx.shadowColor = baseColor;
+    ctx.shadowBlur = Math.max(7, r * 0.17);
+  }
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.restore();
 
-  if (mine) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(x, y, r + 2.5, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(121, 255, 220, 0.92)';
-    ctx.shadowColor = 'rgba(121, 255, 220, 0.65)';
-    ctx.shadowBlur = 16;
-    ctx.lineWidth = Math.max(2.2, r * 0.09);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.beginPath();
-    ctx.arc(x, y, r + 7, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-  }
-
-  const canShowName = !clientSettings.hideNames && !!name && r > 18;
+  const canShowName = !clientSettings.hideNames && !!name && r > 4.2;
   const allowMassForCell = mine || !!clientSettings.showOtherMass;
-  const canShowMass = allowMassForCell && !clientSettings.hideMass && r > (mine ? 20 : 34) && (!canShowName || r >= 40);
+  const canShowMass = allowMassForCell && !clientSettings.hideMass && r > (mine ? 9 : 12) && (!canShowName || r >= 14);
   if (canShowName || canShowMass) {
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const fontSize = Math.max(14, Math.min(r * 0.5, 70));
+    const fontSize = Math.max(9, Math.min(r * 0.5, 70));
     ctx.strokeStyle = 'rgba(0,0,0,0.45)';
     ctx.lineWidth = Math.max(2, fontSize * 0.08);
     ctx.lineJoin = 'round';
     let nameY = y;
     if (canShowName) {
-      nameY = r > 35 ? y - fontSize * 0.28 : y;
+      const maxNameChars = r < 13 ? 6 : (r < 20 ? 10 : 20);
+      const shortName = String(name).slice(0, maxNameChars);
+      nameY = r > 20 ? y - fontSize * 0.28 : y;
       ctx.font = `700 ${fontSize}px Manrope, sans-serif`;
-      ctx.strokeText(name, x, nameY);
-      ctx.fillText(name, x, nameY);
+      ctx.strokeText(shortName, x, nameY);
+      ctx.fillText(shortName, x, nameY);
     }
     if (canShowMass) {
       const massSize = Math.max(11, fontSize * 0.52);
@@ -1907,9 +3245,9 @@ function drawCell(x, y, r, color, name, mass, mine, skin, ownerId, teamId) {
       ctx.strokeText(Math.round(mass), x, massY);
       ctx.fillText(Math.round(mass), x, massY);
     }
-    if (canShowName && medal && r > 28) {
+    if (canShowName && medal && r > 5.8) {
       ctx.font = `700 ${Math.max(14, fontSize * 0.52)}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-      const medalY = y + fontSize * (r > 35 ? 0.9 : 0.45);
+      const medalY = y + fontSize * (r > 20 ? 0.9 : 0.45);
       ctx.strokeText(medal, x, medalY);
       ctx.fillText(medal, x, medalY);
     }
@@ -1919,7 +3257,7 @@ function drawCell(x, y, r, color, name, mass, mine, skin, ownerId, teamId) {
 function drawVirus(v) {
   const x = v.x;
   const y = v.y;
-  const r = Math.sqrt(v.mass) * 6;
+  const r = radiusFromMass(v.mass);
   const isSpawner = v.kind === 'spawner';
 
   if (isSpawner) {
@@ -2103,7 +3441,7 @@ function drawMinimap() {
   const sx = mw / mapWidth, sy = mh / mapHeight;
   for (const [, c] of cellMap) {
     mc.beginPath();
-    mc.arc(c.x * sx, c.y * sy, Math.max(1.5, Math.sqrt(c.mass) * 0.33), 0, Math.PI * 2);
+    mc.arc(c.x * sx, c.y * sy, Math.max(1.5, radiusFromMass(c.mass) * 0.055), 0, Math.PI * 2);
     mc.fillStyle = c.mine ? '#63ff72' : (c.color || '#8eb1df');
     mc.fill();
   }
@@ -2144,3 +3482,4 @@ function escapeHtml(text) {
 </script>
 </body>
 </html>
+

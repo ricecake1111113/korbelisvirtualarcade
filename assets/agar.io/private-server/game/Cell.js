@@ -1,4 +1,16 @@
 class Cell {
+    static radiusScale = 6;
+    static radiusExponent = 0.5;
+
+    static setRadiusTuning(scale, exponent) {
+        if (Number.isFinite(scale)) {
+            Cell.radiusScale = Math.max(0.1, scale);
+        }
+        if (Number.isFinite(exponent)) {
+            Cell.radiusExponent = Math.max(0.2, Math.min(0.8, exponent));
+        }
+    }
+
     constructor({ id, x, y, mass, color, owner, name }) {
         this.id = id;
         this.x = x;
@@ -13,7 +25,7 @@ class Cell {
     }
 
     radius() {
-        return Math.sqrt(this.mass) * 6;
+        return Math.pow(Math.max(1, this.mass), Cell.radiusExponent) * Cell.radiusScale;
     }
 }
 

@@ -2,18 +2,32 @@
 // Optional: set GAME_MEMORY_MB env var to match your host memory budget.
 const gameConfig = {
     gameMode: 'ffa',
+    instaMerge: false,
+    allowExperimentalInClassicModes: false,
     teamCount: 3,
-    maxFood: 2200,
-    maxViruses: 20,
-    botCount: 32,
+    maxFood: 2100,
+    maxViruses: 18,
+    botCount: 42,
     deferBotsUntilHumans: false,
     spectatorBotCount: 1,
     tickRate: 30,
     startMass: 8,
     decayRate: 0.001,
+    massRadiusScale: 4.9,
+    massRadiusExponent: 0.46,
     maxCells: 64,
     minSplitMass: 35,
     mergeTime: 10,
+    cellEatMassRatio: 1.22,
+    cellEatCenterInsideRatio: 0.42,
+    cellEatCoverageRatio: 0.88,
+    baseFoodMass: 0.34,
+    goldenFoodChance: 0.014,
+    goldenFoodMass: 2.2,
+    plasmaFoodChance: 0.018,
+    plasmaFoodMass: 1.45,
+    ejectedPelletMass: 5.2,
+    ejectedPelletCost: 11.6,
     mapWidth: 5000,
     mapHeight: 5000,
     leaderboardSize: 100,
@@ -27,6 +41,11 @@ const gameConfig = {
     maxVisibleFoodPerPlayer: 650,
     maxVisibleCellsPerPlayer: 450,
 
+    // Bot sleep/offload system — bots beyond botSleepDistance from all humans stop thinking
+    botSleepThreshold: 40,   // min alive bot count before sleep kicks in
+    botSleepDistance: 1400,  // distance from any human before a bot is eligible for sleep
+    botSleepMs: 3000,        // minimum sleep duration per cycle (ms)
+
     // Bot behavior/perf knobs
     botThinkInterval: 0.28,
     botMinSplitCells: 2,
@@ -37,6 +56,15 @@ const gameConfig = {
     botSwerveStrength: 0.7,
     botSwerveThreatBuffer: 180,
     botBoldnessBase: 0.45,
+    botSmartnessScale: 1,
+    botAffectionScale: 1,
+    botBoldnessScale: 1,
+    botGreedinessScale: 1,
+    botSheepishnessScale: 1,
+    botHumanityScale: 1,
+    botTrickinessScale: 1,
+    botOpportunismScale: 1,
+    botHerdResistanceScale: 1,
     botBoldSplitBurstChance: 0.1,
     botPanicRetreatChance: 0.18,
     botPanicRetreatMinMass: 110,
@@ -44,7 +72,7 @@ const gameConfig = {
     botGullibleChance: 0.35,
     botGullibleTeamBonus: 0.28,
     botHelpMemoryMs: 26000,
-    botSkinChance: 0.72,
+    botSkinChance: 0.92,
     botHumanAssistChance: 0.08,
     botMaxSupportersPerHuman: 1,
     spectatorFollowHumanChance: 0.45,
@@ -56,8 +84,13 @@ const gameConfig = {
     botSenseCellScanLimit: 400,
     botSenseVirusScanLimit: 80,
     botSenseFoodSampleLimit: 150,
+    botPopulationAdjustIntervalMs: 900,
+    botPopulationRampPerStep: 6,
+    botPopulationHoverMinRatio: 0.9,
+    botPopulationHoverVariance: 6,
+    preserveAliveBots: true,
     botSpawnMassMode: 'varied',
-    botRespawnMassMode: 'player_start',
+    botRespawnMassMode: 'varied',
     botSpawnPlayerMassScale: 1,
     moldColonyMode: false,
     botKamikazeChance: 0.02,
@@ -93,22 +126,30 @@ const gameConfig = {
     spectatorFeedCooldownMs: 2400,
     spectatorFeedChance: 0.4,
     spectatorFeedMinMass: 55,
+    enableBotChat: false,
+    botChatChancePerSecond: 0.32,
+    botChatMaxBacklog: 80,
+    enableBountyPellets: true,
+    bountyPelletIntervalMs: 7000,
+    bountyPelletMass: 3.4,
+    bountyLeaderMinMass: 180,
 
     // Virus mechanics
-    virusBaseMass: 100,
+    virusBaseMass: 64,
     virusFeedMassGain: 14,
     virusSplitMass: 220,
     virusShotSpeed: 30,
     virusShotFriction: 0.9,
-    virusEatBonusMass: 18,
+    virusEatBonusMass: 10,
     maxVirusEntities: 60,
     spawnerVirusesInFFA: false,
     spawnerVirusChance: 0.22,
-    forceSpawnerVirusesInTeams: true,
+    forceSpawnerVirusesInTeams: false,
+    forceSpawnerVirusesInExperimental: true,
     normalVirusCanKill: false,
     spawnerDispenseRate: 0.45,
     spawnerPassiveRatePerSec: 1,
-    spawnerPelletMass: 0.7,
+    spawnerPelletMass: 0.55,
     virusSmallCellKillRatio: 0.52,
     virusHideRatio: 0.9,
     botVirusWeaponChance: 0.22,
@@ -169,14 +210,22 @@ function applyPerformanceBudget(baseConfig) {
         : baseConfig.memoryBudgetMB;
     const memoryBudgetMB = clampInt(rawBudget, 128, 8192);
     applyNote(tuned, notes, 'memoryBudgetMB', memoryBudgetMB);
-    applyNote(tuned, notes, 'gameMode', tuned.gameMode === 'teams' ? 'teams' : 'ffa');
+    const mode = `${tuned.gameMode || 'ffa'}`.toLowerCase();
+    applyNote(
+        tuned,
+        notes,
+        'gameMode',
+        mode === 'teams' || mode === 'experimental' ? mode : 'ffa'
+    );
+    applyNote(tuned, notes, 'instaMerge', !!tuned.instaMerge);
+    applyNote(tuned, notes, 'allowExperimentalInClassicModes', !!tuned.allowExperimentalInClassicModes);
     applyNote(tuned, notes, 'teamCount', clampInt(valueOr(tuned.teamCount, 3), 2, 12));
 
     const areaScale = Math.sqrt((tuned.mapWidth * tuned.mapHeight) / (5000 * 5000));
     const budgetScale = clamp(memoryBudgetMB / 512, 0.35, 4);
 
     const maxFoodCap = Math.max(800, clampInt(5000 * budgetScale * areaScale, 800, 18000));
-    const botCap = Math.max(12, clampInt(120 * budgetScale * areaScale, 12, 260));
+    const botCap = Math.max(20, clampInt(700 * budgetScale * areaScale, 20, 2400));
     const virusCap = Math.max(10, clampInt(40 * budgetScale * areaScale, 10, 200));
     const tickCap = memoryBudgetMB < 384 ? 30 : (memoryBudgetMB < 1024 ? 40 : 50);
 
@@ -227,13 +276,31 @@ function applyPerformanceBudget(baseConfig) {
             Math.max(300, (tuned.botCount + 1) * Math.max(1, tuned.maxCells))
         )
     );
+    applyNote(tuned, notes, 'massRadiusScale', clamp(valueOr(tuned.massRadiusScale, 4.9), 3.2, 8.5));
+    applyNote(tuned, notes, 'massRadiusExponent', clamp(valueOr(tuned.massRadiusExponent, 0.46), 0.35, 0.65));
+    applyNote(tuned, notes, 'baseFoodMass', clamp(valueOr(tuned.baseFoodMass, 0.42), 0.1, 3));
+    applyNote(tuned, notes, 'goldenFoodChance', clamp(valueOr(tuned.goldenFoodChance, 0.014), 0, 0.15));
+    applyNote(tuned, notes, 'goldenFoodMass', clamp(valueOr(tuned.goldenFoodMass, 2.2), 0.1, 12));
+    applyNote(tuned, notes, 'plasmaFoodChance', clamp(valueOr(tuned.plasmaFoodChance, 0.018), 0, 0.25));
+    applyNote(tuned, notes, 'plasmaFoodMass', clamp(valueOr(tuned.plasmaFoodMass, 1.45), 0.1, 12));
+    applyNote(tuned, notes, 'ejectedPelletMass', clamp(valueOr(tuned.ejectedPelletMass, 6), 1, 20));
+    applyNote(tuned, notes, 'ejectedPelletCost', clamp(valueOr(tuned.ejectedPelletCost, 13), 2, 50));
 
     applyNote(tuned, notes, 'botThinkInterval', clamp(valueOr(tuned.botThinkInterval, 0.24), 0.08, 0.8));
-    applyNote(tuned, notes, 'spectatorBotCount', clampInt(tuned.spectatorBotCount || 0, 0, 16));
+    applyNote(tuned, notes, 'spectatorBotCount', clampInt(tuned.spectatorBotCount || 0, 0, 500));
     applyNote(tuned, notes, 'botSmartChance', clamp(valueOr(tuned.botSmartChance, 0.5), 0, 1));
     applyNote(tuned, notes, 'botSwerveStrength', clamp(valueOr(tuned.botSwerveStrength, 0.7), 0, 1.5));
     applyNote(tuned, notes, 'botSwerveThreatBuffer', clampInt(tuned.botSwerveThreatBuffer || 180, 20, 900));
     applyNote(tuned, notes, 'botBoldnessBase', clamp(valueOr(tuned.botBoldnessBase, 0.45), 0, 1));
+    applyNote(tuned, notes, 'botSmartnessScale', clamp(valueOr(tuned.botSmartnessScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botAffectionScale', clamp(valueOr(tuned.botAffectionScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botBoldnessScale', clamp(valueOr(tuned.botBoldnessScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botGreedinessScale', clamp(valueOr(tuned.botGreedinessScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botSheepishnessScale', clamp(valueOr(tuned.botSheepishnessScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botHumanityScale', clamp(valueOr(tuned.botHumanityScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botTrickinessScale', clamp(valueOr(tuned.botTrickinessScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botOpportunismScale', clamp(valueOr(tuned.botOpportunismScale, 1), 0.2, 3));
+    applyNote(tuned, notes, 'botHerdResistanceScale', clamp(valueOr(tuned.botHerdResistanceScale, 1), 0.2, 3));
     applyNote(tuned, notes, 'botBoldSplitBurstChance', clamp(valueOr(tuned.botBoldSplitBurstChance, 0.1), 0, 1));
     applyNote(tuned, notes, 'botPanicRetreatChance', clamp(valueOr(tuned.botPanicRetreatChance, 0.18), 0, 1));
     applyNote(tuned, notes, 'botPanicRetreatMinMass', clampInt(valueOr(tuned.botPanicRetreatMinMass, 110), 20, 10000));
@@ -243,7 +310,7 @@ function applyPerformanceBudget(baseConfig) {
     applyNote(tuned, notes, 'botGullibleChance', clamp(valueOr(tuned.botGullibleChance, 0.35), 0, 1));
     applyNote(tuned, notes, 'botGullibleTeamBonus', clamp(valueOr(tuned.botGullibleTeamBonus, 0.28), 0, 1));
     applyNote(tuned, notes, 'botHelpMemoryMs', clampInt(tuned.botHelpMemoryMs || 26000, 1000, 180000));
-    applyNote(tuned, notes, 'botSkinChance', clamp(valueOr(tuned.botSkinChance, 0.72), 0, 1));
+    applyNote(tuned, notes, 'botSkinChance', clamp(valueOr(tuned.botSkinChance, 0.92), 0, 1));
     applyNote(tuned, notes, 'botHumanAssistChance', clamp(valueOr(tuned.botHumanAssistChance, 0.2), 0, 1));
     applyNote(tuned, notes, 'botMaxSupportersPerHuman', clampInt(valueOr(tuned.botMaxSupportersPerHuman, 2), 1, 12));
     applyNote(tuned, notes, 'spectatorFollowHumanChance', clamp(valueOr(tuned.spectatorFollowHumanChance, 0.45), 0, 1));
@@ -253,6 +320,11 @@ function applyPerformanceBudget(baseConfig) {
     applyNote(tuned, notes, 'botSenseCellScanLimit', clampInt(tuned.botSenseCellScanLimit || defaultCellSense, 120, 2200));
     applyNote(tuned, notes, 'botSenseFoodSampleLimit', clampInt(tuned.botSenseFoodSampleLimit || defaultFoodSense, 40, 900));
     applyNote(tuned, notes, 'botSenseVirusScanLimit', clampInt(tuned.botSenseVirusScanLimit || defaultVirusSense, 20, 400));
+    applyNote(tuned, notes, 'botPopulationAdjustIntervalMs', clampInt(tuned.botPopulationAdjustIntervalMs || 900, 250, 12000));
+    applyNote(tuned, notes, 'botPopulationRampPerStep', clampInt(tuned.botPopulationRampPerStep || Math.max(2, Math.round(tuned.botCount / 18)), 1, 120));
+    applyNote(tuned, notes, 'botPopulationHoverMinRatio', clamp(valueOr(tuned.botPopulationHoverMinRatio, 0.9), 0.5, 1));
+    applyNote(tuned, notes, 'botPopulationHoverVariance', clampInt(tuned.botPopulationHoverVariance || Math.max(2, Math.round(tuned.botCount * 0.08)), 0, 2000));
+    applyNote(tuned, notes, 'preserveAliveBots', tuned.preserveAliveBots !== false);
     applyNote(tuned, notes, 'botMinSplitCells', clampInt(tuned.botMinSplitCells || 2, 1, Math.max(1, tuned.maxCells)));
     applyNote(tuned, notes, 'botMaxSplitCells', clampInt(tuned.botMaxSplitCells || defaultBotMaxSplitCells, 1, Math.max(1, tuned.maxCells)));
     applyNote(tuned, notes, 'botTeamSeekIntervalMs', clampInt(tuned.botTeamSeekIntervalMs || 2400, 300, 10000));
@@ -304,6 +376,19 @@ function applyPerformanceBudget(baseConfig) {
         notes.push(`botCircleSpitPelletsMin: ${tuned.botCircleSpitPelletsMin} -> ${tuned.botCircleSpitPelletsMax}`);
         tuned.botCircleSpitPelletsMin = tuned.botCircleSpitPelletsMax;
     }
+    if (tuned.ejectedPelletCost < tuned.ejectedPelletMass) {
+        const nextCost = Math.ceil(tuned.ejectedPelletMass + 1);
+        notes.push(`ejectedPelletCost: ${tuned.ejectedPelletCost} -> ${nextCost}`);
+        tuned.ejectedPelletCost = nextCost;
+    }
+    if (tuned.goldenFoodMass < tuned.baseFoodMass) {
+        notes.push(`goldenFoodMass: ${tuned.goldenFoodMass} -> ${tuned.baseFoodMass}`);
+        tuned.goldenFoodMass = tuned.baseFoodMass;
+    }
+    if (tuned.plasmaFoodMass < tuned.baseFoodMass) {
+        notes.push(`plasmaFoodMass: ${tuned.plasmaFoodMass} -> ${tuned.baseFoodMass}`);
+        tuned.plasmaFoodMass = tuned.baseFoodMass;
+    }
 
     const allowedSpawnModes = ['varied', 'player_start', 'player_current'];
     if (!allowedSpawnModes.includes(tuned.botSpawnMassMode)) {
@@ -316,23 +401,34 @@ function applyPerformanceBudget(baseConfig) {
     }
     tuned.moldColonyMode = !!tuned.moldColonyMode;
 
-    applyNote(tuned, notes, 'virusBaseMass', clampInt(tuned.virusBaseMass || 100, 40, 250));
+    applyNote(tuned, notes, 'virusBaseMass', clampInt(tuned.virusBaseMass || 72, 40, 250));
     applyNote(tuned, notes, 'virusFeedMassGain', clampInt(tuned.virusFeedMassGain || 14, 1, 50));
     applyNote(tuned, notes, 'virusShotSpeed', clamp(tuned.virusShotSpeed || 30, 5, 90));
     applyNote(tuned, notes, 'virusShotFriction', clamp(tuned.virusShotFriction || 0.9, 0.7, 0.98));
-    applyNote(tuned, notes, 'virusEatBonusMass', clampInt(tuned.virusEatBonusMass || 18, 0, 120));
+    applyNote(tuned, notes, 'virusEatBonusMass', clampInt(tuned.virusEatBonusMass || 10, 0, 120));
     applyNote(tuned, notes, 'spawnerVirusesInFFA', !!tuned.spawnerVirusesInFFA);
     applyNote(tuned, notes, 'spawnerVirusChance', clamp(valueOr(tuned.spawnerVirusChance, 0.22), 0, 1));
     applyNote(tuned, notes, 'forceSpawnerVirusesInTeams', tuned.forceSpawnerVirusesInTeams !== false);
+    applyNote(tuned, notes, 'forceSpawnerVirusesInExperimental', tuned.forceSpawnerVirusesInExperimental !== false);
     applyNote(tuned, notes, 'normalVirusCanKill', !!tuned.normalVirusCanKill);
     applyNote(tuned, notes, 'spawnerDispenseRate', clamp(valueOr(tuned.spawnerDispenseRate, 0.45), 0.1, 4));
     applyNote(tuned, notes, 'spawnerPassiveRatePerSec', clamp(valueOr(tuned.spawnerPassiveRatePerSec, 1), 0, 6));
-    applyNote(tuned, notes, 'spawnerPelletMass', clamp(valueOr(tuned.spawnerPelletMass, 0.7), 0.25, 6));
+    applyNote(tuned, notes, 'spawnerPelletMass', clamp(valueOr(tuned.spawnerPelletMass, 0.55), 0.25, 6));
     applyNote(tuned, notes, 'virusSmallCellKillRatio', clamp(valueOr(tuned.virusSmallCellKillRatio, 0.52), 0.1, 0.95));
     applyNote(tuned, notes, 'virusHideRatio', clamp(valueOr(tuned.virusHideRatio, 0.9), 0.2, 1.4));
+    applyNote(tuned, notes, 'cellEatMassRatio', clamp(valueOr(tuned.cellEatMassRatio, 1.22), 1.05, 2.5));
+    applyNote(tuned, notes, 'cellEatCenterInsideRatio', clamp(valueOr(tuned.cellEatCenterInsideRatio, 0.42), 0.1, 0.95));
+    applyNote(tuned, notes, 'cellEatCoverageRatio', clamp(valueOr(tuned.cellEatCoverageRatio, 0.88), 0.45, 0.98));
     applyNote(tuned, notes, 'botVirusWeaponChance', clamp(valueOr(tuned.botVirusWeaponChance, 0.22), 0, 1));
     applyNote(tuned, notes, 'botVirusWeaponCooldownMs', clampInt(valueOr(tuned.botVirusWeaponCooldownMs, 2600), 100, 20000));
     applyNote(tuned, notes, 'botVirusWeaponMinMass', clampInt(valueOr(tuned.botVirusWeaponMinMass, 80), 20, 5000));
+    applyNote(tuned, notes, 'enableBotChat', !!tuned.enableBotChat);
+    applyNote(tuned, notes, 'botChatChancePerSecond', clamp(valueOr(tuned.botChatChancePerSecond, 0.32), 0, 2));
+    applyNote(tuned, notes, 'botChatMaxBacklog', clampInt(valueOr(tuned.botChatMaxBacklog, 80), 10, 400));
+    applyNote(tuned, notes, 'enableBountyPellets', tuned.enableBountyPellets !== false);
+    applyNote(tuned, notes, 'bountyPelletIntervalMs', clampInt(valueOr(tuned.bountyPelletIntervalMs, 7000), 1500, 30000));
+    applyNote(tuned, notes, 'bountyPelletMass', clamp(valueOr(tuned.bountyPelletMass, 3.4), 0.1, 20));
+    applyNote(tuned, notes, 'bountyLeaderMinMass', clampInt(valueOr(tuned.bountyLeaderMinMass, 180), 40, 25000));
     applyNote(
         tuned,
         notes,
