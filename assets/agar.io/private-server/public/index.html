@@ -2449,7 +2449,7 @@ function collectSettingsPatch() {
 
 async function loadBootstrap(showMessage = false) {
   try {
-    const res = await fetch('/api/bootstrap');
+    const res = await fetch('./api/bootstrap');
     const data = await res.json();
     if (!data || !data.ok) throw new Error('bootstrap failed');
     settingsSchema = data.settings || [];
