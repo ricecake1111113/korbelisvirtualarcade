@@ -76,6 +76,7 @@ const SETTINGS_SCHEMA = [
     { key: 'botPopulationHoverMinRatio', label: 'Bot Hover Min Ratio', description: 'Population hovers between this ratio and full bot count target.', type: 'number', min: 0.5, max: 1, step: 0.01, group: 'Bots' },
     { key: 'botPopulationHoverVariance', label: 'Bot Hover Variance', description: 'Extra random variance for hovering bot counts below target.', type: 'number', min: 0, max: 2000, step: 1, group: 'Bots' },
     { key: 'preserveAliveBots', label: 'Preserve Alive Bots', description: 'When enabled, live bots are never despawned during target-count trims.', type: 'boolean', group: 'Bots' },
+    { key: 'disableBotRespawn', label: 'Disable Bot Respawn', description: 'When enabled, bots do not respawn after being eaten. Useful for survival/depletion modes.', type: 'boolean', group: 'Bots' },
     { key: 'botSmartChance', label: 'Smart Bot Chance', description: 'Chance a newly spawned bot uses smarter routing behavior.', type: 'number', min: 0, max: 1, step: 0.01, group: 'Bots' },
     { key: 'botSwerveStrength', label: 'Smart Swerve Strength', description: 'How aggressively smart bots curve around threats.', type: 'number', min: 0, max: 1.5, step: 0.01, group: 'Bots' },
     { key: 'botSwerveThreatBuffer', label: 'Swerve Threat Buffer', description: 'Extra threat distance considered when swerving.', type: 'number', min: 20, max: 900, step: 5, group: 'Bots' },

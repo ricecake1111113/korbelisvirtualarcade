@@ -158,6 +158,7 @@ const gameConfig = {
     sacrificeToPlayerBots: false,
     sacrificeToPlayerBotChance: 0.08,
     sacrificeToPlayerBotMaxShare: 0.15,
+    disableBotRespawn: false,
 };
 
 const requiredKeys = [

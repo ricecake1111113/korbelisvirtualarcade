@@ -133,7 +133,7 @@ class Bot {
         this.supportCooldown = 0;
         this.virusWeaponCooldown = 0;
 
-        this.baseThinkInterval = game.config.botThinkInterval ?? 0.24;
+        this.baseThinkInterval = game.config.botThinkInterval ?? 0.12;
         this.targetLerp = 0.04 + Math.random() * 0.06;
 
         this.teamPartnerId = null;
@@ -819,7 +819,7 @@ class Bot {
 
         if (this.runSupportRole(game, senseContext, myMass, myPos)) return;
 
-        const scanRange = 680 + this.massToRadius(game, Math.max(1, myMass)) * 2.2;
+        const scanRange = 900 + this.massToRadius(game, Math.max(1, myMass)) * 2.8;
         const scanRangeSq = scanRange * scanRange;
 
         const sensedCells = (senseContext && senseContext.cells && senseContext.cells.length > 0)
@@ -1035,6 +1035,14 @@ class Bot {
                     if (virusDist < nearestVirus.radius + 120) score *= 0.45;
                 }
 
+                // Skip food that's near a larger enemy cell
+                if (closestThreat && closestThreat.mass > myLargestBlobMass) {
+                    const threatToFoodDx = food.x - closestThreat.x;
+                    const threatToFoodDy = food.y - closestThreat.y;
+                    const threatToFoodDist = Math.sqrt(threatToFoodDx * threatToFoodDx + threatToFoodDy * threatToFoodDy);
+                    if (threatToFoodDist < 300) score *= 0.3;
+                }
+
                 if (score > bestFoodScore) {
                     bestFoodScore = score;
                     bestFood = { x: food.x, y: food.y };
@@ -1150,8 +1158,25 @@ class Bot {
                     y: myPos.y + retreatUnitY * 700 + sideY * 180 + crowdRepulsion.y * 260 + anchorUnitY * 120,
                 };
                 const edgeEscape = this.getDistributedEdgeEscape(game, myPos, retreatUnitX, retreatUnitY, crowdRepulsion);
-                this.desiredTarget.x = baseEscape.x * 0.58 + edgeEscape.x * 0.42;
-                this.desiredTarget.y = baseEscape.y * 0.58 + edgeEscape.y * 0.42;
+                let escapeTarget = { x: baseEscape.x * 0.58 + edgeEscape.x * 0.42, y: baseEscape.y * 0.58 + edgeEscape.y * 0.42 };
+
+                // Check if escape path is blocked by viruses; if so, swerve around them
+                if (nearestVirus) {
+                    const dx = escapeTarget.x - nearestVirus.x;
+                    const dy = escapeTarget.y - nearestVirus.y;
+                    const distToVirus = Math.sqrt(dx * dx + dy * dy);
+                    if (distToVirus < nearestVirus.radius + 120) {
+                        // Swerve perpendicular to the virus
+                        const swerveAngle = Math.atan2(dy, dx);
+                        const swerveX = Math.cos(swerveAngle + Math.PI / 2) * 200;
+                        const swerveY = Math.sin(swerveAngle + Math.PI / 2) * 200;
+                        escapeTarget.x += swerveX;
+                        escapeTarget.y += swerveY;
+                    }
+                }
+
+                this.desiredTarget.x = escapeTarget.x;
+                this.desiredTarget.y = escapeTarget.y;
             }
             this.escapeTarget = { x: this.desiredTarget.x, y: this.desiredTarget.y };
             this.escapeTargetUntil = now + 1100 + Math.random() * 1200;
@@ -1252,6 +1277,15 @@ class Bot {
                 } else {
                     let targetX = bestPrey.x;
                     let targetY = bestPrey.y;
+
+                    // Simple prey prediction: lead toward the direction away from bot
+                    const preyToBotDx = myPos.x - bestPrey.x;
+                    const preyToBotDy = myPos.y - bestPrey.y;
+                    const preyToBotDist = Math.sqrt(preyToBotDx * preyToBotDx + preyToBotDy * preyToBotDy) || 1;
+                    const preyLeadDist = Math.min(120, preyToBotDist * 0.3);
+                    targetX += (preyToBotDx / preyToBotDist) * preyLeadDist * 8;
+                    targetY += (preyToBotDy / preyToBotDist) * preyLeadDist * 8;
+
                     const preyOwnerCenter = bestPrey.owner ? game.getPlayerCenter(bestPrey.owner) : null;
                     if (preyOwnerCenter && bestPrey.ownerCells > 1 && this.sneakiness > 0.3) {
                         const px = bestPrey.x - preyOwnerCenter.x;
@@ -1287,7 +1321,11 @@ class Bot {
                     const killRatio = 1.05 + this.splitThreshold * 0.12;
                     const canKill = halfMass > bestPrey.mass * killRatio;
 
-                    if (canKill && inRange && notTooClose) {
+                    // Check for nearby threats before committing to split
+                    const hasThreat = closestThreatDist < myBlobRadius * 2.0 && closestThreat && closestThreat.mass > myLargestBlobMass * 0.8;
+                    const splitIsSafe = !hasThreat;
+
+                    if (canKill && inRange && notTooClose && splitIsSafe) {
                         game.splitPlayer(this);
                         // Chain-split: if our largest piece after split STILL beats prey, fire again.
                         // No random gate — keep splitting until we can't kill anymore.
@@ -1361,8 +1399,23 @@ class Bot {
                 }
             }
 
+            // Smart merge behavior: when merge timer is close to expiring, aim at our own cells' centroid to merge faster
+            if (!mergeChaseTarget && this.cells.length > 1) {
+                const mergeTimersExpiring = mergeable.length > 0 && mergeable.length < this.cells.length;
+                if (mergeTimersExpiring) {
+                    let sumX = 0, sumY = 0;
+                    for (const c of mergeable) {
+                        sumX += c.x;
+                        sumY += c.y;
+                    }
+                    const centroidX = sumX / mergeable.length;
+                    const centroidY = sumY / mergeable.length;
+                    mergeChaseTarget = { x: centroidX, y: centroidY };
+                }
+            }
+
             if (mergeChaseTarget) {
-                // Aim at prey so all cells converge there and naturally merge
+                // Aim at prey (or merge centroid) so all cells converge there and naturally merge
                 this.desiredTarget.x = mergeChaseTarget.x;
                 this.desiredTarget.y = mergeChaseTarget.y;
                 this.targetLerp = 0.09 + effectiveAggression * 0.04;

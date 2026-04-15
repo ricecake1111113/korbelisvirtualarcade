@@ -77,7 +77,7 @@ class Game {
     shouldShowSkinForPlayer(player) {
         if (!player) return false;
         if (!player.skin) return false;
-        if (this.isTeamsMode() && player.isBot) return false;
+        // In teams mode, skins now show on ALL players (the team border distinguishes teams)
         return true;
     }
 
@@ -120,7 +120,7 @@ class Game {
         this.virusHideRatio = Math.max(0.2, Math.min(1.4, this.config.virusHideRatio ?? 0.9));
         this.cellEatMassRatio = Math.max(1.05, Math.min(2.5, this.config.cellEatMassRatio ?? 1.22));
         this.cellEatCenterInsideRatio = Math.max(0.1, Math.min(0.95, this.config.cellEatCenterInsideRatio ?? 0.42));
-        this.cellEatCoverageRatio = Math.max(0.45, Math.min(0.98, this.config.cellEatCoverageRatio ?? 0.88));
+        this.cellEatCoverageRatio = Math.max(0.45, Math.min(0.98, this.config.cellEatCoverageRatio ?? 0.75));
 
         this.virusBaseMass = this.config.virusBaseMass ?? 100;
         this.virusFeedMassGain = this.config.virusFeedMassGain ?? 14;
@@ -303,7 +303,6 @@ class Game {
         if (!player) return;
         if (this.isTeamsMode()) {
             this.ensurePlayerTeam(player);
-            if (player.isBot) player.skin = null;
         } else if (!player.color) {
             player.color = this.randomColor();
         }
@@ -719,10 +718,11 @@ class Game {
     // Spawn bot with configurable starting mass
     spawnBot(bot, index, isRespawn = false) {
         const id = this.generateId();
-        const mode = isRespawn ? this.botRespawnMassMode : this.botSpawnMassMode;
-        const mass = bot.kind === 'spectator'
-            ? Math.max(8, this.config.startMass * (0.85 + Math.random() * 0.4))
-            : this.getBotSpawnMass(mode);
+        const mass = isRespawn
+            ? this.config.startMass
+            : (bot.kind === 'spectator'
+                ? Math.max(8, this.config.startMass * (0.85 + Math.random() * 0.4))
+                : this.getBotSpawnMass(this.botSpawnMassMode));
         const spawnRadius = this.radiusFromMass(mass);
         const spawnPos = this.findSafeSpawnPosition(spawnRadius);
         this.ensurePlayerTeam(bot);
@@ -2029,7 +2029,7 @@ class Game {
             const angle = Math.atan2(player.target.y - cell.y, player.target.x - cell.x);
 
             // Original: split boost is ~780 units, decays with friction
-            const splitBoost = 28;
+            const splitBoost = Math.min(28, 16 + 80 / Math.max(1, Math.sqrt(cell.mass)));
             const newMass = cell.mass / 2;
             cell.mass = newMass;
 
@@ -2037,8 +2037,8 @@ class Game {
             const r = cell.radius();
             const newCell = new Cell({
                 id,
-                x: cell.x + Math.cos(angle) * r * 0.5,
-                y: cell.y + Math.sin(angle) * r * 0.5,
+                x: cell.x + Math.cos(angle) * Math.min(r * 0.5, 40),
+                y: cell.y + Math.sin(angle) * Math.min(r * 0.5, 40),
                 mass: newMass,
                 color: cell.color,
                 owner: player,
@@ -2048,6 +2048,9 @@ class Game {
             newCell.teamId = this.isTeamsMode() ? player.teamId : null;
             newCell.vx = Math.cos(angle) * splitBoost;
             newCell.vy = Math.sin(angle) * splitBoost;
+            // Clamp to map boundaries
+            newCell.x = Math.max(0, Math.min(this.config.mapWidth, newCell.x));
+            newCell.y = Math.max(0, Math.min(this.config.mapHeight, newCell.y));
             const mergeDelayMs = this.getMergeDelayMs();
             newCell.mergeTime = Date.now() + mergeDelayMs;
             cell.mergeTime = Date.now() + mergeDelayMs;
@@ -2059,13 +2062,17 @@ class Game {
     }
 
     ejectMass(player) {
+        if (!player.target || !Number.isFinite(player.target.x) || !Number.isFinite(player.target.y)) return;
         for (const cell of player.cells) {
             if (cell.mass < this.ejectMinCellMass) continue;
-            const angle = Math.atan2(player.target.y - cell.y, player.target.x - cell.x);
+            const dx = player.target.x - cell.x;
+            const dy = player.target.y - cell.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const angle = dist > 0.1 ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2;
+            const prevMass = cell.mass;
             cell.mass -= this.ejectedPelletCost;
-            if (!this.spawnEjectedMassFromCell(cell, angle, 20)) {
-                cell.mass += this.ejectedPelletCost;
-                break;
+            if (!this.spawnEjectedMassFromCell(cell, angle, 22)) {
+                cell.mass = prevMass;
             }
         }
     }
@@ -2330,15 +2337,15 @@ class Game {
                     // we allow it freely — the eatRange formula already requires the eater
                     // edge to substantially cover the prey center.
                     const coverageCapture = massCapture
-                        && coverageRatio >= requiredCoverage
-                        && dist <= Math.max(r, otherRadius) * 0.92;
+                        && coverageRatio >= Math.min(requiredCoverage, 0.72)
+                        && dist <= Math.max(r, otherRadius) * 0.98;
                     const overlapCapture = decisiveMass
-                        && deepOverlap > otherRadius * 0.68
+                        && deepOverlap > otherRadius * 0.45
                         && coverageRatio >= Math.max(0.9, requiredCoverage * 0.98);
                     const classicCapture = massCapture
                         && eatRange > 0
                         && distSq <= (eatRange + 0.4) * (eatRange + 0.4)
-                        && coverageRatio >= requiredCoverage;
+                        && coverageRatio >= Math.min(requiredCoverage, 0.72);
                     if (classicCapture || overlapCapture || coverageCapture) {
                         cell.mass += otherCell.mass;
                         const idx = otherCell.owner.cells.indexOf(otherCell);
@@ -2719,28 +2726,30 @@ class Game {
             if (Math.random() < 0.55) {
                 this.emitBotChat(player, `ugh i hate you ${killerLabel}`, { force: true, cooldownMs: 1000 });
             }
-            const respawnDelay = 2000 + Math.random() * 3000;
-            setTimeout(() => {
-                if (this.bots.includes(player)) {
-                    player.alive = true;
-                    if (player.kind === 'spectator') {
-                        player.name = Math.random() < 0.5 ? `Spec${Math.floor(Math.random() * 900 + 100)}` : 'Observer';
-                        player.setRole('spectator_support', this.config);
-                    } else {
-                        player.name = player.pickName();
+            if (!this.config.disableBotRespawn) {
+                const respawnDelay = 2000 + Math.random() * 3000;
+                setTimeout(() => {
+                    if (this.bots.includes(player)) {
+                        player.alive = true;
+                        if (player.kind === 'spectator') {
+                            player.name = Math.random() < 0.5 ? `Spec${Math.floor(Math.random() * 900 + 100)}` : 'Observer';
+                            player.setRole('spectator_support', this.config);
+                        } else {
+                            player.name = player.pickName();
+                        }
+                        if (!this.isTeamsMode()) {
+                            player.color = this.randomColor();
+                        } else {
+                            this.ensurePlayerTeam(player);
+                            player.color = this.getTeamColor(player.teamId);
+                        }
+                        this.assignPlayerSkin(player, null, true);
+                        player.cells = [];
+                        this.spawnBot(player, 0, true);
+                        this.ensureBotRoleMix();
                     }
-                    if (!this.isTeamsMode()) {
-                        player.color = this.randomColor();
-                    } else {
-                        this.ensurePlayerTeam(player);
-                        player.color = this.getTeamColor(player.teamId);
-                    }
-                    this.assignPlayerSkin(player, null, true);
-                    player.cells = [];
-                    this.spawnBot(player, 0, true);
-                    this.ensureBotRoleMix();
-                }
-            }, respawnDelay);
+                }, respawnDelay);
+            }
         } else if (player.ws) {
             const peakScore = Math.round(Math.max(player.maxScore || 0, player.score || 0, this.config.startMass || 0));
             player.maxScore = Math.max(player.maxScore || 0, player.score || 0);

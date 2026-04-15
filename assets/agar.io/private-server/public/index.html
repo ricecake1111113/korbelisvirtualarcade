@@ -814,7 +814,8 @@ body.menu-open #canvas {
   left: 10px;
   top: 202px;
   width: 250px;
-  height: 260px;
+  height: auto;
+  min-height: 150px;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--hud-bg);
@@ -892,22 +893,6 @@ body.menu-open #canvas {
 .dstat .k { font-size: 10px; text-transform: uppercase; color: #567193; font-weight: 800; }
 .dstat .v { font-size: 20px; color: #2a4f7b; font-weight: 800; margin-top: 4px; }
 #toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 200; background: rgba(16,35,68,0.9); color: #fff; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; font-size: 13px; display: none; }
-#exitSpectateBtn {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 210;
-  border: 1px solid rgba(255,255,255,0.28);
-  background: rgba(7,18,38,0.82);
-  color: #fff;
-  border-radius: 6px;
-  padding: 8px 11px;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-  display: none;
-}
-#exitSpectateBtn.show { display: inline-block; }
 @media (max-width: 1080px) {
   .phone { width: 100%; height: 100%; border-radius: 12px; padding: 8px; }
   .screen { border-radius: 16px; grid-template-columns: 1fr; grid-auto-rows: min-content; overflow: auto; }
@@ -930,16 +915,15 @@ body.menu-open #canvas {
 <body class="menu-open">
 <canvas id="canvas"></canvas>
 <div id="toast"></div>
-<button id="exitSpectateBtn">Exit Spectate</button>
-
 <div id="menu">
   <div class="phone">
     <div class="screen">
       <aside class="rail">
-        <button id="skinsBtn">Hide Skins</button>
-        <button id="openStatsBtn">Detailed Stats</button>
         <div id="skinBlock" class="skin-block">
-          <div class="skin-title">Skins</div>
+          <div class="skin-header">
+            <div class="skin-title">Skins</div>
+            <input id="skinSearchInput" class="skin-search" type="text" placeholder="Search skins..." autocomplete="off">
+          </div>
           <div id="skinGrid" class="skin-grid"></div>
         </div>
       </aside>
@@ -954,6 +938,9 @@ body.menu-open #canvas {
           <button id="settingsToggle">Customize</button>
           <button id="spectateBtn">Spectate</button>
           <button id="openStatsBtnCenter">Stats</button>
+        </div>
+        <div class="mode-row" style="grid-template-columns:1fr;">
+          <button id="skinsBtn" class="mode-btn active" style="font-family:'Sora',sans-serif;">Hide Skins</button>
         </div>
         <div class="mode-row">
           <button id="ffaModeBtn" class="mode-btn active">FFA Mode</button>
@@ -1025,6 +1012,7 @@ body.menu-open #canvas {
             <div class="stat"><div class="k">Fastest 100 / 1000</div><div id="statFastestMass" class="v">- / -</div></div>
           </div>
         </div>
+        <button id="openStatsBtn" style="height:36px;border:1px solid rgba(21,88,150,0.28);border-radius:8px;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(180deg,#18aa78,#12845c);margin-top:6px;">Detailed Stats</button>
       </aside>
     </div>
   </div>
@@ -1087,6 +1075,7 @@ body.menu-open #canvas {
     <div class="row"><span>All Games</span><strong id="hudGames">0</strong></div>
     <div class="row"><span>Round Eaten</span><strong id="hudEaten">0</strong></div>
   </div>
+  <button id="openStatsBtn">Detailed Stats</button>
   <div id="chatBox"></div>
 </div>
 
@@ -1171,6 +1160,8 @@ let spectateDragging = false;
 let spectateScale = 2.8;
 let spectateCenter = { x: 2500, y: 2500 };
 let spectateDragLast = { x: 0, y: 0 };
+let spectateTargetId = null;
+let spectateTargetName = null;
 let lastFrameTime = 0;
 let fps = 0;
 let fpsFrames = 0;
@@ -1906,7 +1897,9 @@ function setMenuVisible(visible) {
 function setSkinPanelVisible(visible) {
   skinPanelVisible = visible;
   document.getElementById('skinBlock').classList.toggle('hidden', !visible);
-  document.getElementById('skinsBtn').textContent = visible ? 'Hide Skins' : 'Skins';
+  const skinsBtn = document.getElementById('skinsBtn');
+  skinsBtn.textContent = clientSettings.hideSkins ? 'Show Skins' : 'Hide Skins';
+  skinsBtn.classList.toggle('active', !clientSettings.hideSkins);
 }
 
 function resetRoundTelemetry(startMass) {
@@ -2023,15 +2016,21 @@ function fetchSkinImage(name) {
 function renderSkinPicker() {
   const skinGrid = document.getElementById('skinGrid');
   skinGrid.innerHTML = '';
+  const searchInput = document.getElementById('skinSearchInput');
+  const searchQuery = (searchInput && searchInput.value || '').toLowerCase();
+
   const noneBtn = document.createElement('button');
   noneBtn.className = `skin-chip${!selectedSkin ? ' active' : ''}`;
   noneBtn.innerHTML = `<img alt="None" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4MCcgaGVpZ2h0PSc4MCc+PGNpcmNsZSBjeD0nNDAnIGN5PSc0MCcgcj0nMzYnIGZpbGw9JyNlNmVjZjcnIHN0cm9rZT0nIzk4YTljYicgc3Ryb2tlLXdpZHRoPSc0Jy8+PGxpbmUgeDE9JzE4JyB5MT0nMTgnIHgyPSc2MicgeTI9JzYyJyBzdHJva2U9JyNhNWFmYzAnIHN0cm9rZS13aWR0aD0nNicvPjwvc3ZnPg=="><span>None</span>`;
   noneBtn.onclick = () => { selectedSkin = null; renderSkinPicker(); saveStats(); };
-  skinGrid.appendChild(noneBtn);
+  if (!searchQuery) skinGrid.appendChild(noneBtn);
+
   for (const skin of availableSkins) {
+    const displayName = skin.replace(/\.webp$/i, '');
+    if (searchQuery && !displayName.toLowerCase().includes(searchQuery)) continue;
+
     const btn = document.createElement('button');
     btn.className = `skin-chip${selectedSkin === skin ? ' active' : ''}`;
-    const displayName = skin.replace(/\.webp$/i, '');
     btn.title = displayName;
     btn.innerHTML = `<img alt="${skin}" src="/skins/${encodeURIComponent(skin)}"><span>${displayName}</span>`;
     btn.onclick = () => { selectedSkin = skin; renderSkinPicker(); saveStats(); };
@@ -2532,7 +2531,9 @@ async function regenerateWorld() {
 }
 function connect() {
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  ws = new WebSocket(`${protocol}://${location.host}`);
+  const serverParam = new URLSearchParams(window.location.search).get('server');
+  const wsUrl = serverParam || `${protocol}://${location.host}`;
+  ws = new WebSocket(wsUrl);
   ws.onmessage = (evt) => {
     const msg = JSON.parse(evt.data);
     switch (msg.type) {
@@ -2564,7 +2565,6 @@ function connect() {
         setStatsPanelOpen(false);
         document.getElementById('deathScreen').classList.remove('show');
         document.getElementById('hud').classList.add('active');
-        document.getElementById('exitSpectateBtn').classList.remove('show');
         applyHudVisibility();
         break;
       case 'state':
@@ -2624,7 +2624,6 @@ function connect() {
         break;
       case 'spectate_state':
         spectating = !!msg.enabled;
-        document.getElementById('exitSpectateBtn').classList.toggle('show', spectating);
         if (spectating) {
           alive = false;
           document.getElementById('hud').classList.add('active');
@@ -2641,7 +2640,6 @@ function connect() {
         predictedPlayerCenter = { x: 2500, y: 2500 };
         predictedPlayerMass = 0;
         document.getElementById('hud').classList.remove('active');
-        document.getElementById('exitSpectateBtn').classList.remove('show');
         document.getElementById('deathScreen').classList.add('show');
         document.getElementById('deathKiller').textContent = `Eaten by: ${msg.killer}`;
         const endScore = Math.max(Number(msg.peakScore) || 0, Math.round(peakScoreThisMatch || 0), Math.round(score || 0));
@@ -2676,8 +2674,7 @@ function connect() {
   };
   ws.onclose = () => {
     spectating = false;
-    document.getElementById('exitSpectateBtn').classList.remove('show');
-    applyHudVisibility();
+      applyHudVisibility();
     if (!alive) setMenuVisible(true);
     setTimeout(connect, 1600);
   };
@@ -2749,13 +2746,48 @@ function interpEntities(map, dtSec) {
 }
 
 canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+let canvasClickStartPos = null;
 canvas.addEventListener('mousedown', (e) => {
   if (!spectating || e.button !== 0) return;
   spectateDragging = true;
   spectateDragLast.x = e.clientX;
   spectateDragLast.y = e.clientY;
+  canvasClickStartPos = { x: e.clientX, y: e.clientY };
 });
-window.addEventListener('mouseup', () => { spectateDragging = false; });
+canvas.addEventListener('click', (e) => {
+  if (!spectating) return;
+  // Check if this was actually a drag (not a click)
+  if (canvasClickStartPos) {
+    const dx = e.clientX - canvasClickStartPos.x;
+    const dy = e.clientY - canvasClickStartPos.y;
+    if (Math.sqrt(dx * dx + dy * dy) > 5) return; // was a drag
+  }
+  const rect = canvas.getBoundingClientRect();
+  const wx = (e.clientX - rect.left - canvas.width / 2 / canvasDpr) * cam.scale + cam.x;
+  const wy = (e.clientY - rect.top - canvas.height / 2 / canvasDpr) * cam.scale + cam.y;
+  let best = null;
+  let bestDist = Infinity;
+  for (const [, c] of cellMap) {
+    if (!c.ownerId) continue;
+    const dx = c.x - wx;
+    const dy = c.y - wy;
+    const r = radiusFromMass(c.mass);
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist <= r && dist < bestDist) {
+      bestDist = dist;
+      best = c;
+    }
+  }
+  if (best) {
+    setSpectateTarget(best.ownerId, best.name);
+  } else {
+    setSpectateTarget(null); // clicking empty space deselects
+  }
+});
+window.addEventListener('mouseup', () => {
+  spectateDragging = false;
+  canvasClickStartPos = null;
+});
 window.addEventListener('mousemove', (e) => {
   if (!spectating || !spectateDragging) return;
   const dx = e.clientX - spectateDragLast.x;
@@ -2833,7 +2865,6 @@ document.addEventListener('keyup', (e) => {
 
 document.getElementById('playBtn').addEventListener('click', spawn);
 document.getElementById('spectateBtn').addEventListener('click', () => setSpectating(true));
-document.getElementById('exitSpectateBtn').addEventListener('click', () => setSpectating(false));
 document.getElementById('nickInput').addEventListener('keydown', (e) => { if (e.code === 'Enter') spawn(); });
 
 function returnToLobby(sendMsg = true) {
@@ -2846,7 +2877,6 @@ function returnToLobby(sendMsg = true) {
   peakScoreThisMatch = 0;
   document.getElementById('hud').classList.remove('active');
   document.getElementById('deathScreen').classList.remove('show');
-  document.getElementById('exitSpectateBtn').classList.remove('show');
   applyHudVisibility();
   setMenuVisible(true);
   document.getElementById('nickInput').focus();
@@ -2863,7 +2893,6 @@ function setSpectating(enabled) {
     setMenuVisible(false);
     document.getElementById('hud').classList.add('active');
     document.getElementById('deathScreen').classList.remove('show');
-    document.getElementById('exitSpectateBtn').classList.add('show');
     spectateCenter = { x: serverViewCenter.x, y: serverViewCenter.y };
     spectateScale = Math.max(1.6, serverViewScale || spectateScale);
     applyHudVisibility();
@@ -2872,14 +2901,18 @@ function setSpectating(enabled) {
   } else {
     spectating = false;
     spectateDragging = false;
-    document.getElementById('exitSpectateBtn').classList.remove('show');
-    document.getElementById('hud').classList.remove('active');
+      document.getElementById('hud').classList.remove('active');
     ws.send(JSON.stringify({ type: 'spectate', enabled: false }));
     applyHudVisibility();
     setMenuVisible(true);
     setSkinPanelVisible(true);
     document.getElementById('nickInput').focus();
   }
+}
+
+function setSpectateTarget(ownerId, name) {
+  spectateTargetId = ownerId || null;
+  spectateTargetName = name || null;
 }
 
 document.getElementById('continueBtn').addEventListener('click', () => {
@@ -2908,10 +2941,17 @@ document.getElementById('openStatsBtn').addEventListener('click', openDetailedSt
 document.getElementById('openStatsBtnCenter').addEventListener('click', openDetailedStats);
 document.getElementById('closeStatsBtn').addEventListener('click', () => setStatsPanelOpen(false));
 document.getElementById('skinsBtn').addEventListener('click', async () => {
+  clientSettings.hideSkins = !clientSettings.hideSkins;
+  saveClientSettings();
+  const skinPanelShouldBeVisible = !clientSettings.hideSkins;
   setSettingsPanelOpen(false);
   setStatsPanelOpen(false);
-  setSkinPanelVisible(!skinPanelVisible);
-  if (skinPanelVisible) await loadBootstrap(true);
+  setSkinPanelVisible(skinPanelShouldBeVisible);
+  if (skinPanelShouldBeVisible) await loadBootstrap(true);
+  document.getElementById('skinsBtn').textContent = clientSettings.hideSkins ? 'Show Skins' : 'Hide Skins';
+});
+document.getElementById('skinSearchInput').addEventListener('input', () => {
+  renderSkinPicker();
 });
 document.getElementById('regenerateWorldBtn').addEventListener('click', async () => { await regenerateWorld(); });
 document.getElementById('quickApplyBtn').addEventListener('click', async () => {
@@ -2953,6 +2993,15 @@ document.getElementById('leaderboardToggle').addEventListener('click', () => {
   document.getElementById('leaderboardToggle').textContent = leaderboardCollapsed ? '<' : '>';
   document.getElementById('leaderboardToggle').style.right = leaderboardCollapsed ? '10px' : '280px';
 });
+document.getElementById('leaderboard').addEventListener('click', (ev) => {
+  if (!spectating) return;
+  const entry = ev.target.closest('.lb-entry[data-owner-id]');
+  if (!entry) return;
+  const ownerId = parseInt(entry.dataset.ownerId);
+  if (!isNaN(ownerId)) {
+    setSpectateTarget(ownerId);
+  }
+});
 document.getElementById('teamChartToggle').addEventListener('click', () => {
   clientSettings.showTeamChart = !clientSettings.showTeamChart;
   saveClientSettings();
@@ -2986,8 +3035,7 @@ function spawn() {
   if (spectating) {
     ws.send(JSON.stringify({ type: 'spectate', enabled: false }));
     spectating = false;
-    document.getElementById('exitSpectateBtn').classList.remove('show');
-  }
+    }
   const name = document.getElementById('nickInput').value.trim();
   const preferredSkin = sanitizeSkinName(selectedSkin);
   selectedSkin = preferredSkin;
@@ -3056,8 +3104,24 @@ function render(timestamp) {
     predictedPlayerCenter.y = serverViewCenter.y;
   }
 
+  // Follow spectate target if set
+  if (spectating && spectateTargetId != null) {
+    let targetX = null, targetY = null;
+    for (const [, c] of cellMap) {
+      if (c.ownerId === spectateTargetId || (c.mine && playerId === spectateTargetId)) {
+        if (targetX === null) { targetX = c.x; targetY = c.y; }
+        else { targetX = (targetX + c.x) / 2; targetY = (targetY + c.y) / 2; }
+      }
+    }
+    if (targetX !== null) {
+      spectateCenter.x += (targetX - spectateCenter.x) * 0.1;
+      spectateCenter.y += (targetY - spectateCenter.y) * 0.1;
+      spectateScale = Math.max(2.5, Math.min(5, spectateScale + (3.5 - spectateScale) * 0.05));
+    }
+  }
+
   const baseScale = spectating
-    ? Math.max(0.6, Math.min(8.5, serverViewScale || spectateScale))
+    ? (spectateTargetId != null ? spectateScale : Math.max(0.6, Math.min(8.5, serverViewScale || spectateScale)))
     : (menuVisible && !alive
       ? Math.max(2.8, serverViewScale)
       : serverViewScale);
@@ -3348,7 +3412,7 @@ function updateLeaderboard() {
       const teamColor = team && team.color ? team.color : '#9ab6e6';
       scoreHtml = `<span class="lb-score"><span class="lb-team-dot" style="background:${teamColor};"></span>${e.score}</span>`;
     }
-    html += `<div class="lb-entry${isMe ? ' me' : ''}"><span class="lb-name">${name}</span><span>${scoreHtml}</span></div>`;
+    html += `<div class="lb-entry${isMe ? ' me' : ''}" data-owner-id="${e.id}" style="${spectating ? 'cursor:pointer;' : ''}"><span class="lb-name">${name}</span><span>${scoreHtml}</span></div>`;
   }
   document.getElementById('leaderboard').innerHTML = html;
 }
@@ -3360,7 +3424,7 @@ function drawTeamChart() {
   const entries = ordered.length;
   const cssW = 250;
   const maxCssH = Math.max(150, teamChartCanvas.clientHeight || 260);
-  const cssH = Math.min(maxCssH, Math.max(178, 34 + entries * 16));
+  const cssH = Math.min(maxCssH, Math.max(178, 44 + entries * 20));
   const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
   teamChartCanvas.style.width = `${cssW}px`;
   teamChartCanvas.style.height = `${cssH}px`;
@@ -3406,12 +3470,13 @@ function drawTeamChart() {
     const t = ordered[i];
     const mass = Number(t.mass) || 0;
     const pct = total > 0 ? Math.round((mass / total) * 100) : 0;
-    const y = 32 + i * 16;
-    const name = (t.name || `Team ${Number(t.teamId) + 1}`).slice(0, 16);
+    const y = 36 + i * 20;
+    const name = (t.name || `Team ${Number(t.teamId) + 1}`).slice(0, 12);
+    const massDisplay = mass >= 1000 ? `${(mass/1000).toFixed(1)}k` : Math.round(mass);
     tc.fillStyle = t.color || '#6ea2f2';
     tc.fillRect(100, y - 8, 8, 8);
     tc.fillStyle = '#dce8ff';
-    tc.fillText(`${name} ${pct}%`, 113, y - 1);
+    tc.fillText(`${name} ${pct}% (${massDisplay})`, 113, y - 1);
   }
 }
 
