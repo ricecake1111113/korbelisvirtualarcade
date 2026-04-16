@@ -54,6 +54,14 @@ class Game {
         this.chatLog = [];
         this.chatSeq = 1;
         this.nextBountyPelletAt = 0;
+        // Experimental mode world objects
+        this.gravityWells = [];       // { id, x, y, radius, strength, bornAt, lifetimeMs }
+        this.shrinkZones = [];        // { id, x, y, radius, decayMult, bornAt, lifetimeMs }
+        this.warpGates = [];          // pairs: [{ id, x, y, radius, pairedId }, ...]
+        this._expNextGravityWell = 0;
+        this._expNextShrinkZone = 0;
+        this._expNextWarpGate = 0;
+        this._warpGateCooldowns = new Map(); // cellId -> timestamp (last warped)
         this.refreshRuntimeFromConfig();
     }
 
@@ -205,6 +213,32 @@ class Game {
         if (!this.nextBountyPelletAt) {
             this.nextBountyPelletAt = Date.now() + Math.round(this.bountyPelletIntervalMs * (0.55 + Math.random() * 0.7));
         }
+
+        // ── Experimental mode tuning ──
+        this.expGravityWellCount       = Math.max(0, Math.min(6,  this.config.expGravityWellCount       ?? 2));
+        this.expGravityWellRadiusMin   = Math.max(100, this.config.expGravityWellRadiusMin   ?? 320);
+        this.expGravityWellRadiusMax   = Math.max(200, this.config.expGravityWellRadiusMax   ?? 620);
+        this.expGravityWellStrength    = Math.max(0.1, Math.min(5, this.config.expGravityWellStrength    ?? 1.4));
+        this.expGravityWellLifetimeMs  = Math.max(3000, this.config.expGravityWellLifetimeMs  ?? 14000);
+        this.expGravityWellCooldownMs  = Math.max(1000, this.config.expGravityWellCooldownMs  ?? 5000);
+
+        this.expShrinkZoneCount        = Math.max(0, Math.min(5,  this.config.expShrinkZoneCount        ?? 2));
+        this.expShrinkZoneRadiusMin    = Math.max(100, this.config.expShrinkZoneRadiusMin    ?? 280);
+        this.expShrinkZoneRadiusMax    = Math.max(200, this.config.expShrinkZoneRadiusMax    ?? 500);
+        this.expShrinkZoneDecayMult    = Math.max(1.5, Math.min(20, this.config.expShrinkZoneDecayMult    ?? 6));
+        this.expShrinkZoneLifetimeMs   = Math.max(3000, this.config.expShrinkZoneLifetimeMs   ?? 12000);
+        this.expShrinkZoneCooldownMs   = Math.max(1000, this.config.expShrinkZoneCooldownMs   ?? 6000);
+
+        this.expWarpGatePairs          = Math.max(0, Math.min(3,  this.config.expWarpGatePairs          ?? 1));
+        this.expWarpGateRadius         = Math.max(30,  this.config.expWarpGateRadius         ?? 70);
+        this.expWarpGateLifetimeMs     = Math.max(5000, this.config.expWarpGateLifetimeMs     ?? 25000);
+        this.expWarpGateCooldownMs     = Math.max(2000, this.config.expWarpGateCooldownMs     ?? 10000);
+        this.expWarpGateCellCooldownMs = Math.max(500,  this.config.expWarpGateCellCooldownMs ?? 2500);
+
+        this.expBoostFoodChance        = Math.max(0, Math.min(0.2, this.config.expBoostFoodChance        ?? 0.025));
+        this.expBoostFoodMass          = Math.max(0.1, this.config.expBoostFoodMass          ?? 0.5);
+        this.expBoostDurationMs        = Math.max(500, Math.min(8000, this.config.expBoostDurationMs     ?? 3500));
+        this.expBoostSpeedMult         = Math.max(1.1, Math.min(5, this.config.expBoostSpeedMult         ?? 2.0));
     }
 
     isTeamsMode() {
@@ -475,11 +509,6 @@ class Game {
     }
 
     assignPlayerSkin(player, requestedSkin = null, isBot = false) {
-        if (this.isTeamsMode() && isBot) {
-            player.skin = null;
-            return;
-        }
-
         if (requestedSkin === null || requestedSkin === undefined) {
             if (isBot && Math.random() < this.botSkinChance) {
                 player.skin = this.pickRandomSkin();
@@ -726,10 +755,10 @@ class Game {
         const spawnRadius = this.radiusFromMass(mass);
         const spawnPos = this.findSafeSpawnPosition(spawnRadius);
         this.ensurePlayerTeam(bot);
-        if (!this.isTeamsMode() && !bot.skin && Math.random() < this.botSkinChance) {
+        if (!bot.skin && Math.random() < this.botSkinChance) {
             bot.skin = this.pickRandomSkin();
         }
-        if (!this.isTeamsMode() && bot.skin && Math.random() < 0.11) {
+        if (bot.skin && Math.random() < 0.11) {
             const skinLabel = bot.skin.replace(/\.webp$/i, '');
             if (skinLabel) bot.name = Math.random() < 0.5 ? skinLabel : skinLabel.toLowerCase();
         }
@@ -881,6 +910,8 @@ class Game {
         const roll = Math.random();
         const isGolden = useExperimentalPellets && roll < this.goldenFoodChance;
         const isPlasma = useExperimentalPellets && !isGolden && roll < (this.goldenFoodChance + this.plasmaFoodChance);
+        const isBoost = useExperimentalPellets && !isGolden && !isPlasma
+            && roll < (this.goldenFoodChance + this.plasmaFoodChance + this.expBoostFoodChance);
         let mass = this.baseFoodMass;
         let color = this.randomColor();
         let type = 'food';
@@ -892,6 +923,10 @@ class Game {
             mass = this.plasmaFoodMass;
             color = '#4bd4ff';
             type = 'plasma';
+        } else if (isBoost) {
+            mass = this.expBoostFoodMass;
+            color = '#39ff74';
+            type = 'boost';
         }
         const food = {
             id,
@@ -1923,6 +1958,15 @@ class Game {
                 player.spectating = false;
                 player.name = (msg.name || '').substring(0, 15);
                 this.assignPlayerSkin(player, msg.skin, false);
+                // Honor preferred team color if in teams mode
+                if (this.isTeamsMode() && Number.isInteger(msg.preferredTeamId)) {
+                    const teamCount = this.getActiveTeamCount();
+                    const pref = msg.preferredTeamId;
+                    if (pref >= 0 && pref < teamCount) {
+                        player.teamId = pref;
+                        player.color = this.getTeamColor(pref);
+                    }
+                }
                 this.ensurePlayerTeam(player);
                 player.alive = true;
                 player.maxScore = Math.max(player.maxScore || 0, this.config.startMass);
@@ -2077,6 +2121,93 @@ class Game {
         }
     }
 
+    // ── Experimental mode world management ──────────────────────────────────
+    updateExperimentalWorld() {
+        if (!this.isExperimentalMode()) return;
+        const now = Date.now();
+        const mw = this.config.mapWidth;
+        const mh = this.config.mapHeight;
+
+        // ── Gravity Wells ──────────────────────────────────────────────────
+        // Expire old wells
+        this.gravityWells = this.gravityWells.filter(w => now - w.bornAt < w.lifetimeMs);
+        // Spawn new wells if below target count and cooldown passed
+        if (this.gravityWells.length < this.expGravityWellCount && now >= this._expNextGravityWell) {
+            const radius = this.expGravityWellRadiusMin
+                + Math.random() * (this.expGravityWellRadiusMax - this.expGravityWellRadiusMin);
+            const margin = radius + 80;
+            this.gravityWells.push({
+                id: this.generateId(),
+                x: margin + Math.random() * (mw - margin * 2),
+                y: margin + Math.random() * (mh - margin * 2),
+                radius,
+                strength: this.expGravityWellStrength * (0.7 + Math.random() * 0.6),
+                bornAt: now,
+                lifetimeMs: this.expGravityWellLifetimeMs * (0.8 + Math.random() * 0.4),
+            });
+            this._expNextGravityWell = now + this.expGravityWellCooldownMs * (0.6 + Math.random() * 0.8);
+        }
+
+        // ── Shrink Zones ──────────────────────────────────────────────────
+        this.shrinkZones = this.shrinkZones.filter(z => now - z.bornAt < z.lifetimeMs);
+        if (this.shrinkZones.length < this.expShrinkZoneCount && now >= this._expNextShrinkZone) {
+            const radius = this.expShrinkZoneRadiusMin
+                + Math.random() * (this.expShrinkZoneRadiusMax - this.expShrinkZoneRadiusMin);
+            const margin = radius + 80;
+            this.shrinkZones.push({
+                id: this.generateId(),
+                x: margin + Math.random() * (mw - margin * 2),
+                y: margin + Math.random() * (mh - margin * 2),
+                radius,
+                decayMult: this.expShrinkZoneDecayMult * (0.75 + Math.random() * 0.5),
+                bornAt: now,
+                lifetimeMs: this.expShrinkZoneLifetimeMs * (0.8 + Math.random() * 0.4),
+            });
+            this._expNextShrinkZone = now + this.expShrinkZoneCooldownMs * (0.6 + Math.random() * 0.8);
+        }
+
+        // ── Warp Gates ──────────────────────────────────────────────────
+        // Remove expired gates and their pairs
+        const expiredIds = new Set();
+        for (const g of this.warpGates) {
+            if (now - g.bornAt >= g.lifetimeMs) {
+                expiredIds.add(g.id);
+                expiredIds.add(g.pairedId);
+            }
+        }
+        if (expiredIds.size > 0) this.warpGates = this.warpGates.filter(g => !expiredIds.has(g.id));
+
+        // Count current pairs
+        const activePairs = Math.floor(this.warpGates.length / 2);
+        if (activePairs < this.expWarpGatePairs && now >= this._expNextWarpGate) {
+            const margin = this.expWarpGateRadius + 60;
+            const born = now;
+            const lifetime = this.expWarpGateLifetimeMs * (0.8 + Math.random() * 0.4);
+            const idA = this.generateId();
+            const idB = this.generateId();
+            const ax = margin + Math.random() * (mw - margin * 2);
+            const ay = margin + Math.random() * (mh - margin * 2);
+            // Place B on roughly the opposite side (with some variation)
+            const bx = Math.max(margin, Math.min(mw - margin,
+                mw - ax + (Math.random() - 0.5) * mw * 0.3));
+            const by = Math.max(margin, Math.min(mh - margin,
+                mh - ay + (Math.random() - 0.5) * mh * 0.3));
+            this.warpGates.push(
+                { id: idA, pairedId: idB, x: ax, y: ay, radius: this.expWarpGateRadius, bornAt: born, lifetimeMs: lifetime },
+                { id: idB, pairedId: idA, x: bx, y: by, radius: this.expWarpGateRadius, bornAt: born, lifetimeMs: lifetime }
+            );
+            this._expNextWarpGate = now + this.expWarpGateCooldownMs * (0.7 + Math.random() * 0.6);
+        }
+
+        // Prune stale warp cooldowns (cells long since gone)
+        if (this._warpGateCooldowns.size > 4000) {
+            const staleThreshold = now - this.expWarpGateCellCooldownMs * 3;
+            for (const [cid, ts] of this._warpGateCooldowns) {
+                if (ts < staleThreshold) this._warpGateCooldowns.delete(cid);
+            }
+        }
+    }
+
     tick() {
         const now = Date.now();
         this._tickCount = (this._tickCount || 0) + 1;
@@ -2091,6 +2222,7 @@ class Game {
         this.checkCollisions();
         this.respawnFood();
         this.updateBots();
+        this.updateExperimentalWorld();
         // Throttle leaderboard rebuild: skip every other tick when many bots are alive
         // to reduce the O(n log n) sort cost. sendState still uses last computed values.
         const skipLeaderboard = this.bots.length >= 60 && (this._tickCount % 2 === 0);
@@ -2135,9 +2267,13 @@ class Game {
 
     // ── Cell speed formula ──
     // Small cells: snappy. Big cells: slow but not frozen.
-    // mass 10 → 2.2/tick, mass 100 → 1.2, mass 500 → 0.75, mass 1000 → 0.6
-    getCellSpeed(mass) {
-        return 5.25 * Math.pow(mass, -0.3);
+    // mass 10 → ~3.4/tick, mass 100 → ~1.85, mass 500 → ~1.15, mass 1000 → ~0.92
+    getCellSpeed(mass, player) {
+        let speed = 8.0 * Math.pow(mass, -0.28);
+        if (player && player.boostUntil && player.boostUntil > Date.now()) {
+            speed *= (player.boostMult || this.expBoostSpeedMult || 2.0);
+        }
+        return speed;
     }
 
     updateCells() {
@@ -2176,7 +2312,7 @@ class Game {
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
                 if (dist > 1) {
-                    const speed = Math.min(this.getCellSpeed(cell.mass), dist);
+                    const speed = Math.min(this.getCellSpeed(cell.mass, player), dist);
                     cell.x += (dx / dist) * speed;
                     cell.y += (dy / dist) * speed;
                 }
@@ -2191,6 +2327,22 @@ class Game {
                     if (Math.abs(cell.vy) < 0.1) cell.vy = 0;
                 }
 
+                // Gravity well pull (experimental mode)
+                if (this.isExperimentalMode() && this.gravityWells.length > 0) {
+                    for (const well of this.gravityWells) {
+                        const gdx = well.x - cell.x;
+                        const gdy = well.y - cell.y;
+                        const gdist = Math.sqrt(gdx * gdx + gdy * gdy) || 1;
+                        if (gdist < well.radius) {
+                            // Pull force falls off with distance (stronger near center)
+                            const falloff = 1 - gdist / well.radius;
+                            const pullStrength = well.strength * falloff * 0.7;
+                            cell.x += (gdx / gdist) * pullStrength;
+                            cell.y += (gdy / gdist) * pullStrength;
+                        }
+                    }
+                }
+
                 // Boundary
                 const r = cell.radius();
                 cell.x = Math.max(r, Math.min(this.config.mapWidth - r, cell.x));
@@ -2198,7 +2350,18 @@ class Game {
 
                 // Mass decay for cells > 20
                 if (cell.mass > 20) {
-                    cell.mass *= (1 - this.config.decayRate / this.config.tickRate);
+                    let decayMult = 1;
+                    // Check if cell is inside a shrink zone (experimental mode)
+                    if (this.isExperimentalMode() && this.shrinkZones.length > 0) {
+                        for (const zone of this.shrinkZones) {
+                            const zdx = cell.x - zone.x;
+                            const zdy = cell.y - zone.y;
+                            if (zdx * zdx + zdy * zdy <= zone.radius * zone.radius) {
+                                decayMult = Math.max(decayMult, zone.decayMult);
+                            }
+                        }
+                    }
+                    cell.mass *= (1 - (this.config.decayRate * decayMult) / this.config.tickRate);
                     if (cell.mass < this.config.startMass) cell.mass = this.config.startMass;
                 }
             }
@@ -2310,9 +2473,66 @@ class Game {
                                 }
                             }
                         }
+                        // Speed boost pellet effect (experimental mode)
+                        if (food.type === 'boost' && this.isExperimentalMode()) {
+                            const now = Date.now();
+                            if (!player.boostUntil || player.boostUntil < now) {
+                                player.boostUntil = now + this.expBoostDurationMs;
+                                player.boostMult = this.expBoostSpeedMult;
+                                // Notify the player's client about the boost
+                                if (!player.isBot && player.ws && player.ws.readyState === WebSocket.OPEN) {
+                                    try {
+                                        player.ws.send(JSON.stringify({
+                                            type: 'exp_boost',
+                                            durationMs: this.expBoostDurationMs,
+                                            mult: this.expBoostSpeedMult,
+                                        }));
+                                    } catch (e) {}
+                                }
+                            } else {
+                                // Stack/refresh boost if already active
+                                player.boostUntil = Math.min(
+                                    player.boostUntil + this.expBoostDurationMs * 0.5,
+                                    Date.now() + this.expBoostDurationMs * 2
+                                );
+                            }
+                        }
                         this.food.delete(food.id);
                     }
                 });
+
+                // Warp gate teleportation (experimental mode)
+                if (this.isExperimentalMode() && this.warpGates.length >= 2) {
+                    const warpNow = Date.now();
+                    const lastWarp = this._warpGateCooldowns.get(cell.id) || 0;
+                    if (warpNow - lastWarp > this.expWarpGateCellCooldownMs) {
+                        for (let wi = 0; wi < this.warpGates.length; wi++) {
+                            const gate = this.warpGates[wi];
+                            const wdx = cell.x - gate.x;
+                            const wdy = cell.y - gate.y;
+                            if (wdx * wdx + wdy * wdy <= gate.radius * gate.radius) {
+                                // Find the paired gate
+                                const paired = this.warpGates.find(g => g.id === gate.pairedId);
+                                if (paired) {
+                                    cell.x = paired.x;
+                                    cell.y = paired.y;
+                                    // Scatter velocity to exit gate in a fun burst
+                                    const exitAngle = Math.random() * Math.PI * 2;
+                                    cell.vx = (cell.vx || 0) + Math.cos(exitAngle) * 6;
+                                    cell.vy = (cell.vy || 0) + Math.sin(exitAngle) * 6;
+                                    this._warpGateCooldowns.set(cell.id, warpNow);
+                                    // Notify client about warp
+                                    if (!player.isBot && player.ws && player.ws.readyState === WebSocket.OPEN) {
+                                        try {
+                                            player.ws.send(JSON.stringify({ type: 'exp_warp' }));
+                                        } catch (e) {}
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 // Eat other cells using spatial hash
                 const now_eat = Date.now();
@@ -2348,10 +2568,21 @@ class Game {
                         && coverageRatio >= Math.min(requiredCoverage, 0.72);
                     if (classicCapture || overlapCapture || coverageCapture) {
                         cell.mass += otherCell.mass;
+                        const wasLastCell = otherCell.owner.cells.length === 1;
                         const idx = otherCell.owner.cells.indexOf(otherCell);
                         if (idx >= 0) otherCell.owner.cells.splice(idx, 1);
                         this.cells.delete(otherCell.id);
                         if (otherCell.owner.cells.length === 0) {
+                            // Notify human killer about their kill
+                            if (!player.isBot && player.ws && !otherCell.owner.isBot) {
+                                try {
+                                    player.ws.send(JSON.stringify({
+                                        type: 'kill',
+                                        victim: otherCell.owner.name || 'An unnamed cell',
+                                        mass: Math.round(otherCell.mass),
+                                    }));
+                                } catch (e) {}
+                            }
                             this.onPlayerEliminated(otherCell.owner, player.name || 'An unnamed cell');
                         }
                         return;
@@ -2800,7 +3031,9 @@ class Game {
             name: p.name || 'An unnamed cell',
             score: Math.round(p.score),
             id: p.id,
-            teamId: this.isTeamsMode() ? p.teamId : null
+            teamId: this.isTeamsMode() ? p.teamId : null,
+            color: p.color || null,
+            skin: p.skin || null,
         }));
     }
 
@@ -2965,6 +3198,27 @@ class Game {
                 }
             }
 
+            // Build experimental world payload (only in experimental mode)
+            const expWorld = this.isExperimentalMode() ? {
+                gravityWells: this.gravityWells.map(w => ({
+                    id: w.id, x: Math.round(w.x), y: Math.round(w.y),
+                    radius: Math.round(w.radius), strength: Math.round(w.strength * 100) / 100,
+                    expiresIn: Math.max(0, (w.bornAt + w.lifetimeMs) - Date.now()),
+                })),
+                shrinkZones: this.shrinkZones.map(z => ({
+                    id: z.id, x: Math.round(z.x), y: Math.round(z.y),
+                    radius: Math.round(z.radius), decayMult: Math.round(z.decayMult * 10) / 10,
+                    expiresIn: Math.max(0, (z.bornAt + z.lifetimeMs) - Date.now()),
+                })),
+                warpGates: this.warpGates.map(g => ({
+                    id: g.id, pairedId: g.pairedId,
+                    x: Math.round(g.x), y: Math.round(g.y), radius: g.radius,
+                    expiresIn: Math.max(0, (g.bornAt + g.lifetimeMs) - Date.now()),
+                })),
+                playerBoostUntil: (player.boostUntil && player.boostUntil > Date.now())
+                    ? player.boostUntil : 0,
+            } : null;
+
             try {
                 ws.send(JSON.stringify({
                     type: 'state',
@@ -2985,6 +3239,7 @@ class Game {
                     massRadiusExponent: this.massRadiusExponent,
                     viewCenter: { x: Math.round(cx * 10) / 10, y: Math.round(cy * 10) / 10 },
                     viewScale,
+                    expWorld,
                 }));
             } catch (e) {}
         }

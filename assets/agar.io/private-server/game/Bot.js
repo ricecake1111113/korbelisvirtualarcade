@@ -888,7 +888,7 @@ class Bot {
 
             // Compare against myLargestBlobMass: a single enemy blob is a threat only if it
             // can eat one of our individual blobs, not just if it beats our total combined mass.
-            if (cell.mass > myLargestBlobMass * (threatMassRatio + effectiveCaution * 0.2)) {
+            if (cell.mass > myLargestBlobMass * (threatMassRatio + 0.05)) {
                 const pressure = Math.max(0.05, (cell.mass / Math.max(1, myLargestBlobMass)) - threatMassRatio + 0.04);
                 const invDist = 1 / Math.max(18, dist);
                 threatVecX += (myPos.x - cell.x) * invDist * pressure;
@@ -906,11 +906,11 @@ class Bot {
                 const approachGap = Math.max(0, dist - consumeRange);
                 // Bonus for prey that's already inside our eat range — kill it NOW
                 const fastEatBonus = Math.max(0, 320 - approachGap) * (0.5 + greediness * 0.6);
-                // Bonus for lone small shards that we can absorb quickly
-                const splitShardBonus = cell.mass <= myLargestBlobMass * 0.3 ? (60 + cell.mass * 1.2) * (0.5 + greediness * 0.6) : 0;
+                // Bonus for lone small shards that we can absorb quickly — always chase these greedily
+                const splitShardBonus = cell.mass <= myLargestBlobMass * 0.5 ? (90 + cell.mass * 1.8) * (0.6 + greediness * 0.8) : 0;
                 const ownerCells = cell.owner && Array.isArray(cell.owner.cells) ? cell.owner.cells.length : 1;
-                // Bonus for catching isolated cells (split-off from a bigger player)
-                const sneakShardBonus = ownerCells > 1 ? (20 + this.sneakiness * 32) : 0;
+                // Big bonus for split-off shards — even from large players, each small cell is easy mass
+                const sneakShardBonus = ownerCells > 1 ? (55 + this.sneakiness * 55 + greediness * 40) : 0;
                 // Bonus for cells we can split-kill (half-mass > prey)
                 const halfCanKill = (myLargestBlobMass / 2) > cell.mass * (1.1 + this.splitThreshold * 0.15);
                 const splitKillBonus = halfCanKill ? (55 + cell.mass * 0.9) * (0.6 + effectiveAggression * 0.7) : 0;
@@ -1205,7 +1205,7 @@ class Bot {
             this.retreatLockUntil = now + 620 + Math.random() * 640;
             this.escapeTarget = { x: this.desiredTarget.x, y: this.desiredTarget.y };
             this.escapeTargetUntil = now + 820 + Math.random() * 760;
-        } else if (dangerClose && effectiveCaution > 0.3) {
+        } else if (dangerClose && effectiveCaution > 0.05) {
             if (this.retreatLockUntil > now) {
                 if (this.escapeTarget && this.escapeTargetUntil > now) {
                     this.desiredTarget.x = this.escapeTarget.x;
@@ -1264,11 +1264,30 @@ class Bot {
             this.desiredTarget.y = benefactorPos.y + (Math.random() - 0.5) * 90;
             this.targetLerp = 0.08;
         } else if (bestPrey) {
-            // ── Hunt: if we can eat it, we chase it — no aggression gating ──────────
-            // Small bots only defer to food when food is much more accessible than prey.
-            const preyWorthChasing = !isSmallBot || bestPreyScore >= bestFoodScore * 0.8;
+            // ── Hunt: if we can eat it, we chase it — always prefer real mass over food ──
+            // Any edible cell is worth chasing — be greedy about real player mass
+            const preyWorthChasing = !isSmallBot || bestPreyScore >= bestFoodScore * 0.45;
 
             if (preyWorthChasing) {
+                // ── Pre-split approach: if we can kill with a split but prey is out of
+                // range, dash directly toward the prey so we enter split range fast.
+                const minSplitMassCheck = Math.max(game.config.minSplitMass || 36, 36);
+                const halfMassCheck = myLargestBlobMass / 2;
+                const myBlobRadiusCheck = this.massToRadius(game, myLargestBlobMass);
+                const splitReachCheck = myBlobRadiusCheck * 3.2 + 320;
+                const killRatioCheck = 1.02 + this.splitThreshold * 0.06;
+                const canKillCheck = myLargestBlobMass >= minSplitMassCheck * 2
+                    && halfMassCheck > bestPrey.mass * killRatioCheck
+                    && this.splitCooldown <= 0;
+                const preyOutOfSplitRange = bestPrey.dist > splitReachCheck && bestPrey.dist < splitReachCheck * 2.5;
+                const approachingForSplit = canKillCheck && preyOutOfSplitRange;
+
+                if (approachingForSplit) {
+                    // Dash straight toward prey to get into split range quickly
+                    this.desiredTarget.x = bestPrey.x;
+                    this.desiredTarget.y = bestPrey.y;
+                    this.targetLerp = 0.22;
+                } else {
                 const smartTarget = this.getSwerveTarget(game, myPos, bestPrey, closestThreat);
                 if (smartTarget) {
                     this.desiredTarget.x = smartTarget.x;
@@ -1299,6 +1318,7 @@ class Bot {
                     this.desiredTarget.y = targetY;
                     this.targetLerp = 0.09 + effectiveAggression * 0.05;
                 }
+                }
 
                 // ── Aggressive split logic ─────────────────────────────────────────
                 // Bots split freely whenever they have a kill shot. No random chance
@@ -1311,35 +1331,53 @@ class Bot {
                 if (canSplit) {
                     const halfMass = myLargestBlobMass / 2;
                     const myBlobRadius = this.massToRadius(game, myLargestBlobMass);
-                    // A split projectile travels roughly 2.5× the blob's radius before slowing.
-                    const splitReach = myBlobRadius * 2.5 + 260;
+                    // Split projectile travels roughly 2.5–3× the radius at launch speed.
+                    // Use a generous reach so bots commit when prey is clearly reachable.
+                    const splitReach = myBlobRadius * 3.2 + 320;
                     const inRange = bestPrey.dist < splitReach;
-                    const notTooClose = bestPrey.dist > myBlobRadius * 0.35;
+                    const notTooClose = bestPrey.dist > myBlobRadius * 0.25;
 
                     // Will our half-mass blob beat the prey after splitting?
-                    // Be aggressive: 1.05× is enough (just needs mass superiority).
-                    const killRatio = 1.05 + this.splitThreshold * 0.12;
+                    // Very low ratio — just needs mass superiority.
+                    const killRatio = 1.02 + this.splitThreshold * 0.06;
                     const canKill = halfMass > bestPrey.mass * killRatio;
 
-                    // Check for nearby threats before committing to split
-                    const hasThreat = closestThreatDist < myBlobRadius * 2.0 && closestThreat && closestThreat.mass > myLargestBlobMass * 0.8;
-                    const splitIsSafe = !hasThreat;
+                    // Only avoid splitting if a threat is extremely close (within 1.1× own radius)
+                    // AND is significantly bigger than us. Don't let distant threats block kill shots.
+                    const threatTooClose = closestThreat
+                        && closestThreatDist < myBlobRadius * 1.1
+                        && closestThreat.mass > myLargestBlobMass * 1.1;
+                    // If prey is VERY close and killable, ignore threats entirely — commit the split
+                    const preyIsRight = bestPrey.dist < splitReach * 0.5;
+                    const splitIsSafe = !threatTooClose || preyIsRight;
 
                     if (canKill && inRange && notTooClose && splitIsSafe) {
+                        // CRITICAL: aim target directly at prey so split projectile goes the right way.
+                        // Use a slight lead — predict where prey will be by the time the split arrives.
+                        const preyDx = bestPrey.x - myPos.x;
+                        const preyDy = bestPrey.y - myPos.y;
+                        const preyLen = Math.sqrt(preyDx * preyDx + preyDy * preyDy) || 1;
+                        // Lead the target slightly ahead of the prey's escape direction
+                        const leadX = bestPrey.x + (preyDx / preyLen) * 60;
+                        const leadY = bestPrey.y + (preyDy / preyLen) * 60;
+                        this.target = { x: leadX, y: leadY };
+                        this.desiredTarget.x = leadX;
+                        this.desiredTarget.y = leadY;
+                        // Power-of-2 splitting: each round splits ALL current cells simultaneously.
+                        // Round 0: 1→2, Round 1: 2→4 (allowAll), Round 2: 4→8, etc.
+                        // First split: just one cell (the initial blob)
                         game.splitPlayer(this);
-                        // Chain-split: if our largest piece after split STILL beats prey, fire again.
-                        // No random gate — keep splitting until we can't kill anymore.
-                        const maxChains = Math.min(4, Math.floor(1 + effectiveBoldness * 3));
-                        for (let chain = 0; chain < maxChains; chain++) {
+                        // Chain-split: double all cells each round (allowAll = true)
+                        const maxRounds = Math.min(3, Math.floor(effectiveBoldness * 3)); // up to 3 more rounds → max 16
+                        for (let round = 0; round < maxRounds; round++) {
                             if (this.cells.length >= this.maxCellsCap) break;
                             const largestNow = this.cells.reduce((mx, c) => Math.max(mx, c.mass), 0);
                             if (largestNow < minSplitMass * 2) break;
                             if ((largestNow / 2) <= bestPrey.mass * killRatio) break;
-                            // Each extra split is slightly less certain — add a mild probability decay
-                            if (chain > 0 && Math.random() > (0.7 - chain * 0.12)) break;
-                            game.splitPlayer(this);
+                            // Split all cells at once to maintain power-of-2 count
+                            game.splitPlayer(this, { allowAll: true });
                         }
-                        this.splitCooldown = 2.5 + Math.random() * 4;
+                        this.splitCooldown = 1.8 + Math.random() * 2.5;
                     }
                 }
             } else {

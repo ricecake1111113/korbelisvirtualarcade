@@ -101,8 +101,8 @@ body.menu-open #canvas {
   font-weight: 700;
   cursor: pointer;
 }
-#skinsBtn { background: linear-gradient(180deg,#1f8fe1,#176db2); }
-#openStatsBtn { background: linear-gradient(180deg,#18aa78,#12845c); }
+/* skinsBtn uses .mode-btn + .active for blue/white toggle — no override needed */
+#openStatsBtnRail { background: linear-gradient(180deg,#18aa78,#12845c); }
 .center { display: flex; flex-direction: column; min-width: 0; overflow: hidden; padding-right: 0; }
 .title { text-align: center; margin-top: 4px; }
 .title h1 {
@@ -204,6 +204,8 @@ body.menu-open #canvas {
   padding: 7px 8px 6px;
   min-height: 0;
   flex-shrink: 1;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 .quick-center h4 {
   font-size: 10px;
@@ -215,50 +217,74 @@ body.menu-open #canvas {
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));
-  gap: 5px;
+  gap: 4px;
 }
 .quick-item {
   border: 1px solid rgba(42,101,165,0.2);
-  border-radius: 6px;
+  border-radius: 5px;
   background: rgba(252,255,255,0.88);
-  padding: 4px 5px;
+  padding: 3px 4px;
 }
+.quick-item-wide { grid-column: span 2; }
 .quick-item label {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 3px;
-  font-size: 9.5px;
+  gap: 2px;
+  font-size: 8.5px;
   font-weight: 800;
   color: #3e6088;
   width: 100%;
 }
 .quick-item input, .quick-item select {
   width: 100%;
-  border-radius: 5px;
+  border-radius: 4px;
   border: 1px solid rgba(44,98,160,0.28);
   background: #fff;
   color: #224368;
-  padding: 2px 4px;
-  font-size: 10px;
+  padding: 2px 3px;
+  font-size: 9px;
   font-weight: 700;
   box-sizing: border-box;
 }
-.quick-actions {
+.quick-team-swatches {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 5px;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+.quick-team-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.1s, border-color 0.1s;
+}
+.quick-team-swatch:hover { transform: scale(1.2); }
+.quick-team-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px #2279e0; transform: scale(1.15); }
+.quick-team-swatch.random-swatch { background: conic-gradient(#cf5a5a,#d7c953,#58ae67,#4f73ce,#8a67d2,#cf5a5a); }
+.quick-actions {
+  display: block;
+  margin-top: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .quick-actions button {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
   border: 1px solid rgba(40,106,170,0.3);
   border-radius: 7px;
   background: linear-gradient(180deg,#2092ea,#1a6fbd);
   color: #fff;
   font-family: 'Sora', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 5px 9px;
+  padding: 5px 8px;
   cursor: pointer;
+  text-align: center;
 }
 
 .skin-block {
@@ -589,125 +615,200 @@ body.menu-open #canvas {
   position: fixed;
   inset: 0;
   z-index: 185;
-  background: rgba(10, 22, 43, 0.35);
-  backdrop-filter: blur(4px) saturate(1.04);
+  background: rgba(5,12,24,0.72);
+  backdrop-filter: blur(8px) saturate(1.1);
   padding: 14px;
   display: none;
 }
 #settingsPanel.show { display: flex; }
 .settings-surface {
-  width: min(980px, 94vw);
+  width: min(1020px, 96vw);
   height: 100%;
   margin: 0 auto;
-  border-radius: 7px;
-  border: 2px solid rgba(16,76,140,0.19);
-  background: rgba(247,251,255,0.7);
-  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(80,140,230,0.22);
+  background: linear-gradient(160deg, rgba(14,26,52,0.98) 0%, rgba(10,20,44,0.99) 100%);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-.settings-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-bottom: 6px; }
-.settings-head h4 { font-size: 13px; color: #385a83; font-weight: 800; text-transform: uppercase; }
+.settings-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(80,140,230,0.14);
+}
+.settings-head h4 {
+  font-size: 14px;
+  color: #a8c8f8;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
 .settings-actions { display: flex; gap: 6px; }
 .settings-search {
   width: 100%;
-  border: 1px solid rgba(43,98,165,0.25);
-  border-radius: 6px;
-  padding: 4px 8px;
+  border: 1px solid rgba(80,140,230,0.28);
+  border-radius: 8px;
+  padding: 5px 10px;
   font-size: 12px;
-  font-weight: 700;
-  color: #24476f;
-  background: rgba(255,255,255,0.92);
+  font-weight: 600;
+  color: #c8deff;
+  background: rgba(255,255,255,0.05);
+  outline: none;
+  transition: border-color 0.15s;
 }
+.settings-search:focus { border-color: rgba(80,160,255,0.55); background: rgba(255,255,255,0.08); }
+.settings-search::placeholder { color: rgba(160,190,240,0.45); }
 .settings-actions button {
   border: none;
-  border-radius: 6px;
-  padding: 5px 8px;
-  font-size: 12px;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
   font-weight: 800;
   cursor: pointer;
   color: #fff;
+  letter-spacing: 0.03em;
+  transition: filter 0.12s, transform 0.08s;
 }
-#regenerateWorldBtn { background: #8f4b26; }
-#saveSettingsBtn { background: #2d9b3e; }
-#resetSettingsBtn { background: #ea7f2d; }
-#closeSettingsBtn { background: #65748a; }
+.settings-actions button:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.settings-actions button:active { transform: translateY(0); }
+#saveSettingsBtn { background: linear-gradient(180deg,#2ecc6e,#1a9149); box-shadow: 0 2px 8px rgba(30,180,90,0.35); }
+#resetSettingsBtn { background: linear-gradient(180deg,#f0922a,#c46a14); box-shadow: 0 2px 8px rgba(220,120,30,0.3); }
+#closeSettingsBtn { background: linear-gradient(180deg,#5a6a82,#3e4f63); }
 #settingsList {
   overflow: auto;
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: 8px;
+  gap: 10px;
   align-content: start;
+  padding-right: 4px;
 }
-.settings-group { margin-bottom: 10px; }
+#settingsList::-webkit-scrollbar { width: 6px; }
+#settingsList::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 4px; }
+#settingsList::-webkit-scrollbar-thumb { background: rgba(80,140,230,0.35); border-radius: 4px; }
+#settingsList::-webkit-scrollbar-thumb:hover { background: rgba(80,160,255,0.55); }
+.settings-group {
+  background: rgba(255,255,255,0.032);
+  border: 1px solid rgba(80,140,230,0.12);
+  border-radius: 10px;
+  padding: 8px 9px;
+  margin-bottom: 0;
+}
 .settings-group h5 {
-  font-size: 11px;
-  color: #4f6f96;
+  font-size: 10px;
+  color: #7baae8;
   text-transform: uppercase;
-  letter-spacing: .05em;
-  margin-bottom: 5px;
-  border-bottom: 1px dashed rgba(54,98,154,0.2);
-  padding-bottom: 3px;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  margin-bottom: 7px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(80,140,230,0.18);
 }
 .setting-row {
-  border-radius: 5px;
-  border: 1px solid rgba(54,98,154,0.18);
-  background: rgba(255,255,255,0.78);
-  padding: 5px 6px;
-  margin-bottom: 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(80,140,230,0.1);
+  background: rgba(255,255,255,0.03);
+  padding: 5px 7px;
+  margin-bottom: 3px;
+  transition: background 0.12s, border-color 0.12s;
 }
-.setting-row label { display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 800; color: #3d5e87; align-items: center; }
-.setting-row input, .setting-row select {
-  width: 126px;
-  border-radius: 5px;
-  border: 1px solid rgba(43,98,165,0.25);
-  background: #fff;
-  padding: 2px 5px;
-  color: #24476f;
+.setting-row:hover { background: rgba(80,140,230,0.08); border-color: rgba(80,140,230,0.22); }
+.setting-row label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 11px;
   font-weight: 700;
+  color: #c0d8f8;
+  align-items: center;
 }
-.setting-row .desc { margin-top: 2px; color: #6a87ac; font-size: 10px; line-height: 1.2; }
+.setting-row input[type=number], .setting-row select {
+  width: 110px;
+  border-radius: 6px;
+  border: 1px solid rgba(80,140,230,0.25);
+  background: rgba(255,255,255,0.07);
+  padding: 3px 6px;
+  color: #d8eaff;
+  font-size: 11px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.12s, background 0.12s;
+  flex-shrink: 0;
+}
+.setting-row input[type=number]:focus,
+.setting-row select:focus { border-color: rgba(80,160,255,0.6); background: rgba(255,255,255,0.11); }
+.setting-row select option { background: #0e1a34; color: #d8eaff; }
+.setting-row input[type=checkbox] {
+  width: 16px; height: 16px;
+  accent-color: #3a9cff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.setting-row .desc { margin-top: 3px; color: rgba(140,180,240,0.6); font-size: 9.5px; line-height: 1.3; }
 .settings-presets {
   grid-column: 1 / -1;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(54,98,154,0.2);
-  background: rgba(255,255,255,0.82);
-  padding: 8px;
+  margin-bottom: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(80,140,230,0.18);
+  background: rgba(255,255,255,0.032);
+  padding: 9px 10px;
 }
 .settings-presets h5 {
-  margin: 0 0 6px;
-  font-size: 11px;
-  color: #3f5e85;
+  margin: 0 0 7px;
+  font-size: 10px;
+  color: #7baae8;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  font-weight: 800;
 }
 .preset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(132px,1fr));
+  grid-template-columns: repeat(auto-fill,minmax(136px,1fr));
   gap: 6px;
 }
 .preset-btn {
-  border: 1px solid rgba(43,98,165,0.25);
-  background: rgba(241,248,255,0.96);
-  color: #264769;
-  border-radius: 7px;
-  padding: 6px 7px;
+  border: 1px solid rgba(80,140,230,0.2);
+  background: rgba(255,255,255,0.04);
+  color: #b0ccf0;
+  border-radius: 8px;
+  padding: 7px 8px;
   text-align: left;
   font-size: 11px;
   cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
 }
-.preset-btn:hover { background: rgba(224,239,255,0.98); border-color: rgba(43,98,165,0.45); }
+.preset-btn:hover {
+  background: rgba(80,140,230,0.12);
+  border-color: rgba(80,160,255,0.4);
+  transform: translateY(-1px);
+}
 .preset-btn.active {
-  border-color: rgba(24,111,200,0.72);
-  background: linear-gradient(180deg, rgba(39,148,255,0.26), rgba(31,112,221,0.18));
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.42);
+  border-color: rgba(60,140,255,0.7);
+  background: linear-gradient(160deg, rgba(40,110,240,0.22), rgba(25,80,200,0.16));
+  box-shadow: inset 0 0 0 1px rgba(100,180,255,0.15), 0 2px 8px rgba(40,100,220,0.25);
+  color: #d4eaff;
 }
 .preset-title { font-weight: 900; display: block; margin-bottom: 2px; }
-.preset-note { font-size: 10px; color: #5678a1; line-height: 1.2; display: block; }
+.preset-note { font-size: 10px; color: rgba(140,180,240,0.65); line-height: 1.2; display: block; }
+.team-color-picker { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; align-items: center; }
+.team-color-swatch {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; flex-shrink: 0; transition: transform 0.1s, border-color 0.1s;
+}
+.team-color-swatch:hover { transform: scale(1.18); }
+.team-color-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px #2279e0, 0 1px 4px rgba(0,0,0,0.35); transform: scale(1.15); }
+.team-color-swatch.random { background: conic-gradient(#cf5a5a,#d7c953,#58ae67,#4f73ce,#8a67d2,#cf5a5a); }
+.team-color-custom-wrap { display: flex; align-items: center; gap: 4px; }
+.team-color-custom-wrap input[type=color] { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(44,98,160,0.4); padding: 0; cursor: pointer; background: none; }
+.team-color-custom-wrap span { font-size: 9px; color: #5678a1; font-weight: 700; }
 .note { margin-top: 8px; font-size: 12px; color: #5a779d; text-align: center; }
 #deathScreen {
   position: fixed;
@@ -719,33 +820,65 @@ body.menu-open #canvas {
   background: rgba(7,14,27,0.65);
   backdrop-filter: blur(4px);
 }
-#deathScreen.show { display: flex; }
+#deathScreen.show { display: flex; animation: deathFadeIn 0.9s ease forwards; }
+@keyframes deathFadeIn {
+  0%   { opacity: 0; backdrop-filter: blur(0px); }
+  40%  { opacity: 0.4; backdrop-filter: blur(2px); }
+  100% { opacity: 1; backdrop-filter: blur(7px); }
+}
 .death-box {
-  width: min(430px,92vw);
-  border-radius: 11px;
-  border: 2px solid rgba(255,255,255,0.2);
-  background: rgba(25,35,62,0.95);
+  width: min(500px,94vw);
+  border-radius: 14px;
+  border: 1px solid rgba(100,160,255,0.25);
+  background: linear-gradient(160deg, rgba(14,26,52,0.97) 0%, rgba(10,18,40,0.99) 100%);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.7);
   color: #fff;
-  padding: 24px;
+  padding: 28px 24px 22px;
   text-align: center;
 }
-.death-box h2 { font-size: 34px; font-family: 'Sora', sans-serif; color: #ff6a6a; }
-.death-info { margin: 10px 0 16px; color: #c5d2e8; line-height: 1.7; }
+.death-box h2 { font-size: 32px; font-family: 'Sora', sans-serif; color: #ff6a6a; margin-bottom: 4px; }
+.death-subtitle { font-size: 13px; color: rgba(180,200,240,0.6); margin-bottom: 12px; }
+.death-info { margin: 0 0 16px; color: #c5d2e8; line-height: 1.7; font-size: 15px; }
+.death-breakdown {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0 18px;
+  text-align: center;
+}
+.death-stat { background: rgba(255,255,255,0.05); border: 1px solid rgba(80,140,230,0.15); border-radius: 8px; padding: 9px 5px; }
+.death-stat .dk { font-size: 9.5px; color: rgba(160,190,240,0.6); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.death-stat .dv { font-size: 18px; font-weight: 900; color: #d8eaff; }
 .death-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-#continueBtn, #lobbyDeathBtn { border: none; border-radius: 12px; color: #fff; font-weight: 800; font-size: 16px; padding: 10px 18px; cursor: pointer; }
-#continueBtn { background: #38a8ff; }
-#lobbyDeathBtn { background: #6c7f9a; }
+#continueBtn, #lobbyDeathBtn { border: none; border-radius: 10px; color: #fff; font-weight: 800; font-size: 15px; padding: 10px 20px; cursor: pointer; transition: filter 0.12s, transform 0.08s; }
+#continueBtn:hover, #lobbyDeathBtn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+#continueBtn { background: linear-gradient(180deg,#38a8ff,#1a78d4); }
+#lobbyDeathBtn { background: linear-gradient(180deg,#6c7f9a,#4a5c72); }
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 70; display: none; }
 #hud.active { display: block; }
 .hud-card { position: absolute; background: var(--hud-bg); border: 1px solid var(--line); border-radius: 12px; color: var(--hud-text); backdrop-filter: blur(4px); }
-#leaderboard { top: 10px; right: 10px; width: 260px; max-width: 38vw; max-height: 72vh; overflow-y: auto; overflow-x: hidden; padding: 10px 12px; pointer-events: auto; touch-action: pan-y; transition: width 0.2s ease, opacity 0.2s ease, padding 0.2s ease; }
+#leaderboard { top: 10px; right: 10px; width: 272px; max-width: 40vw; overflow-y: hidden; overflow-x: hidden; padding: 8px 10px; pointer-events: auto; touch-action: pan-y; transition: width 0.2s ease, opacity 0.2s ease, padding 0.2s ease; }
 #leaderboard.collapsed { width: 0; padding-left: 0; padding-right: 0; border-width: 0; opacity: 0; overflow: hidden; }
-#leaderboard h3 { text-align: center; font-size: 17px; margin-bottom: 6px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
-.lb-entry { display: flex; justify-content: space-between; gap: 7px; font-size: 15px; line-height: 1.4; }
-.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; display: inline-block; }
-.lb-score { display: inline-flex; align-items: center; gap: 6px; }
-.lb-team-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 0 0 1px rgba(0,0,0,0.24); }
+.lb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.lb-header span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg); opacity: 0.85; }
+.lb-total { font-size: 10px !important; font-weight: 600 !important; opacity: 0.5 !important; }
+.lb-sep { height: 1px; background: var(--line); margin: 3px 0; opacity: 0.5; }
+.lb-entry { display: flex; justify-content: space-between; align-items: center; gap: 5px; font-size: 13px; line-height: 1.35; padding: 2px 4px; border-radius: 5px; transition: background 0.1s; }
+.lb-left { display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1; overflow: hidden; }
+.lb-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.lb-icon { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
+.lb-icon-dot { display: inline-block; }
+.lb-rank { font-size: 11px; opacity: 0.6; font-weight: 700; flex-shrink: 0; min-width: 18px; }
+.lb-arrow { font-size: 9px; flex-shrink: 0; }
+.lb-arrow.up { color: #4ddd7a; }
+.lb-arrow.down { color: #f06060; }
+.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.lb-score-val { font-size: 12px; font-weight: 700; opacity: 0.85; }
+.lb-team-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 0 0 1px rgba(0,0,0,0.24); flex-shrink: 0; }
 .lb-entry.me { color: var(--good); font-weight: 800; }
+.lb-entry.me .lb-name { font-weight: 800; }
+.lb-entry.spectate-selected { background: rgba(32,146,234,0.22) !important; }
+.lb-entry[data-owner-id]:hover { background: rgba(255,255,255,0.11); cursor: pointer; }
 #scoreDisplay { left: 50%; bottom: 20px; transform: translateX(-50%); padding: 9px 14px; font-size: 26px; font-weight: 800; }
 #minimap { position: absolute; right: 10px; bottom: 10px; width: 170px; height: 170px; border-radius: 10px; border: 1px solid var(--line); background: var(--hud-bg); }
 #fpsCounter { left: 10px; top: 10px; padding: 7px 10px; font-size: 12px; }
@@ -809,6 +942,48 @@ body.menu-open #canvas {
   pointer-events: auto;
   cursor: pointer;
 }
+#spectateInfoBar {
+  display: none;
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+  gap: 0;
+  background: var(--hud-bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  pointer-events: auto;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+#spectateInfoBar.visible { display: flex; }
+#spectateInfoText {
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--hud-text);
+  min-width: 140px;
+  text-align: center;
+}
+.spectate-nav-btn {
+  background: none;
+  border: none;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  color: var(--hud-text);
+  font-size: 22px;
+  font-weight: 900;
+  padding: 4px 10px;
+  cursor: pointer;
+  pointer-events: auto;
+  line-height: 1;
+  opacity: 0.8;
+}
+.spectate-nav-btn:hover { background: rgba(255,255,255,0.12); opacity: 1; }
+#spectatePrevBtn { border-left: none; border-right: 1px solid var(--line); }
+#spectateNextBtn { border-right: none; border-left: 1px solid var(--line); }
 #teamChart {
   position: absolute;
   left: 10px;
@@ -940,7 +1115,7 @@ body.menu-open #canvas {
           <button id="openStatsBtnCenter">Stats</button>
         </div>
         <div class="mode-row" style="grid-template-columns:1fr;">
-          <button id="skinsBtn" class="mode-btn active" style="font-family:'Sora',sans-serif;">Hide Skins</button>
+          <button id="skinsBtn" class="mode-btn" style="font-family:'Sora',sans-serif;">Hide Skins</button>
         </div>
         <div class="mode-row">
           <button id="ffaModeBtn" class="mode-btn active">FFA Mode</button>
@@ -954,7 +1129,7 @@ body.menu-open #canvas {
             <div class="quick-item"><label>Start Mass <input id="quickStartMassInput" type="number" min="1" step="1"></label></div>
             <div class="quick-item"><label>Max Food <input id="quickMaxFoodInput" type="number" min="100" step="10"></label></div>
             <div class="quick-item"><label>Max Viruses <input id="quickMaxVirusesInput" type="number" min="0" step="1"></label></div>
-            <div class="quick-item"><label>Map Size <select id="quickMapPresetSelect"><option value="standard">Standard</option><option value="small">Small</option><option value="large">Large</option></select></label></div>
+            <div class="quick-item"><label>Map Size <select id="quickMapPresetSelect"><option value="xs">Extra Small</option><option value="small">Small</option><option value="standard">Standard</option><option value="large">Large</option><option value="xl">Extra Large</option></select></label></div>
             <div class="quick-item"><label>Insta-Merge <input id="quickInstaMergeToggle" type="checkbox"></label></div>
             <div class="quick-item"><label>Decay Rate <input id="quickDecayRateInput" type="number" min="0" max="0.02" step="0.0001"></label></div>
             <div class="quick-item"><label>Bot Spawn Mode <select id="quickBotSpawnSelect">
@@ -963,6 +1138,10 @@ body.menu-open #canvas {
               <option value="player_current">Player Current Mass</option>
             </select></label></div>
             <div class="quick-item"><label>Bots Only After Join <input id="quickDeferBotsToggle" type="checkbox"></label></div>
+            <div class="quick-item"><label>Team Count <input id="quickTeamCountInput" type="number" min="2" max="12" step="1" oninput="renderQuickTeamColorSwatches()"></label></div>
+            <div class="quick-item quick-item-wide"><label>My Team Color
+              <div id="quickTeamColorSwatches" class="quick-team-swatches"></div>
+            </label></div>
           </div>
           <div class="quick-actions">
             <button id="quickApplyBtn" type="button">Apply Quick Settings</button>
@@ -974,7 +1153,6 @@ body.menu-open #canvas {
               <h4>Game Settings</h4>
               <input id="settingsSearch" class="settings-search" type="text" placeholder="Search settings...">
               <div class="settings-actions">
-                <button id="regenerateWorldBtn">Regenerate Match</button>
                 <button id="saveSettingsBtn">Apply</button>
                 <button id="resetSettingsBtn">Reset</button>
                 <button id="closeSettingsBtn">Close</button>
@@ -1012,7 +1190,7 @@ body.menu-open #canvas {
             <div class="stat"><div class="k">Fastest 100 / 1000</div><div id="statFastestMass" class="v">- / -</div></div>
           </div>
         </div>
-        <button id="openStatsBtn" style="height:36px;border:1px solid rgba(21,88,150,0.28);border-radius:8px;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(180deg,#18aa78,#12845c);margin-top:6px;">Detailed Stats</button>
+        <button id="openStatsBtnRail" style="height:36px;border:1px solid rgba(21,88,150,0.28);border-radius:8px;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(180deg,#18aa78,#12845c);margin-top:6px;">Detailed Stats</button>
       </aside>
     </div>
   </div>
@@ -1045,6 +1223,10 @@ body.menu-open #canvas {
       <div class="dstat"><div class="k">Total Playtime</div><div id="dPlaytime" class="v">0s</div></div>
       <div class="dstat"><div class="k">Current Mode</div><div id="dTeamCount" class="v">FFA</div></div>
       <div class="dstat"><div class="k">Selected Skin</div><div id="dSelectedSkin" class="v">None</div></div>
+      <div class="dstat"><div class="k">Total Kills (All-Time)</div><div id="dAllTimeKills" class="v">0</div></div>
+      <div class="dstat"><div class="k">K/D Ratio (All-Time)</div><div id="dKDRatio" class="v">0.00</div></div>
+      <div class="dstat"><div class="k">Peak Mass % (Round)</div><div id="dPeakMassPctRound" class="v">0%</div></div>
+      <div class="dstat"><div class="k">Peak Mass % (All-Time)</div><div id="dPeakMassPctAll" class="v">0%</div></div>
     </div>
   </div>
 </div>
@@ -1052,7 +1234,16 @@ body.menu-open #canvas {
 <div id="deathScreen">
   <div class="death-box">
     <h2>Game Over</h2>
+    <div class="death-subtitle" id="deathSubtitle">This round</div>
     <div class="death-info"><div id="deathKiller"></div><div id="deathScore"></div></div>
+    <div class="death-breakdown">
+      <div class="death-stat"><div class="dk">Peak Score</div><div class="dv" id="dbPeakScore">0</div></div>
+      <div class="death-stat"><div class="dk">Best Rank</div><div class="dv" id="dbBestRank">-</div></div>
+      <div class="death-stat"><div class="dk">Kills</div><div class="dv" id="dbKills">0</div></div>
+      <div class="death-stat"><div class="dk">Survived</div><div class="dv" id="dbSurvived">0s</div></div>
+      <div class="death-stat"><div class="dk">Peak Mass%</div><div class="dv" id="dbMassPct">0%</div></div>
+      <div class="death-stat"><div class="dk">K/D</div><div class="dv" id="dbKD">0.00</div></div>
+    </div>
     <div class="death-actions">
       <button id="continueBtn">Play Again</button>
       <button id="lobbyDeathBtn">Return To Lobby</button>
@@ -1068,6 +1259,11 @@ body.menu-open #canvas {
   <button id="teamChartToggle" title="Hide/Show team chart">Hide Team Chart</button>
   <canvas id="teamChart"></canvas>
   <button id="lobbyBtn">Return To Lobby</button>
+  <div id="spectateInfoBar">
+    <button id="spectatePrevBtn" class="spectate-nav-btn">&#8249;</button>
+    <div id="spectateInfoText"><span id="spectateTargetLabel">Free Roam</span></div>
+    <button id="spectateNextBtn" class="spectate-nav-btn">&#8250;</button>
+  </div>
   <div id="fpsCounter" class="hud-card"></div>
   <div id="hudStats" class="hud-card">
     <div class="row"><span>Round High</span><strong id="hudHigh">0</strong></div>
@@ -1075,7 +1271,6 @@ body.menu-open #canvas {
     <div class="row"><span>All Games</span><strong id="hudGames">0</strong></div>
     <div class="row"><span>Round Eaten</span><strong id="hudEaten">0</strong></div>
   </div>
-  <button id="openStatsBtn">Detailed Stats</button>
   <div id="chatBox"></div>
 </div>
 
@@ -1095,15 +1290,16 @@ const clientSettingsDefaults = {
   hideMass: false,
   showOtherMass: false,
   hideSkins: false,
-  renderDistance: 1.0,
+  renderDistance: 0.72,
   gridSize: 18,
   showMinimap: true,
   showTeamChart: true,
   ownCellLerp: 0.56,
   globalLerp: 0.42,
+  preferredTeamId: -1,
 };
 const clientSettingsSchema = [
-  { key: 'renderDistance', label: 'Render Distance', description: 'Lower values draw fewer entities for better performance.', type: 'number', min: 0.45, max: 1.6, step: 0.05, group: 'Client' },
+  { key: 'renderDistance', label: 'Render Distance', description: 'How far beyond screen edges to draw entities. Lower = better performance. Applies in spectate too.', type: 'number', min: 0.35, max: 1.6, step: 0.05, group: 'Client' },
   { key: 'gridSize', label: 'Grid Size', description: 'Size of background grid squares. Lower = more squares.', type: 'number', min: 14, max: 64, step: 1, group: 'Client' },
   { key: 'globalLerp', label: 'Entity Smoothing', description: 'Interpolation amount for other entities. Lower = snappier.', type: 'number', min: 0.1, max: 0.8, step: 0.01, group: 'Client' },
   { key: 'ownCellLerp', label: 'Own Cell Smoothing', description: 'Interpolation amount for your own cells.', type: 'number', min: 0.1, max: 0.8, step: 0.01, group: 'Client' },
@@ -1149,6 +1345,13 @@ const cellMap = new Map();
 const foodMap = new Map();
 const virusMap = new Map();
 const skinImageCache = new Map();
+
+// Experimental mode world state (sent by server each tick)
+let expGravityWells = [];
+let expShrinkZones = [];
+let expWarpGates = [];
+let expPlayerBoostUntil = 0;
+let expBoostFlashUntil = 0;     // client-side flash overlay timer
 const cam = { x: 2500, y: 2500, scale: 1.22 };
 
 let userZoom = 0.9;
@@ -1219,6 +1422,11 @@ const stats = {
   allTimeMassGained: 0,
   allTimeMassLost: 0,
   allTimeBiggestSingleGain: 0,
+  // K/D and mass%
+  roundKills: 0,
+  allTimeKills: 0,
+  roundPeakMassPct: 0,
+  allTimePeakMassPct: 0,
 };
 
 function showToast(text, ms = 1800) {
@@ -1307,9 +1515,10 @@ function saveClientSettings() {
 
 function applyClientSettingsPatch(patch, showMessage = false) {
   let changed = false;
-  for (const [key, value] of Object.entries(patch || {})) {
+  const keys = Object.keys(patch || {});
+  for (const key of keys) {
     if (!(key in clientSettingsDefaults)) continue;
-    const next = clampClientSetting(key, value);
+    const next = clampClientSetting(key, patch[key]);
     if (clientSettings[key] !== next) {
       clientSettings[key] = next;
       changed = true;
@@ -1318,6 +1527,15 @@ function applyClientSettingsPatch(patch, showMessage = false) {
   if (changed) {
     saveClientSettings();
     applyHudVisibility();
+    // Side-effect: hideSkins change must update the skin panel and button
+    if (keys.includes('hideSkins') || 'hideSkins' in (patch || {})) {
+      setSkinPanelVisible(!clientSettings.hideSkins);
+      const skinsBtn = document.getElementById('skinsBtn');
+      if (skinsBtn) {
+        skinsBtn.textContent = clientSettings.hideSkins ? 'Show Skins' : 'Hide Skins';
+        skinsBtn.classList.toggle('active', !!clientSettings.hideSkins);
+      }
+    }
     if (showMessage) showToast('Client settings applied');
   } else if (showMessage) {
     showToast('No client setting changes');
@@ -1509,7 +1727,7 @@ const settingsPresets = [
     id: 'party_mode',
     label: 'Party Mode',
     note: 'Pellet storms, frequent events, and chaos.',
-    serverPatch: { gameMode: 'experimental', maxFood: 2600, forceSpawnerVirusesInExperimental: true, spawnerVirusChance: 0.45, botCircleSpitChancePerTick: 0.00022, botCircleSpitCooldownMs: 9000, botCount: 40, enableBountyPellets: true, bountyPelletIntervalMs: 5200, goldenFoodChance: 0.03, plasmaFoodChance: 0.04 },
+    serverPatch: { gameMode: 'experimental', maxFood: 2600, forceSpawnerVirusesInExperimental: true, spawnerVirusChance: 0.45, botCircleSpitChancePerTick: 0.00022, botCircleSpitCooldownMs: 9000, botCount: 40, enableBountyPellets: true, bountyPelletIntervalMs: 5200, goldenFoodChance: 0.03, plasmaFoodChance: 0.04, expGravityWellCount: 3, expShrinkZoneCount: 3, expWarpGatePairs: 2, expBoostFoodChance: 0.035 },
     clientPatch: { fpsCap: 90 },
   },
   {
@@ -1641,9 +1859,10 @@ function applyHudVisibility() {
   const showTeamUi = showHud && currentMode === 'teams';
   teamChartToggleEl.style.display = showTeamUi ? 'block' : 'none';
   teamChartEl.style.display = (showTeamUi && clientSettings.showTeamChart) ? 'block' : 'none';
-  scoreEl.style.display = showHud ? 'block' : 'none';
+  scoreEl.style.display = (showHud && !spectating) ? 'block' : 'none';
   if (chatEl) chatEl.style.display = (showHud && !!runtimeConfig.enableBotChat) ? 'flex' : 'none';
   teamChartToggleEl.textContent = clientSettings.showTeamChart ? 'Hide Team Chart' : 'Show Team Chart';
+  updateSpectateInfoBar();
   updateHudLayout();
 }
 
@@ -1857,6 +2076,11 @@ function updateDetailedStatsUI() {
   set('dPlaytime', formatDuration(stats.allTimePlaytimeMs || 0));
   set('dTeamCount', currentMode === 'teams' ? 'Teams' : (currentMode === 'experimental' ? 'Experimental' : 'FFA'));
   set('dSelectedSkin', selectedSkin ? selectedSkin.replace(/\.webp$/i, '') : 'None');
+  set('dAllTimeKills', stats.allTimeKills || 0);
+  const kdRatio = (stats.allTimeTotalEaten || 0) > 0 ? ((stats.allTimeKills || 0) / stats.allTimeTotalEaten).toFixed(2) : (stats.allTimeKills || 0).toFixed(2);
+  set('dKDRatio', kdRatio);
+  set('dPeakMassPctRound', `${(stats.roundPeakMassPct || 0).toFixed(1)}%`);
+  set('dPeakMassPctAll', `${(stats.allTimePeakMassPct || 0).toFixed(1)}%`);
 }
 
 function setStatsPanelOpen(open) {
@@ -1873,7 +2097,8 @@ function setModeButtons(mode) {
   document.getElementById('experimentalModeBtn').classList.toggle('active', currentMode === 'experimental');
   document.getElementById('skinsBtn').disabled = false;
   document.getElementById('skinsBtn').style.opacity = '1';
-  document.getElementById('skinsBtn').textContent = skinPanelVisible ? 'Hide Skins' : 'Skins';
+  document.getElementById('skinsBtn').textContent = clientSettings.hideSkins ? 'Show Skins' : 'Hide Skins';
+  document.getElementById('skinsBtn').classList.toggle('active', !!clientSettings.hideSkins);
   applyHudVisibility();
   if (changed) {
     renderSkinPicker();
@@ -1899,7 +2124,7 @@ function setSkinPanelVisible(visible) {
   document.getElementById('skinBlock').classList.toggle('hidden', !visible);
   const skinsBtn = document.getElementById('skinsBtn');
   skinsBtn.textContent = clientSettings.hideSkins ? 'Show Skins' : 'Hide Skins';
-  skinsBtn.classList.toggle('active', !clientSettings.hideSkins);
+  skinsBtn.classList.toggle('active', !!clientSettings.hideSkins);
 }
 
 function resetRoundTelemetry(startMass) {
@@ -1917,6 +2142,8 @@ function resetRoundTelemetry(startMass) {
   stats.roundFastestToFirstMs = 0;
   stats.roundFastestTo100Ms = 0;
   stats.roundFastestTo1000Ms = 0;
+  stats.roundKills = 0;
+  stats.roundPeakMassPct = 0;
 }
 
 function recordRoundTelemetry(dtSec) {
@@ -2243,6 +2470,26 @@ function renderSettings() {
   }
 }
 
+const TEAM_COLORS_CLIENT = ['#cf5a5a','#4f73ce','#58ae67','#d7c953','#8a67d2','#d88a47','#8f5f42','#8c919a','#d885b1','#58c6da','#d8b347','#f1f3f6','#23262b'];
+const TEAM_NAMES_CLIENT = ['Red','Blue','Green','Yellow','Purple','Orange','Brown','Grey','Pink','Cyan','Gold','White','Black'];
+
+function renderQuickTeamColorSwatches() {
+  const container = document.getElementById('quickTeamColorSwatches');
+  if (!container) return;
+  container.innerHTML = '';
+  // Show exactly 12 swatches (the 12 game team colors), no rainbow/random swatch
+  const activePref = Number(clientSettings.preferredTeamId ?? -1);
+  for (let i = 0; i < 12; i++) {
+    const color = TEAM_COLORS_CLIENT[i];
+    const sw = document.createElement('div');
+    sw.className = 'quick-team-swatch' + (activePref === i ? ' active' : '');
+    sw.style.background = color;
+    sw.title = TEAM_NAMES_CLIENT[i];
+    sw.addEventListener('click', () => { clientSettings.preferredTeamId = i; saveClientSettings(); renderQuickTeamColorSwatches(); });
+    container.appendChild(sw);
+  }
+}
+
 function syncQuickCenterFromRuntime() {
   const botEl = document.getElementById('quickBotCountInput');
   const startEl = document.getElementById('quickStartMassInput');
@@ -2253,6 +2500,7 @@ function syncQuickCenterFromRuntime() {
   const decayEl = document.getElementById('quickDecayRateInput');
   const spawnEl = document.getElementById('quickBotSpawnSelect');
   const deferEl = document.getElementById('quickDeferBotsToggle');
+  const teamCountEl = document.getElementById('quickTeamCountInput');
   if (!botEl || !startEl || !foodEl || !virusEl || !mergeEl || !mapEl) return;
 
   botEl.value = Math.max(0, Math.round(Number(runtimeConfig.botCount) || 0));
@@ -2263,12 +2511,17 @@ function syncQuickCenterFromRuntime() {
   if (decayEl) decayEl.value = Number(runtimeConfig.decayRate ?? 0.001).toFixed(4);
   if (spawnEl && runtimeConfig.botSpawnMassMode) spawnEl.value = runtimeConfig.botSpawnMassMode;
   if (deferEl) deferEl.checked = !!runtimeConfig.deferBotsUntilHumans;
+  if (teamCountEl) teamCountEl.value = Math.max(2, Math.min(12, Number(runtimeConfig.teamCount) || 3));
 
   const w = Number(runtimeConfig.mapWidth) || 5000;
   const h = Number(runtimeConfig.mapHeight) || 5000;
-  if (w <= 4200 && h <= 4200) mapEl.value = 'small';
+  if (w <= 2400 && h <= 2400) mapEl.value = 'xs';
+  else if (w <= 4200 && h <= 4200) mapEl.value = 'small';
+  else if (w >= 12000 && h >= 12000) mapEl.value = 'xl';
   else if (w >= 8200 && h >= 8200) mapEl.value = 'large';
   else mapEl.value = 'standard';
+
+  renderQuickTeamColorSwatches();
 }
 
 function collectQuickCenterPatch() {
@@ -2282,6 +2535,7 @@ function collectQuickCenterPatch() {
   const decayEl = document.getElementById('quickDecayRateInput');
   const spawnEl = document.getElementById('quickBotSpawnSelect');
   const deferEl = document.getElementById('quickDeferBotsToggle');
+  const teamCountEl = document.getElementById('quickTeamCountInput');
   if (!botEl || !startEl || !foodEl || !virusEl || !mergeEl || !mapEl) return patch;
 
   const botCount = Math.max(0, Math.round(Number(botEl.value) || 0));
@@ -2306,27 +2560,62 @@ function collectQuickCenterPatch() {
     const defer = !!deferEl.checked;
     if (defer !== !!runtimeConfig.deferBotsUntilHumans) patch.deferBotsUntilHumans = defer;
   }
+  if (teamCountEl) {
+    const tc = Math.max(2, Math.min(12, Math.round(Number(teamCountEl.value) || 3)));
+    if (tc !== Number(runtimeConfig.teamCount || 3)) patch.teamCount = tc;
+  }
 
   const mapPreset = mapEl.value;
-  if (mapPreset === 'small') {
-    if (Number(runtimeConfig.mapWidth) !== 3600) patch.mapWidth = 3600;
-    if (Number(runtimeConfig.mapHeight) !== 3600) patch.mapHeight = 3600;
-  } else if (mapPreset === 'large') {
-    if (Number(runtimeConfig.mapWidth) !== 9200) patch.mapWidth = 9200;
-    if (Number(runtimeConfig.mapHeight) !== 9200) patch.mapHeight = 9200;
-  } else {
-    const defaultW = Number(getServerSettingDefault('mapWidth', 5000)) || 5000;
-    const defaultH = Number(getServerSettingDefault('mapHeight', 5000)) || 5000;
-    if (Number(runtimeConfig.mapWidth) !== defaultW) patch.mapWidth = defaultW;
-    if (Number(runtimeConfig.mapHeight) !== defaultH) patch.mapHeight = defaultH;
-  }
+  const MAP_SIZES = { xs: 2200, small: 3600, standard: 5000, large: 9200, xl: 14000 };
+  const targetMapSize = MAP_SIZES[mapPreset] || 5000;
+  if (Number(runtimeConfig.mapWidth) !== targetMapSize) patch.mapWidth = targetMapSize;
+  if (Number(runtimeConfig.mapHeight) !== targetMapSize) patch.mapHeight = targetMapSize;
   return patch;
 }
 
-async function applyPreset(preset) {
+// Store pre-preset snapshots for toggle-off
+const prePresetSnapshot = { server: null, client: null };
+
+async function applyPreset(preset, toggle = true) {
   if (!preset) return;
   const serverPatch = { ...(preset.serverPatch || {}) };
   const clientPatch = { ...(preset.clientPatch || {}) };
+
+  // If already active and toggle=true, restore snapshot (toggle off)
+  if (toggle && presetIsActive(preset) && prePresetSnapshot.server !== null) {
+    const restoreServer = {};
+    for (const key of Object.keys(serverPatch)) {
+      if (prePresetSnapshot.server[key] !== undefined) {
+        restoreServer[key] = prePresetSnapshot.server[key];
+      }
+    }
+    const restoreClient = {};
+    for (const key of Object.keys(clientPatch)) {
+      if (prePresetSnapshot.client[key] !== undefined) {
+        restoreClient[key] = prePresetSnapshot.client[key];
+      }
+    }
+    applyClientSettingsPatch(restoreClient);
+    if (Object.keys(restoreServer).length > 0) {
+      await applySettingsPatch(restoreServer);
+    }
+    prePresetSnapshot.server = null;
+    prePresetSnapshot.client = null;
+    renderSettings();
+    showToast(`${preset.label} preset deactivated`);
+    return;
+  }
+
+  // Save snapshot of current values before applying
+  prePresetSnapshot.server = {};
+  for (const key of Object.keys(serverPatch)) {
+    prePresetSnapshot.server[key] = runtimeConfig[key];
+  }
+  prePresetSnapshot.client = {};
+  for (const key of Object.keys(clientPatch)) {
+    prePresetSnapshot.client[key] = clientSettings[key];
+  }
+
   const clientChanged = applyClientSettingsPatch(clientPatch);
   let serverChanged = false;
   if (Object.keys(serverPatch).length > 0) {
@@ -2586,6 +2875,16 @@ function connect() {
         updateInterpMap(cellMap, msg.cells, clientSettings.globalLerp);
         updateInterpMap(foodMap, msg.food, Math.min(0.75, clientSettings.globalLerp + 0.12));
         updateInterpMap(virusMap, msg.viruses, Math.min(0.75, clientSettings.globalLerp + 0.05));
+        if (msg.expWorld) {
+          expGravityWells = msg.expWorld.gravityWells || [];
+          expShrinkZones  = msg.expWorld.shrinkZones  || [];
+          expWarpGates    = msg.expWorld.warpGates    || [];
+          if (msg.expWorld.playerBoostUntil > Date.now()) {
+            expPlayerBoostUntil = msg.expWorld.playerBoostUntil;
+          }
+        } else {
+          expGravityWells = []; expShrinkZones = []; expWarpGates = [];
+        }
         ingestChat(msg.chat);
         const computedScore = msg.cells
           .filter((c) => c.mine || c.ownerId === playerId)
@@ -2595,6 +2894,15 @@ function connect() {
         if (alive) {
           peakScoreThisMatch = Math.max(peakScoreThisMatch, score);
           stats.roundTotalScore = Math.round(score);
+          // Track peak mass percentage of total server mass
+          if (leaderboard && leaderboard.length > 0) {
+            const totalServerMass = leaderboard.reduce((s, e) => s + (e.score || 0), 0);
+            if (totalServerMass > 0) {
+              const massPct = Math.round((score / totalServerMass) * 100 * 10) / 10;
+              if (massPct > (stats.roundPeakMassPct || 0)) stats.roundPeakMassPct = massPct;
+              if (massPct > (stats.allTimePeakMassPct || 0)) stats.allTimePeakMassPct = massPct;
+            }
+          }
           const prevAllTimeHigh = stats.allTimeHighScore;
           if (score > stats.roundHighScore) stats.roundHighScore = score;
           if (stats.roundHighScore > stats.allTimeHighScore) stats.allTimeHighScore = stats.roundHighScore;
@@ -2633,6 +2941,20 @@ function connect() {
         }
         applyHudVisibility();
         break;
+      case 'kill':
+        stats.roundKills = (stats.roundKills || 0) + 1;
+        stats.allTimeKills = (stats.allTimeKills || 0) + 1;
+        saveStats();
+        showToast(`☠ Eliminated ${msg.victim || 'a player'}`, 2200);
+        break;
+      case 'exp_boost':
+        expPlayerBoostUntil = Date.now() + (msg.durationMs || 3500);
+        expBoostFlashUntil = Date.now() + 320;
+        showToast('⚡ Speed Boost!', 2000);
+        break;
+      case 'exp_warp':
+        showToast('🌀 Warped!', 1400);
+        break;
       case 'death':
         alive = false;
         spectating = false;
@@ -2644,6 +2966,21 @@ function connect() {
         document.getElementById('deathKiller').textContent = `Eaten by: ${msg.killer}`;
         const endScore = Math.max(Number(msg.peakScore) || 0, Math.round(peakScoreThisMatch || 0), Math.round(score || 0));
         document.getElementById('deathScore').textContent = `Peak score: ${endScore}`;
+        // Populate post-game breakdown
+        {
+          const survMs = Math.max(0, roundStartAt > 0 ? (Date.now() - roundStartAt) : 0);
+          const survSec = Math.round(survMs / 1000);
+          const kd = stats.allTimeTotalEaten > 0 ? ((stats.allTimeKills || 0) / stats.allTimeTotalEaten).toFixed(2) : (stats.allTimeKills || 0).toFixed(2);
+          const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+          setEl('dbPeakScore', endScore);
+          setEl('dbBestRank', bestRankThisMatch !== null ? `#${bestRankThisMatch}` : '-');
+          setEl('dbKills', stats.roundKills || 0);
+          setEl('dbSurvived', survSec >= 60 ? `${Math.floor(survSec/60)}m${survSec%60}s` : `${survSec}s`);
+          setEl('dbMassPct', `${(stats.roundPeakMassPct || 0).toFixed(1)}%`);
+          setEl('dbKD', kd);
+          const subtitle = bestRankThisMatch === 1 ? '🏆 You won this round!' : (bestRankThisMatch && bestRankThisMatch <= 3 ? `Top ${bestRankThisMatch} finish!` : 'This round');
+          setEl('deathSubtitle', subtitle);
+        }
         stats.lastScore = endScore;
         stats.roundTotalScore = Math.max(0, endScore);
         stats.roundHighScore = Math.max(stats.roundHighScore, endScore);
@@ -2729,8 +3066,11 @@ function interpEntities(map, dtSec) {
       const ageSec = Math.max(0, Math.min(0.12, (now - (e.serverAt || now)) / 1000));
       const leadX = e.tx + (e.svx || 0) * ageSec;
       const leadY = e.ty + (e.svy || 0) * ageSec;
-      const posFollow = 1 - Math.exp(-26 * Math.max(0.001, dtSec));
-      const massFollow = 1 - Math.exp(-18 * Math.max(0.001, dtSec));
+      // ownCellLerp: 0.1 (sluggish) .. 0.8 (snappy). Map to follow rate 8..34
+      const ownLerp = Math.max(0.1, Math.min(0.8, Number(clientSettings.ownCellLerp) || 0.56));
+      const ownFollowRate = 8 + ownLerp * 32.5;
+      const posFollow = 1 - Math.exp(-ownFollowRate * Math.max(0.001, dtSec));
+      const massFollow = 1 - Math.exp(-(ownFollowRate * 0.65) * Math.max(0.001, dtSec));
       e.x += (leadX - e.x) * posFollow;
       e.y += (leadY - e.y) * posFollow;
       e.mass += (e.tmass - e.mass) * massFollow;
@@ -2913,6 +3253,44 @@ function setSpectating(enabled) {
 function setSpectateTarget(ownerId, name) {
   spectateTargetId = ownerId || null;
   spectateTargetName = name || null;
+  updateSpectateInfoBar();
+  // Highlight leaderboard entry
+  document.querySelectorAll('#leaderboard .lb-entry').forEach((el) => {
+    const id = parseInt(el.dataset.ownerId);
+    el.classList.toggle('spectate-selected', !isNaN(id) && id === spectateTargetId);
+  });
+}
+
+function updateSpectateInfoBar() {
+  const bar = document.getElementById('spectateInfoBar');
+  const label = document.getElementById('spectateTargetLabel');
+  if (!bar || !label) return;
+  if (!spectating) { bar.classList.remove('visible'); return; }
+  bar.classList.add('visible');
+  if (spectateTargetId == null) {
+    label.textContent = 'Free Roam';
+    return;
+  }
+  // Find score from leaderboard
+  const entry = leaderboard ? leaderboard.find((e) => e.id === spectateTargetId) : null;
+  const name = spectateTargetName || (entry && entry.name) || `Player`;
+  const score = entry ? entry.score : '—';
+  label.textContent = `${name}  ·  ${score}`;
+}
+
+function navigateSpectateTarget(dir) {
+  if (!spectating || !leaderboard || leaderboard.length === 0) return;
+  const validEntries = leaderboard.filter((e) => e.id !== playerId);
+  if (validEntries.length === 0) return;
+  const currentIdx = spectateTargetId != null ? validEntries.findIndex((e) => e.id === spectateTargetId) : -1;
+  let nextIdx;
+  if (dir > 0) {
+    nextIdx = currentIdx < validEntries.length - 1 ? currentIdx + 1 : 0;
+  } else {
+    nextIdx = currentIdx > 0 ? currentIdx - 1 : validEntries.length - 1;
+  }
+  const next = validEntries[nextIdx];
+  if (next) setSpectateTarget(next.id, next.name);
 }
 
 document.getElementById('continueBtn').addEventListener('click', () => {
@@ -2937,8 +3315,8 @@ const openDetailedStats = () => {
   updateDetailedStatsUI();
   setStatsPanelOpen(true);
 };
-document.getElementById('openStatsBtn').addEventListener('click', openDetailedStats);
 document.getElementById('openStatsBtnCenter').addEventListener('click', openDetailedStats);
+document.getElementById('openStatsBtnRail').addEventListener('click', openDetailedStats);
 document.getElementById('closeStatsBtn').addEventListener('click', () => setStatsPanelOpen(false));
 document.getElementById('skinsBtn').addEventListener('click', async () => {
   clientSettings.hideSkins = !clientSettings.hideSkins;
@@ -2948,12 +3326,13 @@ document.getElementById('skinsBtn').addEventListener('click', async () => {
   setStatsPanelOpen(false);
   setSkinPanelVisible(skinPanelShouldBeVisible);
   if (skinPanelShouldBeVisible) await loadBootstrap(true);
-  document.getElementById('skinsBtn').textContent = clientSettings.hideSkins ? 'Show Skins' : 'Hide Skins';
+  const skinsBtn = document.getElementById('skinsBtn');
+  skinsBtn.textContent = clientSettings.hideSkins ? 'Show Skins' : 'Hide Skins';
+  skinsBtn.classList.toggle('active', !!clientSettings.hideSkins);
 });
 document.getElementById('skinSearchInput').addEventListener('input', () => {
   renderSkinPicker();
 });
-document.getElementById('regenerateWorldBtn').addEventListener('click', async () => { await regenerateWorld(); });
 document.getElementById('quickApplyBtn').addEventListener('click', async () => {
   const patch = collectQuickCenterPatch();
   if (Object.keys(patch).length === 0) {
@@ -2961,15 +3340,23 @@ document.getElementById('quickApplyBtn').addEventListener('click', async () => {
     return;
   }
   await applySettingsPatch(patch);
+  await regenerateWorld();
 });
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const { serverPatch, clientPatch } = collectSettingsPatch();
   const changedClient = applyClientSettingsPatch(clientPatch);
+  let serverChanged = false;
   if (Object.keys(serverPatch).length > 0) {
     await applySettingsPatch(serverPatch);
+    serverChanged = true;
+  }
+  if (serverChanged) {
+    await regenerateWorld();
     if (changedClient) {
       renderSettings();
-      showToast('Server + client settings applied');
+      showToast('Settings applied — match regenerated');
+    } else {
+      showToast('Settings applied — match regenerated');
     }
     return;
   }
@@ -2994,29 +3381,28 @@ document.getElementById('leaderboardToggle').addEventListener('click', () => {
   document.getElementById('leaderboardToggle').style.right = leaderboardCollapsed ? '10px' : '280px';
 });
 document.getElementById('leaderboard').addEventListener('click', (ev) => {
-  if (!spectating) return;
   const entry = ev.target.closest('.lb-entry[data-owner-id]');
   if (!entry) return;
   const ownerId = parseInt(entry.dataset.ownerId);
-  if (!isNaN(ownerId)) {
-    setSpectateTarget(ownerId);
-  }
+  if (isNaN(ownerId)) return;
+  if (!spectating) return; // only follow while spectating
+  const lbEntry = leaderboard ? leaderboard.find((e) => e.id === ownerId) : null;
+  setSpectateTarget(ownerId, lbEntry ? lbEntry.name : null);
 });
+document.getElementById('spectatePrevBtn').addEventListener('click', () => navigateSpectateTarget(-1));
+document.getElementById('spectateNextBtn').addEventListener('click', () => navigateSpectateTarget(1));
 document.getElementById('teamChartToggle').addEventListener('click', () => {
   clientSettings.showTeamChart = !clientSettings.showTeamChart;
   saveClientSettings();
   applyHudVisibility();
 });
 document.getElementById('ffaModeBtn').addEventListener('click', async () => {
-  if ((runtimeConfig.gameMode || currentMode) === 'ffa') return;
   await applySettingsPatch({ gameMode: 'ffa' });
 });
 document.getElementById('teamModeBtn').addEventListener('click', async () => {
-  if ((runtimeConfig.gameMode || currentMode) === 'teams') return;
   await applySettingsPatch({ gameMode: 'teams' });
 });
 document.getElementById('experimentalModeBtn').addEventListener('click', async () => {
-  if ((runtimeConfig.gameMode || currentMode) === 'experimental') return;
   await applySettingsPatch({ gameMode: 'experimental' });
 });
 
@@ -3051,7 +3437,10 @@ function spawn() {
   stats.allTimeGamesPlayed += 1;
   saveStats();
   updateStatsUI();
-  ws.send(JSON.stringify({ type: 'spawn', name, skin: activeSkin || '' }));
+  const spawnMsg = { type: 'spawn', name, skin: activeSkin || '' };
+  const pref = Number(clientSettings.preferredTeamId ?? -1);
+  if (Number.isInteger(pref) && pref >= 0) spawnMsg.preferredTeamId = pref;
+  ws.send(JSON.stringify(spawnMsg));
 }
 
 function isCellHiddenUnderVirus(cell, viruses) {
@@ -3107,21 +3496,32 @@ function render(timestamp) {
   // Follow spectate target if set
   if (spectating && spectateTargetId != null) {
     let targetX = null, targetY = null;
+    let cellCount = 0;
     for (const [, c] of cellMap) {
       if (c.ownerId === spectateTargetId || (c.mine && playerId === spectateTargetId)) {
         if (targetX === null) { targetX = c.x; targetY = c.y; }
-        else { targetX = (targetX + c.x) / 2; targetY = (targetY + c.y) / 2; }
+        else { targetX += c.x; targetY += c.y; }
+        cellCount++;
       }
     }
-    if (targetX !== null) {
-      spectateCenter.x += (targetX - spectateCenter.x) * 0.1;
-      spectateCenter.y += (targetY - spectateCenter.y) * 0.1;
-      spectateScale = Math.max(2.5, Math.min(5, spectateScale + (3.5 - spectateScale) * 0.05));
+    if (targetX !== null && cellCount > 0) {
+      targetX /= cellCount;
+      targetY /= cellCount;
+      const followSpeed = 1 - Math.exp(-7 * dtSec);
+      spectateCenter.x += (targetX - spectateCenter.x) * followSpeed;
+      spectateCenter.y += (targetY - spectateCenter.y) * followSpeed;
+      // Send updated view to server so it streams cells near the target
+      if (!render._lastSpectateViewSent || timestamp - render._lastSpectateViewSent > 80) {
+        render._lastSpectateViewSent = timestamp;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'spectate_view', x: spectateCenter.x, y: spectateCenter.y, scale: spectateScale }));
+        }
+      }
     }
   }
 
   const baseScale = spectating
-    ? (spectateTargetId != null ? spectateScale : Math.max(0.6, Math.min(8.5, serverViewScale || spectateScale)))
+    ? spectateScale
     : (menuVisible && !alive
       ? Math.max(2.8, serverViewScale)
       : serverViewScale);
@@ -3157,16 +3557,136 @@ function render(timestamp) {
   const maxRenderY = cam.y + halfH;
   const isInRenderBounds = (x, y) => x >= minRenderX && x <= maxRenderX && y >= minRenderY && y <= maxRenderY;
 
+  // Draw experimental world effects (behind food/cells)
+  if (expGravityWells.length > 0 || expShrinkZones.length > 0 || expWarpGates.length > 0) {
+    const now_exp = Date.now();
+    ctx.save();
+    // Gravity wells
+    for (const w of expGravityWells) {
+      if (!isInRenderBounds(w.x, w.y)) continue;
+      const lifeRatio = Math.max(0, Math.min(1, w.expiresIn / 14000));
+      const alpha = 0.13 + lifeRatio * 0.12;
+      const grad = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, w.radius);
+      grad.addColorStop(0, `rgba(160,80,255,${alpha * 2.2})`);
+      grad.addColorStop(0.5, `rgba(100,40,220,${alpha})`);
+      grad.addColorStop(1, 'rgba(80,20,160,0)');
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // Spinning ring indicator
+      const angle = (now_exp / 1200) % (Math.PI * 2);
+      ctx.save();
+      ctx.translate(w.x, w.y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.arc(0, 0, w.radius * 0.88, 0, Math.PI * 1.4);
+      ctx.strokeStyle = `rgba(180,100,255,${0.3 + lifeRatio * 0.2})`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.rotate(Math.PI);
+      ctx.beginPath();
+      ctx.arc(0, 0, w.radius * 0.72, 0, Math.PI * 1.2);
+      ctx.strokeStyle = `rgba(140,60,240,${0.25 + lifeRatio * 0.15})`;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+      ctx.restore();
+    }
+    // Shrink zones
+    for (const z of expShrinkZones) {
+      if (!isInRenderBounds(z.x, z.y)) continue;
+      const lifeRatio = Math.max(0, Math.min(1, z.expiresIn / 12000));
+      const alpha = 0.10 + lifeRatio * 0.10;
+      const grad = ctx.createRadialGradient(z.x, z.y, 0, z.x, z.y, z.radius);
+      grad.addColorStop(0, `rgba(255,60,60,${alpha * 1.8})`);
+      grad.addColorStop(0.55, `rgba(200,30,30,${alpha})`);
+      grad.addColorStop(1, 'rgba(160,10,10,0)');
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, z.radius, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // Dashed border
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, z.radius * 0.96, 0, Math.PI * 2);
+      ctx.setLineDash([18, 12]);
+      ctx.strokeStyle = `rgba(255,80,80,${0.35 + lifeRatio * 0.2})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+    // Warp gates (each gate in a pair)
+    const drawnGateIds = new Set();
+    for (const g of expWarpGates) {
+      if (drawnGateIds.has(g.id)) continue;
+      if (!isInRenderBounds(g.x, g.y)) { drawnGateIds.add(g.id); continue; }
+      const paired = expWarpGates.find(p => p.id === g.pairedId);
+      const isPortalA = !paired || g.id < g.pairedId;
+      const hue = isPortalA ? '180' : '290';
+      const lifeRatio = Math.max(0, Math.min(1, g.expiresIn / 25000));
+      const pulse = 0.7 + 0.3 * Math.sin(now_exp / 400 + (isPortalA ? 0 : Math.PI));
+      const r = g.radius;
+      // Outer glow
+      const gGrad = ctx.createRadialGradient(g.x, g.y, r * 0.2, g.x, g.y, r * 2.2);
+      gGrad.addColorStop(0, `hsla(${hue},100%,70%,${0.45 * pulse * lifeRatio})`);
+      gGrad.addColorStop(1, `hsla(${hue},100%,55%,0)`);
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, r * 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = gGrad;
+      ctx.fill();
+      // Gate body
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${hue},100%,65%,${0.75 * pulse})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, r, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${hue},100%,90%,${0.9})`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      // Inner swirl
+      ctx.save();
+      ctx.translate(g.x, g.y);
+      ctx.rotate((now_exp / 700) * (isPortalA ? 1 : -1));
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.55, 0, Math.PI * 1.5);
+      ctx.strokeStyle = `hsla(${hue},100%,98%,0.7)`;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+      ctx.restore();
+      drawnGateIds.add(g.id);
+    }
+    // Draw line connecting warp gate pairs
+    for (let wi = 0; wi < expWarpGates.length; wi++) {
+      const ga = expWarpGates[wi];
+      const gb = expWarpGates.find(g => g.id === ga.pairedId);
+      if (!gb || ga.id > ga.pairedId) continue;
+      if (!isInRenderBounds(ga.x, ga.y) && !isInRenderBounds(gb.x, gb.y)) continue;
+      ctx.save();
+      ctx.setLineDash([10, 14]);
+      ctx.strokeStyle = 'rgba(130,220,255,0.18)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(ga.x, ga.y);
+      ctx.lineTo(gb.x, gb.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
   for (const [, f] of foodMap) {
     if (!isInRenderBounds(f.x, f.y)) continue;
     const r = f.type === 'ejected'
       ? 7.2
-      : (f.type === 'spawner' ? 4.2 : (f.type === 'golden' ? 4.9 : (f.type === 'bounty' ? 5.2 : (f.type === 'plasma' ? 4.7 : 3.8))));
+      : (f.type === 'spawner' ? 4.2 : (f.type === 'golden' ? 4.9 : (f.type === 'bounty' ? 5.2 : (f.type === 'plasma' ? 4.7 : (f.type === 'boost' ? 5.0 : 3.8)))));
     ctx.beginPath();
     ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
     ctx.fillStyle = f.type === 'spawner'
       ? '#ffb0cf'
-      : (f.type === 'golden' ? '#ffd34a' : (f.type === 'bounty' ? '#ff9f3f' : (f.type === 'plasma' ? '#4bd4ff' : (f.color || '#aaa'))));
+      : (f.type === 'golden' ? '#ffd34a' : (f.type === 'bounty' ? '#ff9f3f' : (f.type === 'plasma' ? '#4bd4ff' : (f.type === 'boost' ? '#39ff74' : (f.color || '#aaa')))));
     ctx.fill();
     if (f.type === 'spawner') {
       ctx.beginPath();
@@ -3187,6 +3707,22 @@ function render(timestamp) {
       ctx.shadowBlur = 10;
       ctx.lineWidth = 1.3;
       ctx.stroke();
+      ctx.restore();
+    } else if (f.type === 'boost') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, r + 1.3, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(80,255,140,0.9)';
+      ctx.shadowColor = 'rgba(57,255,116,0.7)';
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // Lightning bolt icon in center
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.font = `bold ${Math.round(r * 1.4)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⚡', f.x, f.y + 0.5);
       ctx.restore();
     } else if (f.type !== 'ejected') {
       ctx.beginPath();
@@ -3216,6 +3752,27 @@ function render(timestamp) {
   }
 
   ctx.restore();
+
+  // Speed boost edge glow overlay (screen-space, drawn after canvas restore)
+  if (expPlayerBoostUntil > Date.now()) {
+    const remainMs = expPlayerBoostUntil - Date.now();
+    const pulse = 0.55 + 0.45 * Math.abs(Math.sin(Date.now() / 180));
+    const fadeAlpha = Math.min(1, remainMs / 400) * pulse * 0.42;
+    const edgeGrad = ctx.createLinearGradient(0, 0, 0, viewportHeight);
+    edgeGrad.addColorStop(0, `rgba(57,255,116,${fadeAlpha})`);
+    edgeGrad.addColorStop(0.15, 'rgba(57,255,116,0)');
+    edgeGrad.addColorStop(0.85, 'rgba(57,255,116,0)');
+    edgeGrad.addColorStop(1, `rgba(57,255,116,${fadeAlpha})`);
+    ctx.fillStyle = edgeGrad;
+    ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+    const edgeGradH = ctx.createLinearGradient(0, 0, viewportWidth, 0);
+    edgeGradH.addColorStop(0, `rgba(57,255,116,${fadeAlpha})`);
+    edgeGradH.addColorStop(0.12, 'rgba(57,255,116,0)');
+    edgeGradH.addColorStop(0.88, 'rgba(57,255,116,0)');
+    edgeGradH.addColorStop(1, `rgba(57,255,116,${fadeAlpha})`);
+    ctx.fillStyle = edgeGradH;
+    ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+  }
 
   if (alive || spectating) {
     document.getElementById('scoreDisplay').textContent = alive ? `Score: ${Math.round(score)}` : 'Spectating';
@@ -3395,26 +3952,100 @@ function drawVirus(v) {
   }
 }
 
+// Tracks previous ranks per player id for arrow indicators
+const lbPrevRank = new Map();
+// Throttle: only fully re-render every 1.8s; score updates happen every tick
+let lbLastFullRender = 0;
+const LB_FULL_RENDER_INTERVAL = 1800;
+
 function updateLeaderboard() {
-  leaderRankByOwner = new Map();
-  for (const e of leaderboard || []) {
-    leaderRankByOwner.set(e.id, e.rank);
+  const now = performance.now();
+  const entries = leaderboard || [];
+
+  // Build rank map
+  const newRankMap = new Map();
+  for (const e of entries) newRankMap.set(e.id, e.rank);
+
+  // Full re-render throttled to avoid jank
+  const doFullRender = (now - lbLastFullRender) >= LB_FULL_RENDER_INTERVAL;
+  if (doFullRender) {
+    lbLastFullRender = now;
+    const visible = entries.slice(0, 10);
+    let html = `<div class="lb-header"><span>Top ${Math.min(10, entries.length)}</span><span class="lb-total">${entries.length} players</span></div>`;
+    for (const e of visible) {
+      const isMe = e.id === playerId;
+      const isSelected = spectating && e.id === spectateTargetId;
+      const medal = getRankMedal(e.rank);
+      // Rank change arrow
+      const prevRank = lbPrevRank.get(e.id);
+      let arrow = '';
+      if (prevRank != null && prevRank !== e.rank) {
+        arrow = prevRank > e.rank
+          ? '<span class="lb-arrow up">▲</span>'
+          : '<span class="lb-arrow down">▼</span>';
+      }
+      // Icon: skin image or color circle
+      let iconHtml = '';
+      if (e.skin) {
+        iconHtml = `<img class="lb-icon" src="/skins/${encodeURIComponent(e.skin)}.webp" onerror="this.style.display='none'">`;
+      } else if (e.color) {
+        iconHtml = `<span class="lb-icon lb-icon-dot" style="background:${e.color}"></span>`;
+      } else {
+        iconHtml = `<span class="lb-icon lb-icon-dot" style="background:#7ba3cc"></span>`;
+      }
+      // Team badge (teams mode only)
+      let teamBadge = '';
+      if (currentMode === 'teams' && Number.isInteger(e.teamId)) {
+        const team = teamStats.find((t) => Number(t.teamId) === Number(e.teamId));
+        const teamColor = team && team.color ? team.color : '#9ab6e6';
+        teamBadge = `<span class="lb-team-dot" style="background:${teamColor};" title="Team ${e.teamId + 1}"></span>`;
+      }
+      const rankStr = medal ? medal : `${e.rank}.`;
+      html += `<div class="lb-entry${isMe ? ' me' : ''}${isSelected ? ' spectate-selected' : ''}" data-owner-id="${e.id}">`
+        + `<span class="lb-left">${iconHtml}<span class="lb-rank">${rankStr}</span>${arrow}<span class="lb-name">${escapeHtml(e.name)}</span></span>`
+        + `<span class="lb-right">${teamBadge}<span class="lb-score-val">${e.score}</span></span>`
+        + `</div>`;
+    }
+    // If player is beyond top 10, show their entry at the bottom
+    if (entries.length > 10) {
+      const myEntry = entries.find((e) => e.id === playerId && e.rank > 10);
+      if (myEntry) {
+        const prevRank = lbPrevRank.get(myEntry.id);
+        let arrow = '';
+        if (prevRank != null && prevRank !== myEntry.rank) {
+          arrow = prevRank > myEntry.rank ? '<span class="lb-arrow up">▲</span>' : '<span class="lb-arrow down">▼</span>';
+        }
+        let teamBadge = '';
+        if (currentMode === 'teams' && Number.isInteger(myEntry.teamId)) {
+          const team = teamStats.find((t) => Number(t.teamId) === Number(myEntry.teamId));
+          const teamColor = team && team.color ? team.color : '#9ab6e6';
+          teamBadge = `<span class="lb-team-dot" style="background:${teamColor};"></span>`;
+        }
+        const iconHtml = myEntry.skin
+          ? `<img class="lb-icon" src="/skins/${encodeURIComponent(myEntry.skin)}.webp" onerror="this.style.display='none'">`
+          : `<span class="lb-icon lb-icon-dot" style="background:${myEntry.color || '#7ba3cc'}"></span>`;
+        html += `<div class="lb-sep"></div><div class="lb-entry me" data-owner-id="${myEntry.id}">`
+          + `<span class="lb-left">${iconHtml}<span class="lb-rank">${myEntry.rank}.</span>${arrow}<span class="lb-name">${escapeHtml(myEntry.name)}</span></span>`
+          + `<span class="lb-right">${teamBadge}<span class="lb-score-val">${myEntry.score}</span></span>`
+          + `</div>`;
+      }
+    }
+    document.getElementById('leaderboard').innerHTML = html;
+    // Update previous ranks after render
+    for (const e of entries) lbPrevRank.set(e.id, e.rank);
+  } else {
+    // Fast score-only update: just patch score text nodes
+    const lbEl = document.getElementById('leaderboard');
+    const scoreEls = lbEl.querySelectorAll('.lb-score-val');
+    const visible = entries.slice(0, 10);
+    scoreEls.forEach((el, i) => {
+      const e = i < visible.length ? visible[i] : (entries.find((x) => x.id === playerId && x.rank > 10));
+      if (e) el.textContent = e.score;
+    });
   }
 
-  let html = `<h3>Leaderboard (${leaderboard.length})</h3>`;
-  for (const e of leaderboard) {
-    const isMe = e.id === playerId;
-    const medal = getRankMedal(e.rank);
-    const name = `${medal ? `${medal} ` : ''}${e.rank}. ${escapeHtml(e.name)}`;
-    let scoreHtml = `${e.score}`;
-    if (currentMode === 'teams' && Number.isInteger(e.teamId)) {
-      const team = teamStats.find((t) => Number(t.teamId) === Number(e.teamId));
-      const teamColor = team && team.color ? team.color : '#9ab6e6';
-      scoreHtml = `<span class="lb-score"><span class="lb-team-dot" style="background:${teamColor};"></span>${e.score}</span>`;
-    }
-    html += `<div class="lb-entry${isMe ? ' me' : ''}" data-owner-id="${e.id}" style="${spectating ? 'cursor:pointer;' : ''}"><span class="lb-name">${name}</span><span>${scoreHtml}</span></div>`;
-  }
-  document.getElementById('leaderboard').innerHTML = html;
+  leaderRankByOwner = newRankMap;
+  updateSpectateInfoBar();
 }
 
 function drawTeamChart() {
@@ -3507,7 +4138,7 @@ function drawMinimap() {
   for (const [, c] of cellMap) {
     mc.beginPath();
     mc.arc(c.x * sx, c.y * sy, Math.max(1.5, radiusFromMass(c.mass) * 0.055), 0, Math.PI * 2);
-    mc.fillStyle = c.mine ? '#63ff72' : (c.color || '#8eb1df');
+    mc.fillStyle = c.mine ? (c.color || '#63ff72') : (c.color || '#8eb1df');
     mc.fill();
   }
   const vw = viewportWidth * cam.scale * sx;
@@ -3533,8 +4164,9 @@ function escapeHtml(text) {
 
 (async function init() {
   setMenuVisible(true);
-  setSkinPanelVisible(true);
   loadClientSettings();
+  // setSkinPanelVisible must run after loadClientSettings so hideSkins is accurate
+  setSkinPanelVisible(!clientSettings.hideSkins);
   loadTheme();
   loadStats();
   updateStatsUI();
