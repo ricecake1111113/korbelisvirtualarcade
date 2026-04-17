@@ -19,6 +19,22 @@
   --grid-bg: #161f35;
   --grid-line: rgba(255,255,255,0.055);
   --map-border: #5f7295;
+  /* Settings panel */
+  --settings-bg: linear-gradient(160deg, rgba(14,26,52,0.98) 0%, rgba(10,20,44,0.99) 100%);
+  --settings-border: rgba(80,140,230,0.22);
+  --settings-head-border: rgba(80,140,230,0.14);
+  --settings-title: #a8c8f8;
+  --settings-text: #c8daf8;
+  --settings-sub: #7a9ec8;
+  --settings-row-bg: rgba(255,255,255,0.04);
+  --settings-row-hover: rgba(255,255,255,0.07);
+  --settings-input-bg: rgba(255,255,255,0.08);
+  --settings-input-border: rgba(80,140,230,0.28);
+  --settings-input-text: #d0e4ff;
+  /* Team chart */
+  --chart-bg: rgba(10,18,35,0.58);
+  --chart-text: #f2f6ff;
+  --chart-sub: #dce8ff;
 }
 body.light {
   --text: #173255;
@@ -29,6 +45,22 @@ body.light {
   --grid-bg: #edf4ff;
   --grid-line: rgba(22,60,112,0.09);
   --map-border: #7b9bc9;
+  /* Settings panel — light */
+  --settings-bg: linear-gradient(160deg, rgba(235,244,255,0.98) 0%, rgba(220,236,255,0.99) 100%);
+  --settings-border: rgba(44,100,200,0.22);
+  --settings-head-border: rgba(44,100,200,0.14);
+  --settings-title: #1a4a8c;
+  --settings-text: #1e3d6e;
+  --settings-sub: #4a70a0;
+  --settings-row-bg: rgba(255,255,255,0.6);
+  --settings-row-hover: rgba(220,236,255,0.8);
+  --settings-input-bg: rgba(255,255,255,0.85);
+  --settings-input-border: rgba(44,100,200,0.28);
+  --settings-input-text: #1a3a6a;
+  /* Team chart — light */
+  --chart-bg: rgba(235,244,255,0.88);
+  --chart-text: #1a3a6e;
+  --chart-sub: #2a5090;
 }
 html, body {
   width: 100%;
@@ -103,7 +135,7 @@ body.menu-open #canvas {
 }
 /* skinsBtn uses .mode-btn + .active for blue/white toggle — no override needed */
 #openStatsBtnRail { background: linear-gradient(180deg,#18aa78,#12845c); }
-.center { display: flex; flex-direction: column; min-width: 0; overflow: hidden; padding-right: 0; }
+.center { display: flex; flex-direction: column; min-width: 0; overflow-y: auto; overflow-x: hidden; padding-right: 0; scrollbar-width: thin; scrollbar-color: rgba(44,98,160,0.22) transparent; }
 .title { text-align: center; margin-top: 4px; }
 .title h1 {
   font-family: 'Sora', sans-serif;
@@ -195,16 +227,17 @@ body.menu-open #canvas {
 #settingsToggle { background: linear-gradient(180deg,#355e8c,#294d73); color: #eef6ff; }
 #spectateBtn { background: linear-gradient(180deg,#3c84cf,#2b66a4); color: #fff; }
 #openStatsBtnCenter { background: linear-gradient(180deg,#1ba56c,#147f53); color: #fff; }
+#changeServerBtn { background: linear-gradient(180deg,#5a6a82,#3e4f63); color: #dbe8f8; }
 .quick-center {
   width: min(640px,100%);
   margin: 6px auto 0;
   border-radius: 10px;
   border: 1px solid rgba(33,88,143,0.22);
   background: rgba(255,255,255,0.76);
-  padding: 7px 8px 6px;
+  padding: 7px 8px 8px;
   min-height: 0;
-  flex-shrink: 1;
-  overflow: hidden;
+  flex-shrink: 0;
+  overflow: visible;
   box-sizing: border-box;
 }
 .quick-center h4 {
@@ -626,9 +659,9 @@ body.menu-open #canvas {
   height: 100%;
   margin: 0 auto;
   border-radius: 14px;
-  border: 1px solid rgba(80,140,230,0.22);
-  background: linear-gradient(160deg, rgba(14,26,52,0.98) 0%, rgba(10,20,44,0.99) 100%);
-  box-shadow: 0 8px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+  border: 1px solid var(--settings-border);
+  background: var(--settings-bg);
+  box-shadow: 0 8px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -641,11 +674,11 @@ body.menu-open #canvas {
   gap: 10px;
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(80,140,230,0.14);
+  border-bottom: 1px solid var(--settings-head-border);
 }
 .settings-head h4 {
   font-size: 14px;
-  color: #a8c8f8;
+  color: var(--settings-title);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -654,18 +687,18 @@ body.menu-open #canvas {
 .settings-actions { display: flex; gap: 6px; }
 .settings-search {
   width: 100%;
-  border: 1px solid rgba(80,140,230,0.28);
+  border: 1px solid var(--settings-input-border);
   border-radius: 8px;
   padding: 5px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: #c8deff;
-  background: rgba(255,255,255,0.05);
+  color: var(--settings-text);
+  background: var(--settings-input-bg);
   outline: none;
   transition: border-color 0.15s;
 }
-.settings-search:focus { border-color: rgba(80,160,255,0.55); background: rgba(255,255,255,0.08); }
-.settings-search::placeholder { color: rgba(160,190,240,0.45); }
+.settings-search:focus { border-color: rgba(80,160,255,0.55); background: var(--settings-row-hover); }
+.settings-search::placeholder { color: var(--settings-sub); }
 .settings-actions button {
   border: none;
   border-radius: 8px;
@@ -692,51 +725,51 @@ body.menu-open #canvas {
   padding-right: 4px;
 }
 #settingsList::-webkit-scrollbar { width: 6px; }
-#settingsList::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 4px; }
+#settingsList::-webkit-scrollbar-track { background: var(--settings-row-bg); border-radius: 4px; }
 #settingsList::-webkit-scrollbar-thumb { background: rgba(80,140,230,0.35); border-radius: 4px; }
 #settingsList::-webkit-scrollbar-thumb:hover { background: rgba(80,160,255,0.55); }
 .settings-group {
-  background: rgba(255,255,255,0.032);
-  border: 1px solid rgba(80,140,230,0.12);
+  background: var(--settings-row-bg);
+  border: 1px solid var(--settings-input-border);
   border-radius: 10px;
   padding: 8px 9px;
   margin-bottom: 0;
 }
 .settings-group h5 {
   font-size: 10px;
-  color: #7baae8;
+  color: var(--settings-sub);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 800;
   margin-bottom: 7px;
   padding-bottom: 5px;
-  border-bottom: 1px solid rgba(80,140,230,0.18);
+  border-bottom: 1px solid var(--settings-head-border);
 }
 .setting-row {
   border-radius: 6px;
-  border: 1px solid rgba(80,140,230,0.1);
-  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--settings-input-border);
+  background: var(--settings-row-bg);
   padding: 5px 7px;
   margin-bottom: 3px;
   transition: background 0.12s, border-color 0.12s;
 }
-.setting-row:hover { background: rgba(80,140,230,0.08); border-color: rgba(80,140,230,0.22); }
+.setting-row:hover { background: var(--settings-row-hover); border-color: rgba(80,140,230,0.22); }
 .setting-row label {
   display: flex;
   justify-content: space-between;
   gap: 8px;
   font-size: 11px;
   font-weight: 700;
-  color: #c0d8f8;
+  color: var(--settings-text);
   align-items: center;
 }
 .setting-row input[type=number], .setting-row select {
   width: 110px;
   border-radius: 6px;
-  border: 1px solid rgba(80,140,230,0.25);
-  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--settings-input-border);
+  background: var(--settings-input-bg);
   padding: 3px 6px;
-  color: #d8eaff;
+  color: var(--settings-input-text);
   font-size: 11px;
   font-weight: 600;
   outline: none;
@@ -744,27 +777,27 @@ body.menu-open #canvas {
   flex-shrink: 0;
 }
 .setting-row input[type=number]:focus,
-.setting-row select:focus { border-color: rgba(80,160,255,0.6); background: rgba(255,255,255,0.11); }
-.setting-row select option { background: #0e1a34; color: #d8eaff; }
+.setting-row select:focus { border-color: rgba(80,160,255,0.6); background: var(--settings-row-hover); }
+.setting-row select option { background: var(--grid-bg); color: var(--settings-input-text); }
 .setting-row input[type=checkbox] {
   width: 16px; height: 16px;
   accent-color: #3a9cff;
   cursor: pointer;
   flex-shrink: 0;
 }
-.setting-row .desc { margin-top: 3px; color: rgba(140,180,240,0.6); font-size: 9.5px; line-height: 1.3; }
+.setting-row .desc { margin-top: 3px; color: var(--settings-sub); font-size: 9.5px; line-height: 1.3; }
 .settings-presets {
   grid-column: 1 / -1;
   margin-bottom: 0;
   border-radius: 10px;
-  border: 1px solid rgba(80,140,230,0.18);
-  background: rgba(255,255,255,0.032);
+  border: 1px solid var(--settings-input-border);
+  background: var(--settings-row-bg);
   padding: 9px 10px;
 }
 .settings-presets h5 {
   margin: 0 0 7px;
   font-size: 10px;
-  color: #7baae8;
+  color: var(--settings-sub);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 800;
@@ -775,9 +808,9 @@ body.menu-open #canvas {
   gap: 6px;
 }
 .preset-btn {
-  border: 1px solid rgba(80,140,230,0.2);
-  background: rgba(255,255,255,0.04);
-  color: #b0ccf0;
+  border: 1px solid var(--settings-input-border);
+  background: var(--settings-row-bg);
+  color: var(--settings-text);
   border-radius: 8px;
   padding: 7px 8px;
   text-align: left;
@@ -786,7 +819,7 @@ body.menu-open #canvas {
   transition: background 0.12s, border-color 0.12s, transform 0.08s;
 }
 .preset-btn:hover {
-  background: rgba(80,140,230,0.12);
+  background: var(--settings-row-hover);
   border-color: rgba(80,160,255,0.4);
   transform: translateY(-1px);
 }
@@ -797,7 +830,7 @@ body.menu-open #canvas {
   color: #d4eaff;
 }
 .preset-title { font-weight: 900; display: block; margin-bottom: 2px; }
-.preset-note { font-size: 10px; color: rgba(140,180,240,0.65); line-height: 1.2; display: block; }
+.preset-note { font-size: 10px; color: var(--settings-sub); line-height: 1.2; display: block; }
 .team-color-picker { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; align-items: center; }
 .team-color-swatch {
   width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent;
@@ -1090,6 +1123,23 @@ body.menu-open #canvas {
 <body class="menu-open">
 <canvas id="canvas"></canvas>
 <div id="toast"></div>
+
+<!-- Server connection dialog (shown when no local server is detected) -->
+<div id="connDialog" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(5,12,26,0.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div style="width:min(420px,92vw);border-radius:14px;border:1px solid rgba(80,140,230,0.3);background:linear-gradient(160deg,rgba(14,26,52,0.99),rgba(10,20,44,0.99));padding:28px 24px;box-shadow:0 12px 48px rgba(0,0,0,0.7);color:#e4f0ff;">
+    <h2 style="font-family:'Sora',sans-serif;font-size:22px;margin:0 0 6px;color:#a8d0ff;">Connect to Server</h2>
+    <p style="font-size:13px;color:rgba(160,200,240,0.75);margin:0 0 18px;line-height:1.5;">Enter the WebSocket URL of your game server.<br>For HTTPS sites use <code style="color:#6cf">wss://</code>, for HTTP use <code style="color:#6cf">ws://</code></p>
+    <input id="connUrlInput" type="text" placeholder="wss://your-server.example.com" autocomplete="off" spellcheck="false"
+      style="width:100%;box-sizing:border-box;border:1px solid rgba(80,140,230,0.4);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:600;color:#d0e8ff;background:rgba(255,255,255,0.07);outline:none;margin-bottom:12px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="connConnectBtn" style="flex:1;border:none;border-radius:8px;background:linear-gradient(180deg,#2092ea,#1a6fbd);color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;">Connect</button>
+      <button id="connLocalBtn" style="flex:1;border:1px solid rgba(80,140,230,0.3);border-radius:8px;background:rgba(255,255,255,0.05);color:#a8c8f0;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;">Use Localhost</button>
+    </div>
+    <p id="connError" style="color:#ff7070;font-size:12px;margin:10px 0 0;display:none;"></p>
+    <p style="font-size:11px;color:rgba(120,160,210,0.5);margin:12px 0 0;line-height:1.4;">Tip: run <code style="color:#6cf">cloudflared tunnel --url http://localhost:3000</code> to get a public URL for your local server.</p>
+  </div>
+</div>
+
 <div id="menu">
   <div class="phone">
     <div class="screen">
@@ -1113,6 +1163,7 @@ body.menu-open #canvas {
           <button id="settingsToggle">Customize</button>
           <button id="spectateBtn">Spectate</button>
           <button id="openStatsBtnCenter">Stats</button>
+          <button id="changeServerBtn" title="Change server URL">Server</button>
         </div>
         <div class="mode-row" style="grid-template-columns:1fr;">
           <button id="skinsBtn" class="mode-btn" style="font-family:'Sora',sans-serif;">Hide Skins</button>
@@ -1161,6 +1212,7 @@ body.menu-open #canvas {
             <div id="settingsList"></div>
           </div>
         </div>
+        <div id="connStatus" style="text-align:center;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;margin:4px auto 0;width:fit-content;display:none;"></div>
         <div class="note">Mouse move | Space split | W eject | Scroll zoom | Spectate: drag + wheel</div>
       </main>
       <aside class="right">
@@ -2818,11 +2870,73 @@ async function regenerateWorld() {
     showToast(`Failed to regenerate: ${e.message}`, 2800);
   }
 }
-function connect() {
-  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+// ── Connection status helpers ──────────────────────────────────────────
+const CONN_URL_KEY = 'agario_server_url_v1';
+let _connReconnectTimer = null;
+let _wsUrl = null;
+
+function setConnStatus(text, color) {
+  const el = document.getElementById('connStatus');
+  if (!el) return;
+  if (!text) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.style.background = color === 'green' ? 'rgba(30,160,80,0.18)'
+    : color === 'red' ? 'rgba(200,40,40,0.18)'
+    : 'rgba(40,80,160,0.18)';
+  el.style.color = color === 'green' ? '#5eff9a'
+    : color === 'red' ? '#ff6a6a'
+    : '#a8c8f8';
+  el.style.border = `1px solid ${color === 'green' ? 'rgba(80,220,120,0.3)' : color === 'red' ? 'rgba(220,80,80,0.3)' : 'rgba(80,140,230,0.25)'}`;
+  el.textContent = text;
+}
+
+function isLocalHost() {
+  return location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '';
+}
+
+function needsConnectionDialog() {
+  // Already have a ?server= param or a saved URL — skip dialog
+  if (new URLSearchParams(window.location.search).get('server')) return false;
+  if (localStorage.getItem(CONN_URL_KEY)) return false;
+  // Running locally — no dialog needed
+  if (isLocalHost()) return false;
+  return true;
+}
+
+function getWsUrl() {
   const serverParam = new URLSearchParams(window.location.search).get('server');
-  const wsUrl = serverParam || `${protocol}://${location.host}`;
-  ws = new WebSocket(wsUrl);
+  if (serverParam) return serverParam;
+  const saved = localStorage.getItem(CONN_URL_KEY);
+  if (saved) return saved;
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${protocol}://${location.host}`;
+}
+
+function showConnDialog(errorMsg) {
+  const dlg = document.getElementById('connDialog');
+  const input = document.getElementById('connUrlInput');
+  const errEl = document.getElementById('connError');
+  if (!dlg) return;
+  if (errorMsg) {
+    errEl.textContent = errorMsg;
+    errEl.style.display = 'block';
+  } else {
+    errEl.style.display = 'none';
+  }
+  const saved = localStorage.getItem(CONN_URL_KEY);
+  if (saved) input.value = saved;
+  dlg.style.display = 'flex';
+  setTimeout(() => input.focus(), 80);
+}
+
+function hideConnDialog() {
+  const dlg = document.getElementById('connDialog');
+  if (dlg) dlg.style.display = 'none';
+}
+
+function connect(overrideUrl) {
+  _wsUrl = overrideUrl || getWsUrl();
+  ws = new WebSocket(_wsUrl);
   ws.onmessage = (evt) => {
     const msg = JSON.parse(evt.data);
     switch (msg.type) {
@@ -3009,11 +3123,25 @@ function connect() {
         break;
     }
   };
-  ws.onclose = () => {
+  ws.onopen = () => {
+    hideConnDialog();
+    setConnStatus('● Connected', 'green');
+    // Save the URL that worked (not localhost — no need)
+    if (!isLocalHost() && _wsUrl && !new URLSearchParams(window.location.search).get('server')) {
+      localStorage.setItem(CONN_URL_KEY, _wsUrl);
+    }
+    if (_connReconnectTimer) { clearTimeout(_connReconnectTimer); _connReconnectTimer = null; }
+  };
+  ws.onerror = () => {
+    setConnStatus('● Connection error', 'red');
+  };
+  ws.onclose = (evt) => {
     spectating = false;
-      applyHudVisibility();
+    applyHudVisibility();
     if (!alive) setMenuVisible(true);
-    setTimeout(connect, 1600);
+    setConnStatus('● Disconnected — reconnecting…', 'red');
+    if (_connReconnectTimer) clearTimeout(_connReconnectTimer);
+    _connReconnectTimer = setTimeout(() => connect(), 1800);
   };
 }
 
@@ -3316,6 +3444,14 @@ const openDetailedStats = () => {
   setStatsPanelOpen(true);
 };
 document.getElementById('openStatsBtnCenter').addEventListener('click', openDetailedStats);
+document.getElementById('changeServerBtn').addEventListener('click', () => {
+  // Pre-fill with current URL
+  const input = document.getElementById('connUrlInput');
+  const saved = localStorage.getItem(CONN_URL_KEY);
+  if (saved) input.value = saved;
+  else if (_wsUrl) input.value = _wsUrl;
+  showConnDialog();
+});
 document.getElementById('openStatsBtnRail').addEventListener('click', openDetailedStats);
 document.getElementById('closeStatsBtn').addEventListener('click', () => setStatsPanelOpen(false));
 document.getElementById('skinsBtn').addEventListener('click', async () => {
@@ -4064,7 +4200,10 @@ function drawTeamChart() {
   tc.setTransform(1, 0, 0, 1, 0, 0);
   tc.clearRect(0, 0, w, h);
   tc.setTransform(dpr, 0, 0, dpr, 0, 0);
-  tc.fillStyle = 'rgba(10,18,35,0.58)';
+  const chartBg = getComputedStyle(document.documentElement).getPropertyValue('--chart-bg').trim() || 'rgba(10,18,35,0.58)';
+  const chartText = getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim() || '#f2f6ff';
+  const chartSub = getComputedStyle(document.documentElement).getPropertyValue('--chart-sub').trim() || '#dce8ff';
+  tc.fillStyle = chartBg;
   tc.fillRect(0, 0, cssW, cssH);
 
   const cx = 54;
@@ -4093,7 +4232,7 @@ function drawTeamChart() {
   tc.lineWidth = 1;
   tc.stroke();
 
-  tc.fillStyle = '#f2f6ff';
+  tc.fillStyle = chartText;
   tc.font = '700 11px Manrope, sans-serif';
   tc.fillText('Team Control', 12, 15);
   tc.font = '700 10px Manrope, sans-serif';
@@ -4106,7 +4245,7 @@ function drawTeamChart() {
     const massDisplay = mass >= 1000 ? `${(mass/1000).toFixed(1)}k` : Math.round(mass);
     tc.fillStyle = t.color || '#6ea2f2';
     tc.fillRect(100, y - 8, 8, 8);
-    tc.fillStyle = '#dce8ff';
+    tc.fillStyle = chartSub;
     tc.fillText(`${name} ${pct}% (${massDisplay})`, 113, y - 1);
   }
 }
@@ -4172,7 +4311,38 @@ function escapeHtml(text) {
   updateStatsUI();
   await loadBootstrap(false);
   applyHudVisibility();
-  connect();
+
+  // Wire up connection dialog buttons
+  document.getElementById('connConnectBtn').addEventListener('click', () => {
+    const url = document.getElementById('connUrlInput').value.trim();
+    if (!url || (!url.startsWith('ws://') && !url.startsWith('wss://'))) {
+      const errEl = document.getElementById('connError');
+      errEl.textContent = 'Please enter a valid WebSocket URL starting with ws:// or wss://';
+      errEl.style.display = 'block';
+      return;
+    }
+    localStorage.setItem(CONN_URL_KEY, url);
+    hideConnDialog();
+    connect(url);
+  });
+  document.getElementById('connLocalBtn').addEventListener('click', () => {
+    localStorage.removeItem(CONN_URL_KEY);
+    hideConnDialog();
+    connect('ws://localhost:3000');
+  });
+  document.getElementById('connUrlInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('connConnectBtn').click();
+  });
+
+  // Show connection dialog if needed, otherwise connect immediately
+  if (needsConnectionDialog()) {
+    showConnDialog();
+    setConnStatus('● Not connected', 'red');
+  } else {
+    setConnStatus('● Connecting…', 'blue');
+    connect();
+  }
+
   requestAnimationFrame(render);
   setInterval(sendTarget, 20);
 })();
