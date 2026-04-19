@@ -31,7 +31,54 @@ const TEAM_NAMES = [
     'Cyan',
     'Gold',
     'Ivory',
+    'Onyx',
 ];
+const BOT_BEHAVIOR_PRESETS = {
+    balanced: Object.freeze({
+        smartness: 1,
+        affection: 1,
+        boldness: 1,
+        greediness: 1,
+        sheepishness: 1,
+        humanity: 1,
+        trickiness: 1,
+        opportunism: 1,
+        herdResistance: 1,
+    }),
+    opportunist: Object.freeze({
+        smartness: 1.08,
+        affection: 0.86,
+        boldness: 1.2,
+        greediness: 1.38,
+        sheepishness: 0.78,
+        humanity: 1.02,
+        trickiness: 1.22,
+        opportunism: 1.55,
+        herdResistance: 1.15,
+    }),
+    cautious: Object.freeze({
+        smartness: 1.05,
+        affection: 1.14,
+        boldness: 0.78,
+        greediness: 0.86,
+        sheepishness: 1.35,
+        humanity: 1.08,
+        trickiness: 0.9,
+        opportunism: 0.88,
+        herdResistance: 1.1,
+    }),
+    feral: Object.freeze({
+        smartness: 1.12,
+        affection: 0.74,
+        boldness: 1.35,
+        greediness: 1.5,
+        sheepishness: 0.62,
+        humanity: 0.82,
+        trickiness: 1.32,
+        opportunism: 1.68,
+        herdResistance: 1.22,
+    }),
+};
 
 class Game {
     constructor(config) {
@@ -62,6 +109,10 @@ class Game {
         this._expNextShrinkZone = 0;
         this._expNextWarpGate = 0;
         this._warpGateCooldowns = new Map(); // cellId -> timestamp (last warped)
+        this.foodRespawnAccumulator = 0;
+        this.hackFreezeUntil = 0;
+        this.hackFreezeOwnerId = null;
+        this.hackFreezeTargetId = null;
         this.refreshRuntimeFromConfig();
     }
 
@@ -92,43 +143,54 @@ class Game {
     refreshRuntimeFromConfig() {
         this.foodHashCellSize = this.config.foodGridCellSize ?? 140;
         this.maxFoodEntities = this.config.maxFood + (this.config.maxEjectedFood ?? Math.round(this.config.maxFood * 0.35));
+        this.foodRespawnPerSecond = Math.max(
+            5,
+            Math.min(1500, Number(this.config.foodRespawnPerSecond ?? Math.max(30, Math.round((this.config.maxFood || 1000) * 0.05))))
+        );
+        this.maxFoodRespawnBurstPerTick = Math.max(
+            1,
+            Math.min(120, Math.floor(this.config.maxFoodRespawnBurstPerTick ?? 10))
+        );
         this.ejectedLifetimeMs = this.config.ejectedLifetimeMs ?? 20000;
-        this.maxVisibleFoodPerPlayer = Math.max(100, Math.floor(this.config.maxVisibleFoodPerPlayer ?? this.config.maxFood));
+        this.maxVisibleFoodPerPlayer = Math.max(1, Math.floor(this.config.maxVisibleFoodPerPlayer ?? this.config.maxFood));
         this.maxVisibleCellsPerPlayer = Math.max(
-            100,
+            1,
             Math.floor(this.config.maxVisibleCellsPerPlayer ?? ((this.config.botCount + 2) * Math.max(1, this.config.maxCells)))
         );
         this.stateIntervalMs = 1000 / (this.config.stateBroadcastRate ?? this.config.tickRate);
-        this.massRadiusScale = Math.max(3.2, Math.min(8.5, this.config.massRadiusScale ?? 4.9));
-        this.massRadiusExponent = Math.max(0.35, Math.min(0.65, this.config.massRadiusExponent ?? 0.46));
-        this.baseFoodMass = Math.max(0.1, Math.min(3, this.config.baseFoodMass ?? 0.42));
-        this.goldenFoodChance = Math.max(0, Math.min(0.15, this.config.goldenFoodChance ?? 0.014));
-        this.goldenFoodMass = Math.max(this.baseFoodMass, Math.min(12, this.config.goldenFoodMass ?? 2.2));
-        this.ejectedPelletMass = Math.max(1, Math.min(20, this.config.ejectedPelletMass ?? 6));
-        this.ejectedPelletCost = Math.max(this.ejectedPelletMass + 1, Math.min(50, this.config.ejectedPelletCost ?? 13));
+        this.massRadiusScale = Math.max(0.01, Number(this.config.massRadiusScale ?? 4.9) || 4.9);
+        this.massRadiusExponent = Math.max(0.01, Number(this.config.massRadiusExponent ?? 0.46) || 0.46);
+        this.baseFoodMass = Math.max(0, Number(this.config.baseFoodMass ?? 0.42) || 0.42);
+        this.goldenFoodChance = Math.max(0, Number(this.config.goldenFoodChance ?? 0.014) || 0);
+        this.goldenFoodMass = Math.max(this.baseFoodMass, Number(this.config.goldenFoodMass ?? 2.2) || 2.2);
+        this.ejectedPelletMass = Math.max(0, Number(this.config.ejectedPelletMass ?? 6) || 0);
+        this.ejectedPelletCost = Math.max(this.ejectedPelletMass + 0.01, Number(this.config.ejectedPelletCost ?? 13) || 0);
+        this.ownEjectedReclaimRatio = Math.max(0, Number(this.config.ownEjectedReclaimRatio ?? 1) || 0);
         this.ejectMinCellMass = Math.max(this.config.startMass + 4, this.ejectedPelletCost + this.config.startMass * 0.7);
         Cell.setRadiusTuning(this.massRadiusScale, this.massRadiusExponent);
         this.leaderboardSize = this.config.leaderboardSize ?? 10;
         const mode = `${this.config.gameMode || 'ffa'}`.toLowerCase();
         this.gameMode = mode === 'teams' || mode === 'experimental' ? mode : 'ffa';
         this.instaMerge = !!this.config.instaMerge;
+        this.mergeTimeBaseSeconds = Math.max(0, Number(this.config.mergeTime ?? 30) || 0);
+        this.mergeMassFactor = Math.max(0, Number(this.config.mergeMassFactor ?? 0.0233) || 0);
         this.allowExperimentalInClassicModes = !!this.config.allowExperimentalInClassicModes;
-        this.plasmaFoodChance = Math.max(0, Math.min(0.25, this.config.plasmaFoodChance ?? 0.018));
-        this.plasmaFoodMass = Math.max(this.baseFoodMass, Math.min(12, this.config.plasmaFoodMass ?? 1.45));
-        this.teamCount = Math.max(2, Math.min(12, Math.floor(this.config.teamCount ?? 3)));
+        this.plasmaFoodChance = Math.max(0, Number(this.config.plasmaFoodChance ?? 0.018) || 0);
+        this.plasmaFoodMass = Math.max(this.baseFoodMass, Number(this.config.plasmaFoodMass ?? 1.45) || 1.45);
+        this.teamCount = Math.max(2, Math.min(TEAM_COLORS.length, Math.floor(this.config.teamCount ?? 3)));
         this.spawnerVirusesInFFA = !!this.config.spawnerVirusesInFFA;
-        this.spawnerVirusChance = Math.max(0, Math.min(1, this.config.spawnerVirusChance ?? 0.22));
+        this.spawnerVirusChance = Math.max(0, Number(this.config.spawnerVirusChance ?? 0.22) || 0);
         this.forceSpawnerVirusesInTeams = this.config.forceSpawnerVirusesInTeams !== false;
         this.forceSpawnerVirusesInExperimental = this.config.forceSpawnerVirusesInExperimental !== false;
         this.normalVirusCanKill = !!this.config.normalVirusCanKill;
-        this.spawnerDispenseRate = Math.max(0.1, Math.min(4, this.config.spawnerDispenseRate ?? 0.45));
-        this.spawnerPassiveRatePerSec = Math.max(0, Math.min(6, this.config.spawnerPassiveRatePerSec ?? 1));
-        this.spawnerPelletMass = Math.max(0.25, Math.min(6, this.config.spawnerPelletMass ?? 0.7));
-        this.virusSmallCellKillRatio = Math.max(0.1, Math.min(0.95, this.config.virusSmallCellKillRatio ?? 0.52));
-        this.virusHideRatio = Math.max(0.2, Math.min(1.4, this.config.virusHideRatio ?? 0.9));
-        this.cellEatMassRatio = Math.max(1.05, Math.min(2.5, this.config.cellEatMassRatio ?? 1.22));
-        this.cellEatCenterInsideRatio = Math.max(0.1, Math.min(0.95, this.config.cellEatCenterInsideRatio ?? 0.42));
-        this.cellEatCoverageRatio = Math.max(0.45, Math.min(0.98, this.config.cellEatCoverageRatio ?? 0.75));
+        this.spawnerDispenseRate = Math.max(0, Number(this.config.spawnerDispenseRate ?? 0.45) || 0);
+        this.spawnerPassiveRatePerSec = Math.max(0, Number(this.config.spawnerPassiveRatePerSec ?? 1) || 0);
+        this.spawnerPelletMass = Math.max(0, Number(this.config.spawnerPelletMass ?? 0.7) || 0);
+        this.virusSmallCellKillRatio = Math.max(0, Number(this.config.virusSmallCellKillRatio ?? 0.52) || 0);
+        this.virusHideRatio = Math.max(0, Number(this.config.virusHideRatio ?? 0.9) || 0);
+        this.cellEatMassRatio = Math.max(0, Number(this.config.cellEatMassRatio ?? 1.22) || 0);
+        this.cellEatCenterInsideRatio = Math.max(0, Number(this.config.cellEatCenterInsideRatio ?? 0.42) || 0);
+        this.cellEatCoverageRatio = Math.max(0, Number(this.config.cellEatCoverageRatio ?? 0.75) || 0);
 
         this.virusBaseMass = this.config.virusBaseMass ?? 100;
         this.virusFeedMassGain = this.config.virusFeedMassGain ?? 14;
@@ -138,26 +200,30 @@ class Game {
         this.maxVirusEntities = this.config.maxVirusEntities ?? (this.config.maxViruses * 2);
         this.virusEatBonusMass = this.config.virusEatBonusMass ?? 18;
 
+        const presetRaw = `${this.config.botBehaviorPreset || 'feral'}`.toLowerCase();
+        this.botBehaviorPreset = BOT_BEHAVIOR_PRESETS[presetRaw] ? presetRaw : 'balanced';
+        const preset = BOT_BEHAVIOR_PRESETS[this.botBehaviorPreset] || BOT_BEHAVIOR_PRESETS.balanced;
+
         this.botSenseCellScanLimit = this.config.botSenseCellScanLimit ?? 700;
         this.botSenseFoodSampleLimit = this.config.botSenseFoodSampleLimit ?? 260;
         this.botSenseVirusScanLimit = this.config.botSenseVirusScanLimit ?? 120;
-        this.botBoldnessBase = Math.max(0, Math.min(1, this.config.botBoldnessBase ?? 0.45));
-        this.botSmartnessScale = Math.max(0.2, Math.min(3, this.config.botSmartnessScale ?? 1));
-        this.botAffectionScale = Math.max(0.2, Math.min(3, this.config.botAffectionScale ?? 1));
-        this.botBoldnessScale = Math.max(0.2, Math.min(3, this.config.botBoldnessScale ?? 1));
-        this.botGreedinessScale = Math.max(0.2, Math.min(3, this.config.botGreedinessScale ?? 1));
-        this.botSheepishnessScale = Math.max(0.2, Math.min(3, this.config.botSheepishnessScale ?? 1));
-        this.botHumanityScale = Math.max(0.2, Math.min(3, this.config.botHumanityScale ?? 1));
-        this.botTrickinessScale = Math.max(0.2, Math.min(3, this.config.botTrickinessScale ?? 1));
-        this.botOpportunismScale = Math.max(0.2, Math.min(3, this.config.botOpportunismScale ?? 1));
-        this.botHerdResistanceScale = Math.max(0.2, Math.min(3, this.config.botHerdResistanceScale ?? 1));
-        this.botBoldSplitBurstChance = Math.max(0, Math.min(1, this.config.botBoldSplitBurstChance ?? 0.1));
-        this.botPanicRetreatChance = Math.max(0, Math.min(1, this.config.botPanicRetreatChance ?? 0.18));
-        this.botPanicRetreatMinMass = Math.max(20, Math.min(10000, this.config.botPanicRetreatMinMass ?? 110));
-        this.botPanicRetreatBurstMax = Math.max(1, Math.min(12, Math.floor(this.config.botPanicRetreatBurstMax ?? 4)));
+        this.botBoldnessBase = Math.max(0, Number(this.config.botBoldnessBase ?? 0.45) || 0);
+        this.botSmartnessScale = Math.max(0.01, Number((this.config.botSmartnessScale ?? 1) * preset.smartness) || 0.01);
+        this.botAffectionScale = Math.max(0.01, Number((this.config.botAffectionScale ?? 1) * preset.affection) || 0.01);
+        this.botBoldnessScale = Math.max(0.01, Number((this.config.botBoldnessScale ?? 1) * preset.boldness) || 0.01);
+        this.botGreedinessScale = Math.max(0.01, Number((this.config.botGreedinessScale ?? 1) * preset.greediness) || 0.01);
+        this.botSheepishnessScale = Math.max(0.01, Number((this.config.botSheepishnessScale ?? 1) * preset.sheepishness) || 0.01);
+        this.botHumanityScale = Math.max(0.01, Number((this.config.botHumanityScale ?? 1) * preset.humanity) || 0.01);
+        this.botTrickinessScale = Math.max(0.01, Number((this.config.botTrickinessScale ?? 1) * preset.trickiness) || 0.01);
+        this.botOpportunismScale = Math.max(0.01, Number((this.config.botOpportunismScale ?? 1) * preset.opportunism) || 0.01);
+        this.botHerdResistanceScale = Math.max(0.01, Number((this.config.botHerdResistanceScale ?? 1) * preset.herdResistance) || 0.01);
+        this.botBoldSplitBurstChance = Math.max(0, Number(this.config.botBoldSplitBurstChance ?? 0.1) || 0);
+        this.botPanicRetreatChance = Math.max(0, Number(this.config.botPanicRetreatChance ?? 0.18) || 0);
+        this.botPanicRetreatMinMass = Math.max(0, Number(this.config.botPanicRetreatMinMass ?? 110) || 0);
+        this.botPanicRetreatBurstMax = Math.max(1, Math.floor(Number(this.config.botPanicRetreatBurstMax ?? 4) || 0));
         this.sacrificeToPlayerBots = !!this.config.sacrificeToPlayerBots;
-        this.sacrificeToPlayerBotChance = Math.max(0, Math.min(1, this.config.sacrificeToPlayerBotChance ?? 0.08));
-        this.sacrificeToPlayerBotMaxShare = Math.max(0, Math.min(1, this.config.sacrificeToPlayerBotMaxShare ?? 0.15));
+        this.sacrificeToPlayerBotChance = Math.max(0, Number(this.config.sacrificeToPlayerBotChance ?? 0.08) || 0);
+        this.sacrificeToPlayerBotMaxShare = Math.max(0, Number(this.config.sacrificeToPlayerBotMaxShare ?? 0.15) || 0);
 
         this.botSpawnMassMode = this.config.botSpawnMassMode ?? 'varied';
         this.botRespawnMassMode = this.config.botRespawnMassMode ?? 'player_start';
@@ -186,16 +252,16 @@ class Game {
         this.botTeamSplitCooldownMs = this.config.botTeamSplitCooldownMs ?? 7000;
         this.botTeamSplitChance = this.config.botTeamSplitChance ?? 0.24;
         this.botTeamSplitMinMass = this.config.botTeamSplitMinMass ?? 180;
-        this.crossTeamTeamingChance = Math.max(0, Math.min(0.2, this.config.crossTeamTeamingChance ?? 0.001));
+        this.crossTeamTeamingChance = Math.max(0, Number(this.config.crossTeamTeamingChance ?? 0.001) || 0);
         this.enableBotTeaming = this.config.enableBotTeaming !== false;
         this.botTeamsStickUntilDeath = this.config.botTeamsStickUntilDeath !== false;
-        this.botVirusWeaponChance = Math.max(0, Math.min(1, this.config.botVirusWeaponChance ?? 0.22));
-        this.botVirusWeaponCooldownMs = Math.max(100, Math.min(20000, this.config.botVirusWeaponCooldownMs ?? 2600));
-        this.botVirusWeaponMinMass = Math.max(20, Math.min(5000, this.config.botVirusWeaponMinMass ?? 80));
-        this.botPopulationAdjustIntervalMs = Math.max(250, Math.min(12000, Math.floor(this.config.botPopulationAdjustIntervalMs ?? 900)));
-        this.botPopulationRampPerStep = Math.max(1, Math.min(120, Math.floor(this.config.botPopulationRampPerStep ?? Math.max(2, Math.round((this.config.botCount || 0) / 18)))));
-        this.botPopulationHoverMinRatio = Math.max(0.5, Math.min(1, this.config.botPopulationHoverMinRatio ?? 0.9));
-        this.botPopulationHoverVariance = Math.max(0, Math.min(2000, Math.floor(this.config.botPopulationHoverVariance ?? Math.max(2, Math.round((this.config.botCount || 0) * 0.08)))));
+        this.botVirusWeaponChance = Math.max(0, Number(this.config.botVirusWeaponChance ?? 0.22) || 0);
+        this.botVirusWeaponCooldownMs = Math.max(0, Math.floor(Number(this.config.botVirusWeaponCooldownMs ?? 2600) || 0));
+        this.botVirusWeaponMinMass = Math.max(0, Number(this.config.botVirusWeaponMinMass ?? 80) || 0);
+        this.botPopulationAdjustIntervalMs = Math.max(1, Math.floor(Number(this.config.botPopulationAdjustIntervalMs ?? 900) || 1));
+        this.botPopulationRampPerStep = Math.max(1, Math.floor(Number(this.config.botPopulationRampPerStep ?? Math.max(2, Math.round((this.config.botCount || 0) / 18))) || 1));
+        this.botPopulationHoverMinRatio = Math.max(0, Number(this.config.botPopulationHoverMinRatio ?? 0.9) || 0);
+        this.botPopulationHoverVariance = Math.max(0, Math.floor(Number(this.config.botPopulationHoverVariance ?? Math.max(2, Math.round((this.config.botCount || 0) * 0.08))) || 0));
         this.preserveAliveBots = this.config.preserveAliveBots !== false;
         this.enableBotChat = !!this.config.enableBotChat;
         this.botChatChancePerSecond = Math.max(0, Math.min(2, this.config.botChatChancePerSecond ?? 0.32));
@@ -255,22 +321,31 @@ class Game {
 
     canSpawnSpawnerViruses() {
         if (this.isExperimentalMode()) return !!this.forceSpawnerVirusesInExperimental;
-        if (this.isTeamsMode()) return false;
+        if (this.isTeamsMode()) return !!this.forceSpawnerVirusesInTeams;
         return !!this.spawnerVirusesInFFA;
     }
 
     forceAllSpawnerViruses() {
         if (this.isExperimentalMode()) return !!this.forceSpawnerVirusesInExperimental;
-        if (this.isTeamsMode()) return false;
+        if (this.isTeamsMode()) return !!this.forceSpawnerVirusesInTeams;
         return false;
     }
 
-    getMergeDelayMs() {
-        return this.instaMerge ? 130 : (this.config.mergeTime * 1000);
+    getMergeDelayMs(cellMass = 0) {
+        if (this.instaMerge) return 0;
+        const safeMass = Math.max(0, Number(cellMass) || 0);
+        return (this.mergeTimeBaseSeconds + this.mergeMassFactor * safeMass) * 1000;
+    }
+
+    getMergeDelayMsForPlayer(player, cellMass = 0) {
+        if (player && !player.isBot && player.hackInstaMerge) return 0;
+        return this.getMergeDelayMs(cellMass);
     }
 
     getActiveTeamCount() {
-        return Math.max(2, Math.min(12, Math.floor(this.teamCount || 3)));
+        // Team count is for bot/team population balancing. Human-selected preferred teams
+        // can be outside this range to allow solo-team play without expanding bot slots.
+        return Math.max(2, Math.min(TEAM_COLORS.length, Math.floor(this.teamCount || 3)));
     }
 
     getTeamColor(teamId) {
@@ -284,15 +359,25 @@ class Game {
     }
 
     getPlayerDisplayColor(player) {
+        if (player && typeof player.customColor === 'string' && player.customColor.startsWith('#')) {
+            return player.customColor;
+        }
         if (this.isTeamsMode() && Number.isInteger(player.teamId)) {
             return this.getTeamColor(player.teamId);
         }
         return player.color || this.randomColor();
     }
 
-    getTeamCounts() {
-        const teams = new Array(this.getActiveTeamCount()).fill(0);
-        const allPlayers = [...this.players.values(), ...this.bots];
+    getTeamCounts(options = {}) {
+        const includeHumans = options.includeHumans !== false;
+        const includeBots = options.includeBots !== false;
+        const slots = Number.isInteger(options.slots)
+            ? Math.max(2, Math.min(TEAM_COLORS.length, options.slots))
+            : this.getActiveTeamCount();
+        const teams = new Array(slots).fill(0);
+        const allPlayers = [];
+        if (includeHumans) allPlayers.push(...this.players.values());
+        if (includeBots) allPlayers.push(...this.bots);
         for (const p of allPlayers) {
             if (!p) continue;
             if (!Number.isInteger(p.teamId)) continue;
@@ -302,14 +387,31 @@ class Game {
         return teams;
     }
 
+    getVisibleTeamCount() {
+        if (!this.isTeamsMode()) return this.getActiveTeamCount();
+        let maxTeam = this.getActiveTeamCount() - 1;
+        this._forEachPlayer((p) => {
+            if (Number.isInteger(p.teamId)) {
+                maxTeam = Math.max(maxTeam, Math.min(TEAM_COLORS.length - 1, p.teamId));
+            }
+        });
+        return Math.max(2, Math.min(TEAM_COLORS.length, maxTeam + 1));
+    }
+
     assignTeam(player, force = false) {
         if (!player) return null;
         const teamCount = this.getActiveTeamCount();
         if (!force && Number.isInteger(player.teamId) && player.teamId >= 0 && player.teamId < teamCount) {
             return player.teamId;
         }
+        if (Number.isInteger(player.preferredTeamId) && player.preferredTeamId >= 0 && player.preferredTeamId < TEAM_COLORS.length) {
+            player.teamId = player.preferredTeamId;
+            return player.teamId;
+        }
 
-        const counts = this.getTeamCounts();
+        // Team balancing should be based on bot population only so humans can freely
+        // choose out-of-band teams (solo/team-color picks) without warping bot slots.
+        const counts = this.getTeamCounts({ includeHumans: false, includeBots: true, slots: teamCount });
         let minCount = Infinity;
         for (const c of counts) {
             if (c < minCount) minCount = c;
@@ -354,7 +456,7 @@ class Game {
         const prevTickRate = this.config.tickRate;
         const prevModeRaw = `${this.config.gameMode || 'ffa'}`.toLowerCase();
         const prevMode = prevModeRaw === 'teams' || prevModeRaw === 'experimental' ? prevModeRaw : 'ffa';
-        const prevTeamCount = Math.max(2, Math.min(12, Math.floor(this.config.teamCount ?? 3)));
+        const prevTeamCount = Math.max(2, Math.min(TEAM_COLORS.length, Math.floor(this.config.teamCount ?? 3)));
         const prevMapWidth = this.config.mapWidth;
         const prevMapHeight = this.config.mapHeight;
         this.config = { ...this.config, ...nextConfig };
@@ -375,6 +477,9 @@ class Game {
                 }
                 this.applyPlayerAppearance(p);
             }
+        }
+        if (modeChanged) {
+            this.resetExperimentalWorld(this.isExperimentalMode());
         }
 
         for (const bot of this.bots) {
@@ -557,6 +662,16 @@ class Game {
     }
 
     getDesiredBotPopulation() {
+        if (this.config.disableBotRespawn) {
+            const normalNow = this.bots.filter((b) => b && b.kind !== 'spectator').length;
+            const spectatorNow = this.bots.filter((b) => b && b.kind === 'spectator').length;
+            return {
+                normal: normalNow,
+                normalMax: normalNow,
+                spectator: spectatorNow,
+                spectatorMax: spectatorNow,
+            };
+        }
         if (this.deferBotsUntilHumans && !this.hasAliveHumans()) {
             return {
                 normal: 0,
@@ -747,13 +862,17 @@ class Game {
     // Spawn bot with configurable starting mass
     spawnBot(bot, index, isRespawn = false) {
         const id = this.generateId();
-        const mass = isRespawn
-            ? this.config.startMass
-            : (bot.kind === 'spectator'
-                ? Math.max(8, this.config.startMass * (0.85 + Math.random() * 0.4))
-                : this.getBotSpawnMass(this.botSpawnMassMode));
+        const spawnMode = isRespawn ? this.botRespawnMassMode : this.botSpawnMassMode;
+        const normalizedMode = this.moldColonyMode ? 'player_start' : (spawnMode || 'varied');
+        let mass = this.getBotSpawnMass(spawnMode);
+        // Spectator/support bots keep a lighter random profile only in varied mode.
+        if (bot.kind === 'spectator' && normalizedMode === 'varied') {
+            mass = Math.max(8, this.config.startMass * (0.85 + Math.random() * 0.4));
+        }
         const spawnRadius = this.radiusFromMass(mass);
         const spawnPos = this.findSafeSpawnPosition(spawnRadius);
+        spawnPos.x = Math.max(spawnRadius, Math.min(this.config.mapWidth - spawnRadius, spawnPos.x));
+        spawnPos.y = Math.max(spawnRadius, Math.min(this.config.mapHeight - spawnRadius, spawnPos.y));
         this.ensurePlayerTeam(bot);
         if (!bot.skin && Math.random() < this.botSkinChance) {
             bot.skin = this.pickRandomSkin();
@@ -798,6 +917,7 @@ class Game {
         bot.lastTeamSplitAt = 0;
         bot.lastCircleSpitAt = 0;
         bot.betrayCooldownUntil = 0;
+        bot.hackFrozen = false;
         bot.retreatLockUntil = 0;
         bot.retreatPolarity = Math.random() < 0.5 ? -1 : 1;
         bot.homeAnchor = {
@@ -859,6 +979,18 @@ class Game {
             bot.target.y = clamp(bot.target.y, minY, maxY, maxY / 2);
             bot.desiredTarget.x = clamp(bot.desiredTarget.x, minX, maxX, bot.target.x);
             bot.desiredTarget.y = clamp(bot.desiredTarget.y, minY, maxY, bot.target.y);
+            if (bot.homeAnchor) {
+                bot.homeAnchor.x = clamp(bot.homeAnchor.x, minX, maxX, maxX / 2);
+                bot.homeAnchor.y = clamp(bot.homeAnchor.y, minY, maxY, maxY / 2);
+            }
+            if (bot.roamTarget) {
+                bot.roamTarget.x = clamp(bot.roamTarget.x, minX, maxX, bot.target.x);
+                bot.roamTarget.y = clamp(bot.roamTarget.y, minY, maxY, bot.target.y);
+            }
+            if (bot.escapeTarget) {
+                bot.escapeTarget.x = clamp(bot.escapeTarget.x, minX, maxX, bot.target.x);
+                bot.escapeTarget.y = clamp(bot.escapeTarget.y, minY, maxY, bot.target.y);
+            }
         }
 
         for (const [id, food] of this.food) {
@@ -1033,6 +1165,30 @@ class Game {
 
     isPlayerAlive(player) {
         return !!(player && player.alive && player.cells && player.cells.length > 0);
+    }
+
+    isPlayerGodmode(player) {
+        return !!(player && !player.isBot && player.hackGodmode);
+    }
+
+    isHackFreezeActive(now = Date.now()) {
+        if (!this.hackFreezeOwnerId) return false;
+        if ((this.hackFreezeUntil || 0) <= now) {
+            this.hackFreezeUntil = 0;
+            this.hackFreezeOwnerId = null;
+            this.hackFreezeTargetId = null;
+            return false;
+        }
+        return true;
+    }
+
+    isPlayerFrozenByHack(player, now = Date.now()) {
+        if (!player || !player.id) return false;
+        if (!this.isHackFreezeActive(now)) return false;
+        if (Number.isInteger(this.hackFreezeTargetId) && this.hackFreezeTargetId > 0) {
+            return player.id === this.hackFreezeTargetId;
+        }
+        return player.id !== this.hackFreezeOwnerId;
     }
 
     getPlayerMass(player) {
@@ -1886,6 +2042,8 @@ class Game {
         const id = this.generateId();
         const spawnRadius = this.radiusFromMass(this.config.startMass);
         const spawnPos = this.findSafeSpawnPosition(spawnRadius);
+        spawnPos.x = Math.max(spawnRadius, Math.min(this.config.mapWidth - spawnRadius, spawnPos.x));
+        spawnPos.y = Math.max(spawnRadius, Math.min(this.config.mapHeight - spawnRadius, spawnPos.y));
         const cell = new Cell({
             id,
             x: spawnPos.x,
@@ -1913,6 +2071,8 @@ class Game {
             color: this.randomColor(),
             skin: null,
             teamId: null,
+            preferredTeamId: null,
+            customColor: null,
             teamPartnerId: null,
             teamExpiresAt: 0,
             target: { x: 0, y: 0 },
@@ -1920,6 +2080,11 @@ class Game {
             score: 0,
             maxScore: 0,
             alive: false,
+            hackGodmode: false,
+            hackSelfFrozen: false,
+            hackInstaMerge: false,
+            hackNoEatBots: false,
+            hackSpeedMult: 1,
             spectating: false,
             spectateCenter: { x: this.config.mapWidth / 2, y: this.config.mapHeight / 2 },
             spectateScale: Math.max(2.4, Math.max(this.config.mapWidth / 1650, this.config.mapHeight / 930)),
@@ -1940,12 +2105,457 @@ class Game {
     removePlayer(ws) {
         const player = this.players.get(ws);
         if (player) {
+            if (this.hackFreezeOwnerId === player.id) {
+                this.hackFreezeUntil = 0;
+                this.hackFreezeOwnerId = null;
+                this.hackFreezeTargetId = null;
+            }
             player.cells.forEach(c => this.cells.delete(c.id));
             player.cells = [];
             this.players.delete(ws);
             this.syncBotPopulation();
             this.ensureBotRoleMix();
         }
+    }
+
+    applyMassDeltaToPlayer(target, amount, killerName = 'Hack') {
+        if (!target || !this.isPlayerAlive(target)) return false;
+        const delta = Math.round(Number(amount) || 0);
+        if (!Number.isFinite(delta) || delta === 0) return false;
+
+        if (delta > 0) {
+            let largest = null;
+            for (const cell of target.cells) {
+                if (!largest || cell.mass > largest.mass) largest = cell;
+            }
+            if (!largest) return false;
+            largest.mass += delta;
+            target.score = this.getPlayerMass(target);
+            target.maxScore = Math.max(target.maxScore || 0, target.score || 0);
+            return true;
+        }
+
+        let remainingLoss = Math.abs(delta);
+        const sortedCells = [...target.cells].sort((a, b) => (b.mass || 0) - (a.mass || 0));
+        for (const cell of sortedCells) {
+            if (!this.isPlayerAlive(target)) break;
+            if (!target.cells.includes(cell)) continue;
+            if (remainingLoss <= 0) break;
+            if (cell.mass <= remainingLoss + 0.0001) {
+                remainingLoss -= cell.mass;
+                this.removeCellFromOwner(target, cell);
+            } else {
+                cell.mass = Math.max(0.001, cell.mass - remainingLoss);
+                remainingLoss = 0;
+                break;
+            }
+        }
+        if (!this.isPlayerAlive(target)) return true;
+        target.score = this.getPlayerMass(target);
+        target.maxScore = Math.max(target.maxScore || 0, target.score || 0);
+        if (target.score <= 0) {
+            this.onPlayerEliminated(target, killerName);
+        }
+        return true;
+    }
+
+    applyHackAddMass(player, rawAmount, rawTargetMode, rawTargetId) {
+        if (!player || player.isBot) return false;
+        const amount = Math.max(-500000, Math.min(500000, Math.round(Number(rawAmount) || 0)));
+        if (!Number.isFinite(amount) || amount === 0) return false;
+
+        const mode = `${rawTargetMode || 'self'}`.toLowerCase();
+        const targets = [];
+        if (mode === 'all') {
+            this._forEachPlayer((p) => {
+                if (!p || p.id === player.id || !this.isPlayerAlive(p)) return;
+                targets.push(p);
+            });
+        } else if (mode === 'player') {
+            const targetId = Math.round(Number(rawTargetId));
+            if (!Number.isInteger(targetId) || targetId <= 0) return false;
+            const target = this.resolvePlayerById(targetId);
+            if (!target || !this.isPlayerAlive(target)) return false;
+            targets.push(target);
+        } else {
+            if (!this.isPlayerAlive(player)) return false;
+            targets.push(player);
+        }
+
+        let changed = false;
+        for (const target of targets) {
+            const did = this.applyMassDeltaToPlayer(target, amount, player.name || 'Hack');
+            changed = changed || did;
+        }
+        return changed;
+    }
+
+    applyHackSetTeam(player, rawTeamId, rawTargetMode, rawTargetId) {
+        if (!player || player.isBot) return false;
+        const teamId = Math.round(Number(rawTeamId));
+        if (!Number.isInteger(teamId) || teamId < 0 || teamId >= TEAM_COLORS.length) return false;
+
+        const mode = `${rawTargetMode || 'self'}`.toLowerCase();
+        const targets = [];
+        if (mode === 'all') {
+            this._forEachPlayer((p) => {
+                if (!p || p.id === player.id || !this.isPlayerAlive(p)) return;
+                targets.push(p);
+            });
+        } else if (mode === 'player') {
+            const targetId = Math.round(Number(rawTargetId));
+            if (!Number.isInteger(targetId) || targetId <= 0) return false;
+            const target = this.resolvePlayerById(targetId);
+            if (!target || !this.isPlayerAlive(target)) return false;
+            targets.push(target);
+        } else {
+            if (!this.isPlayerAlive(player)) return false;
+            targets.push(player);
+        }
+
+        const color = this.getTeamColor(teamId);
+        let changed = false;
+        for (const target of targets) {
+            target.teamId = teamId;
+            target.preferredTeamId = teamId;
+            target.color = color;
+            for (const cell of target.cells || []) {
+                cell.teamId = teamId;
+                cell.color = color;
+            }
+            changed = true;
+        }
+        return changed;
+    }
+
+    applyHackSetColor(player, rawColorId, rawTargetMode, rawTargetId) {
+        if (!player || player.isBot) return false;
+        const colorId = Math.round(Number(rawColorId));
+        if (!Number.isInteger(colorId) || colorId < 0 || colorId >= TEAM_COLORS.length) return false;
+        const color = TEAM_COLORS[colorId];
+
+        const mode = `${rawTargetMode || 'self'}`.toLowerCase();
+        const targets = [];
+        if (mode === 'all') {
+            this._forEachPlayer((p) => {
+                if (!p || p.id === player.id || !this.isPlayerAlive(p)) return;
+                targets.push(p);
+            });
+        } else if (mode === 'player') {
+            const targetId = Math.round(Number(rawTargetId));
+            if (!Number.isInteger(targetId) || targetId <= 0) return false;
+            const target = this.resolvePlayerById(targetId);
+            if (!target || !this.isPlayerAlive(target)) return false;
+            targets.push(target);
+        } else {
+            if (!this.isPlayerAlive(player)) return false;
+            targets.push(player);
+        }
+
+        let changed = false;
+        for (const target of targets) {
+            target.teamId = colorId;
+            target.preferredTeamId = colorId;
+            target.customColor = color;
+            const resolvedColor = this.getPlayerDisplayColor(target);
+            target.color = resolvedColor;
+            for (const cell of target.cells || []) {
+                cell.teamId = target.teamId;
+                cell.color = resolvedColor;
+            }
+            changed = true;
+        }
+        return changed;
+    }
+
+    applyHackResetColors(player, rawTargetMode, rawTargetId) {
+        if (!player || player.isBot) return false;
+        const mode = `${rawTargetMode || 'self'}`.toLowerCase();
+        const targets = [];
+        if (mode === 'all') {
+            this._forEachPlayer((p) => {
+                if (!p || p.id === player.id || !this.isPlayerAlive(p)) return;
+                targets.push(p);
+            });
+        } else if (mode === 'player') {
+            const targetId = Math.round(Number(rawTargetId));
+            if (!Number.isInteger(targetId) || targetId <= 0) return false;
+            const target = this.resolvePlayerById(targetId);
+            if (!target || !this.isPlayerAlive(target)) return false;
+            targets.push(target);
+        } else {
+            if (!this.isPlayerAlive(player)) return false;
+            targets.push(player);
+        }
+
+        let changed = false;
+        for (const target of targets) {
+            const teamId = Math.floor(Math.random() * TEAM_COLORS.length);
+            target.teamId = teamId;
+            target.preferredTeamId = teamId;
+            target.customColor = null;
+            const resolvedColor = this.getTeamColor(teamId);
+            target.color = resolvedColor;
+            for (const cell of target.cells || []) {
+                cell.teamId = teamId;
+                cell.color = resolvedColor;
+            }
+            changed = true;
+        }
+        return changed;
+    }
+
+    applyHackTeleport(player, rawX, rawY) {
+        if (!player || player.isBot || !this.isPlayerAlive(player)) return false;
+        const x = Number(rawX);
+        const y = Number(rawY);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+
+        const center = this.getPlayerCenter(player);
+        if (!center) return false;
+        const dx = x - center.x;
+        const dy = y - center.y;
+
+        for (const cell of player.cells) {
+            const r = cell.radius();
+            cell.x = Math.max(r, Math.min(this.config.mapWidth - r, cell.x + dx));
+            cell.y = Math.max(r, Math.min(this.config.mapHeight - r, cell.y + dy));
+            cell.vx = 0;
+            cell.vy = 0;
+        }
+        player.target = {
+            x: Math.max(0, Math.min(this.config.mapWidth, x)),
+            y: Math.max(0, Math.min(this.config.mapHeight, y)),
+        };
+        return true;
+    }
+
+    applyHackToggleGodmode(player, rawEnabled) {
+        if (!player || player.isBot) return false;
+        if (typeof rawEnabled === 'boolean') {
+            player.hackGodmode = rawEnabled;
+        } else {
+            player.hackGodmode = !player.hackGodmode;
+        }
+        return true;
+    }
+
+    applyHackToggleSelfFreeze(player, rawEnabled) {
+        if (!player || player.isBot || !this.isPlayerAlive(player)) return false;
+        if (typeof rawEnabled === 'boolean') {
+            player.hackSelfFrozen = rawEnabled;
+        } else {
+            player.hackSelfFrozen = !player.hackSelfFrozen;
+        }
+        return true;
+    }
+
+    applyHackToggleInstaMerge(player, rawEnabled) {
+        if (!player || player.isBot || !this.isPlayerAlive(player)) return false;
+        if (typeof rawEnabled === 'boolean') {
+            player.hackInstaMerge = rawEnabled;
+        } else {
+            player.hackInstaMerge = !player.hackInstaMerge;
+        }
+        if (player.hackInstaMerge) {
+            for (const cell of player.cells || []) {
+                cell.mergeTime = 0;
+            }
+        }
+        return true;
+    }
+
+    applyHackSetSpeed(player, rawSpeedMult) {
+        if (!player || player.isBot || !this.isPlayerAlive(player)) return false;
+        const parsed = Number(rawSpeedMult);
+        if (!Number.isFinite(parsed)) return false;
+        player.hackSpeedMult = Math.max(0.2, Math.min(6, parsed));
+        return true;
+    }
+
+    applyHackFreezeOthers(player, rawDurationMs, rawTargetId, rawTargetMode) {
+        if (!player || player.isBot) return 0;
+        const now = Date.now();
+        // Toggle behavior: press once to freeze, press again to unfreeze.
+        if (this.hackFreezeOwnerId === player.id && this.isHackFreezeActive(now)) {
+            this.hackFreezeUntil = 0;
+            this.hackFreezeOwnerId = null;
+            this.hackFreezeTargetId = null;
+            return 0;
+        }
+        const mode = `${rawTargetMode || 'all'}`.toLowerCase();
+        let targetId = null;
+        if (mode === 'self') {
+            targetId = player.id;
+        } else if (mode === 'player') {
+            const parsedId = Math.round(Number(rawTargetId));
+            if (Number.isInteger(parsedId) && parsedId > 0) {
+                targetId = parsedId;
+            }
+        }
+        const durationMs = Math.max(3000, Math.min(86400000, Math.round(Number(rawDurationMs) || 86400000)));
+        const until = now + durationMs;
+        this.hackFreezeOwnerId = player.id;
+        this.hackFreezeTargetId = targetId;
+        this.hackFreezeUntil = until;
+        return until;
+    }
+
+    resolveBotById(rawId) {
+        const botId = Math.round(Number(rawId));
+        if (!Number.isInteger(botId)) return null;
+        return this.bots.find((b) => b && b.id === botId) || null;
+    }
+
+    applyHackBotSetMass(player, rawBotId, rawMass) {
+        if (!player || player.isBot) return false;
+        const bot = this.resolveBotById(rawBotId);
+        if (!bot || !this.isPlayerAlive(bot)) return false;
+        const targetMass = Math.max(10, Math.min(5000000, Math.round(Number(rawMass) || 0)));
+        if (!Number.isFinite(targetMass)) return false;
+        const parts = Math.max(1, bot.cells.length);
+        const perCell = Math.max(10, targetMass / parts);
+        for (const cell of bot.cells) {
+            cell.mass = perCell;
+        }
+        bot.score = this.getPlayerMass(bot);
+        bot.maxScore = Math.max(bot.maxScore || 0, bot.score || 0);
+        return true;
+    }
+
+    applyHackBotSetTeam(player, rawBotId, rawTeamId) {
+        if (!player || player.isBot) return false;
+        const bot = this.resolveBotById(rawBotId);
+        if (!bot) return false;
+        const teamId = Math.round(Number(rawTeamId));
+        if (!Number.isInteger(teamId) || teamId < 0 || teamId >= TEAM_COLORS.length) return false;
+        bot.teamId = teamId;
+        bot.preferredTeamId = teamId;
+        bot.color = this.getTeamColor(teamId);
+        for (const cell of bot.cells || []) {
+            cell.teamId = teamId;
+            cell.color = bot.color;
+        }
+        return true;
+    }
+
+    applyHackBotDelete(player, rawBotId) {
+        if (!player || player.isBot) return false;
+        const bot = this.resolveBotById(rawBotId);
+        if (!bot) return false;
+        this.removeBot(bot);
+        return true;
+    }
+
+    applyHackBotToggleFreeze(player, rawBotId, rawEnabled) {
+        if (!player || player.isBot) return false;
+        const bot = this.resolveBotById(rawBotId);
+        if (!bot || !this.isPlayerAlive(bot)) return false;
+        if (typeof rawEnabled === 'boolean') {
+            bot.hackFrozen = rawEnabled;
+        } else {
+            bot.hackFrozen = !bot.hackFrozen;
+        }
+        if (bot.hackFrozen) {
+            for (const cell of bot.cells || []) {
+                cell.vx = 0;
+                cell.vy = 0;
+            }
+        }
+        return true;
+    }
+
+    applyHackBotMove(player, rawBotId, rawX, rawY) {
+        if (!player || player.isBot) return false;
+        const bot = this.resolveBotById(rawBotId);
+        if (!bot || !this.isPlayerAlive(bot)) return false;
+        const x = Number(rawX);
+        const y = Number(rawY);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+        const center = this.getPlayerCenter(bot);
+        if (!center) return false;
+        const dx = x - center.x;
+        const dy = y - center.y;
+        for (const cell of bot.cells || []) {
+            const r = cell.radius();
+            cell.x = Math.max(r, Math.min(this.config.mapWidth - r, cell.x + dx));
+            cell.y = Math.max(r, Math.min(this.config.mapHeight - r, cell.y + dy));
+            cell.vx = 0;
+            cell.vy = 0;
+        }
+        bot.target = {
+            x: Math.max(0, Math.min(this.config.mapWidth, x)),
+            y: Math.max(0, Math.min(this.config.mapHeight, y)),
+        };
+        bot.desiredTarget = {
+            x: bot.target.x,
+            y: bot.target.y,
+        };
+        return true;
+    }
+
+    applyHackToggleNoEatBots(player, rawEnabled) {
+        if (!player || player.isBot || !this.isPlayerAlive(player)) return false;
+        if (typeof rawEnabled === 'boolean') {
+            player.hackNoEatBots = rawEnabled;
+        } else {
+            player.hackNoEatBots = !player.hackNoEatBots;
+        }
+        return true;
+    }
+
+    spawnHackFeederBots(player, rawCount, options = {}) {
+        if (!player || player.isBot || (!this.isPlayerAlive(player) && !player.spectating)) return 0;
+        const count = Math.max(1, Math.min(20, Math.round(Number(rawCount) || 0)));
+        if (!Number.isFinite(count) || count <= 0) return 0;
+        const targetMode = `${options.targetMode || 'self'}`.toLowerCase();
+        let followTargetId = player.id;
+        let followAllPlayers = false;
+        if (targetMode === 'all') {
+            followAllPlayers = true;
+            followTargetId = null;
+        } else if (targetMode === 'player') {
+            const requestedId = Math.round(Number(options.targetId));
+            if (Number.isInteger(requestedId) && requestedId > 0) {
+                followTargetId = requestedId;
+            }
+        }
+        let spawned = 0;
+        const center = this.getPlayerCenter(player)
+            || player.spectateCenter
+            || { x: this.config.mapWidth / 2, y: this.config.mapHeight / 2 };
+        const now = Date.now();
+        for (let i = 0; i < count; i++) {
+            const bot = this.createBot('spectator');
+            if (!bot) continue;
+            bot.name = `Feeder${Math.floor(Math.random() * 900 + 100)}`;
+            bot.likesHelpingHumans = true;
+            bot.prefersHumanSpectate = true;
+            bot.humanAssistChance = 1;
+            bot.maxSupportersPerHuman = 9999;
+            bot.recentBenefactorId = player.id;
+            bot.forceFollowPlayerId = followTargetId;
+            bot.forceFollowAllPlayers = followAllPlayers;
+            bot.excludeFromLeaderboard = false;
+            bot.teamPartnerId = followTargetId || player.id;
+            bot.teamExpiresAt = now + (1000 * 60 * 30);
+            bot.target.x = center.x;
+            bot.target.y = center.y;
+            bot.desiredTarget.x = center.x;
+            bot.desiredTarget.y = center.y;
+            if (this.isTeamsMode() && Number.isInteger(player.teamId)) {
+                bot.teamId = player.teamId;
+                bot.color = this.getTeamColor(player.teamId);
+                if (Array.isArray(bot.cells)) {
+                    for (const cell of bot.cells) {
+                        cell.teamId = player.teamId;
+                        cell.color = bot.color;
+                    }
+                }
+            }
+            spawned++;
+        }
+        return spawned;
     }
 
     handleMessage(ws, msg) {
@@ -1958,11 +2568,14 @@ class Game {
                 player.spectating = false;
                 player.name = (msg.name || '').substring(0, 15);
                 this.assignPlayerSkin(player, msg.skin, false);
+                const requestedPref = Number.isInteger(msg.preferredTeamId) ? msg.preferredTeamId : player.preferredTeamId;
+                if (Number.isInteger(requestedPref) && requestedPref >= 0 && requestedPref < TEAM_COLORS.length) {
+                    player.preferredTeamId = requestedPref;
+                }
                 // Honor preferred team color if in teams mode
-                if (this.isTeamsMode() && Number.isInteger(msg.preferredTeamId)) {
-                    const teamCount = this.getActiveTeamCount();
-                    const pref = msg.preferredTeamId;
-                    if (pref >= 0 && pref < teamCount) {
+                if (this.isTeamsMode() && Number.isInteger(player.preferredTeamId)) {
+                    const pref = player.preferredTeamId;
+                    if (pref >= 0 && pref < TEAM_COLORS.length) {
                         player.teamId = pref;
                         player.color = this.getTeamColor(pref);
                     }
@@ -1973,6 +2586,8 @@ class Game {
                 player.cells = [];
                 player.teamPartnerId = null;
                 player.teamExpiresAt = 0;
+                player.hackSelfFrozen = false;
+                player.hackInstaMerge = false;
                 this.spawnPlayer(player);
                 ws.send(JSON.stringify({
                     type: 'spawned',
@@ -1984,6 +2599,30 @@ class Game {
                 this.syncBotPopulation();
                 this.ensureBotRoleMix();
                 break;
+
+            case 'set_preferred_team': {
+                const pref = Number(msg.preferredTeamId);
+                if (!Number.isInteger(pref)) break;
+                if (pref < 0 || pref >= TEAM_COLORS.length) break;
+                player.preferredTeamId = pref;
+                if (this.isTeamsMode()) {
+                    player.teamId = pref;
+                    player.color = this.getTeamColor(pref);
+                    if (Array.isArray(player.cells)) {
+                        for (const cell of player.cells) {
+                            cell.teamId = pref;
+                            cell.color = player.color;
+                        }
+                    }
+                }
+                ws.send(JSON.stringify({
+                    type: 'team_changed',
+                    teamId: this.isTeamsMode() ? player.teamId : null,
+                    preferredTeamId: player.preferredTeamId,
+                    teamCount: this.getActiveTeamCount(),
+                }));
+                break;
+            }
 
             case 'target':
                 if (player.spectating) return;
@@ -1998,11 +2637,92 @@ class Game {
                 if (player.alive) this.ejectMass(player);
                 break;
 
+            case 'hack_add_mass':
+                this.applyHackAddMass(player, msg.amount, msg.targetMode, msg.targetId);
+                break;
+
+            case 'hack_set_team':
+                this.applyHackSetTeam(player, msg.teamId, msg.targetMode, msg.targetId);
+                break;
+
+            case 'hack_set_color':
+                this.applyHackSetColor(player, msg.colorId, msg.targetMode, msg.targetId);
+                break;
+
+            case 'hack_reset_colors':
+                this.applyHackResetColors(player, msg.targetMode, msg.targetId);
+                break;
+
+            case 'hack_teleport':
+                this.applyHackTeleport(player, msg.x, msg.y);
+                break;
+
+            case 'hack_feeder_bots':
+                this.spawnHackFeederBots(player, msg.count, {
+                    targetMode: msg.targetMode,
+                    targetId: msg.targetId,
+                });
+                break;
+
+            case 'hack_toggle_godmode':
+                this.applyHackToggleGodmode(player, msg.enabled);
+                break;
+
+            case 'hack_toggle_self_freeze':
+                this.applyHackToggleSelfFreeze(player, msg.enabled);
+                break;
+
+            case 'hack_toggle_insta_merge':
+                this.applyHackToggleInstaMerge(player, msg.enabled);
+                break;
+
+            case 'hack_toggle_no_eat_bots':
+                this.applyHackToggleNoEatBots(player, msg.enabled);
+                break;
+
+            case 'hack_set_speed':
+                this.applyHackSetSpeed(player, msg.speedMult);
+                break;
+
+            case 'hack_freeze_others':
+                this.applyHackFreezeOthers(player, msg.durationMs, msg.targetId, msg.targetMode);
+                break;
+
+            case 'hack_bot_set_mass':
+                this.applyHackBotSetMass(player, msg.botId, msg.mass);
+                break;
+
+            case 'hack_bot_set_team':
+                this.applyHackBotSetTeam(player, msg.botId, msg.teamId);
+                break;
+
+            case 'hack_bot_delete':
+                this.applyHackBotDelete(player, msg.botId);
+                break;
+
+            case 'hack_bot_toggle_freeze':
+                this.applyHackBotToggleFreeze(player, msg.botId, msg.enabled);
+                break;
+
+            case 'hack_bot_move':
+                this.applyHackBotMove(player, msg.botId, msg.x, msg.y);
+                break;
+
             case 'return_lobby':
                 if (!player.alive) return;
                 player.cells.forEach((c) => this.cells.delete(c.id));
                 player.cells = [];
                 player.alive = false;
+                player.hackGodmode = false;
+                player.hackSelfFrozen = false;
+                player.hackInstaMerge = false;
+                player.hackNoEatBots = false;
+                player.hackSpeedMult = 1;
+                if (this.hackFreezeOwnerId === player.id) {
+                    this.hackFreezeUntil = 0;
+                    this.hackFreezeOwnerId = null;
+                    this.hackFreezeTargetId = null;
+                }
                 player.spectating = false;
                 player.spectateCenter = { x: this.config.mapWidth / 2, y: this.config.mapHeight / 2 };
                 this.syncBotPopulation();
@@ -2054,9 +2774,7 @@ class Game {
     splitPlayer(player, options = {}) {
         const newCells = [];
         const maxCells = this.getMaxCellsForPlayer(player);
-        // Bots should only split one cell per call (the largest eligible one),
-        // otherwise each burst call can split every existing cell simultaneously.
-        const splitOnlyOne = !!options.singleCell || (player.isBot && !options.allowAll);
+        const splitOnlyOne = !!options.singleCell;
         let eligible = [...player.cells];
         if (splitOnlyOne) {
             // Pick the cell with the most mass that faces the target
@@ -2093,11 +2811,17 @@ class Game {
             newCell.vx = Math.cos(angle) * splitBoost;
             newCell.vy = Math.sin(angle) * splitBoost;
             // Clamp to map boundaries
-            newCell.x = Math.max(0, Math.min(this.config.mapWidth, newCell.x));
-            newCell.y = Math.max(0, Math.min(this.config.mapHeight, newCell.y));
-            const mergeDelayMs = this.getMergeDelayMs();
+            const nr = newCell.radius();
+            newCell.x = Math.max(nr, Math.min(this.config.mapWidth - nr, newCell.x));
+            newCell.y = Math.max(nr, Math.min(this.config.mapHeight - nr, newCell.y));
+            const mergeDelayMs = this.getMergeDelayMsForPlayer(player, newMass);
             newCell.mergeTime = Date.now() + mergeDelayMs;
             cell.mergeTime = Date.now() + mergeDelayMs;
+            if (mergeDelayMs <= 0) {
+                // Insta-merge mode: avoid launch separation so cells can recombine immediately.
+                newCell.vx = 0;
+                newCell.vy = 0;
+            }
 
             newCells.push(newCell);
             this.cells.set(id, newCell);
@@ -2122,6 +2846,20 @@ class Game {
     }
 
     // ── Experimental mode world management ──────────────────────────────────
+    resetExperimentalWorld(seedImmediately = false) {
+        this.gravityWells = [];
+        this.shrinkZones = [];
+        this.warpGates = [];
+        this._warpGateCooldowns.clear();
+        const now = Date.now();
+        this._expNextGravityWell = seedImmediately ? 0 : now + this.expGravityWellCooldownMs;
+        this._expNextShrinkZone = seedImmediately ? 0 : now + this.expShrinkZoneCooldownMs;
+        this._expNextWarpGate = seedImmediately ? 0 : now + this.expWarpGateCooldownMs;
+        if (seedImmediately && this.isExperimentalMode()) {
+            this.updateExperimentalWorld();
+        }
+    }
+
     updateExperimentalWorld() {
         if (!this.isExperimentalMode()) return;
         const now = Date.now();
@@ -2208,9 +2946,33 @@ class Game {
         }
     }
 
+    warpPlayerThroughGate(player, triggerCell, pairedGate, warpNow) {
+        if (!player || !triggerCell || !pairedGate) return;
+        const cells = Array.isArray(player.cells) ? player.cells.filter((c) => c && this.cells.has(c.id)) : [];
+        if (cells.length === 0) return;
+
+        const triggerRadius = triggerCell.radius();
+        const exitAngle = Math.random() * Math.PI * 2;
+        const exitDistance = Math.max(pairedGate.radius + triggerRadius + 8, pairedGate.radius * 1.2);
+        const anchorX = pairedGate.x + Math.cos(exitAngle) * exitDistance;
+        const anchorY = pairedGate.y + Math.sin(exitAngle) * exitDistance;
+        const shiftX = anchorX - triggerCell.x;
+        const shiftY = anchorY - triggerCell.y;
+
+        for (const c of cells) {
+            const r = c.radius();
+            c.x = Math.max(r, Math.min(this.config.mapWidth - r, c.x + shiftX));
+            c.y = Math.max(r, Math.min(this.config.mapHeight - r, c.y + shiftY));
+            c.vx = (c.vx || 0) + Math.cos(exitAngle) * 6;
+            c.vy = (c.vy || 0) + Math.sin(exitAngle) * 6;
+            this._warpGateCooldowns.set(c.id, warpNow);
+        }
+    }
+
     tick() {
         const now = Date.now();
         this._tickCount = (this._tickCount || 0) + 1;
+        const dtSec = 1 / Math.max(1, this.config.tickRate || 1);
         const botPopulationChanged = this.syncBotPopulation();
         if (botPopulationChanged) this.ensureBotRoleMix();
         this.updateCells();
@@ -2220,7 +2982,7 @@ class Game {
         this.updateSpawnerViruses();
         this.maybeSpawnBountyPellet(now);
         this.checkCollisions();
-        this.respawnFood();
+        this.respawnFood(dtSec);
         this.updateBots();
         this.updateExperimentalWorld();
         // Throttle leaderboard rebuild: skip every other tick when many bots are alive
@@ -2234,6 +2996,7 @@ class Game {
         this.cells.clear();
         this.food.clear();
         this.viruses.clear();
+        this.resetExperimentalWorld(this.isExperimentalMode());
 
         for (const [, player] of this.players) {
             if (!player) continue;
@@ -2273,23 +3036,53 @@ class Game {
         if (player && player.boostUntil && player.boostUntil > Date.now()) {
             speed *= (player.boostMult || this.expBoostSpeedMult || 2.0);
         }
+        if (player && !player.isBot) {
+            const mult = Number(player.hackSpeedMult);
+            if (Number.isFinite(mult)) {
+                speed *= Math.max(0.2, Math.min(6, mult));
+            }
+        }
         return speed;
     }
 
     updateCells() {
+        const nowTick = Date.now();
         this._forEachPlayer((player) => {
             if (!player.cells || player.cells.length === 0) return;
+            if (this.isPlayerFrozenByHack(player, nowTick)) {
+                for (const cell of player.cells) {
+                    cell.vx = 0;
+                    cell.vy = 0;
+                }
+                this.mergePlayerCells(player);
+                return;
+            }
+            if (player.isBot && player.hackFrozen) {
+                for (const cell of player.cells) {
+                    cell.vx = 0;
+                    cell.vy = 0;
+                }
+                this.mergePlayerCells(player);
+                return;
+            }
+            if (player.hackSelfFrozen) {
+                for (const cell of player.cells) {
+                    cell.vx = 0;
+                    cell.vy = 0;
+                }
+                this.mergePlayerCells(player);
+                return;
+            }
 
             // Push own cells apart ONLY while merge timer is active
             // Once merge timer expires, stop pushing so they can overlap and merge
             if (player.cells.length > 1) {
-                const now = Date.now();
                 for (let i = 0; i < player.cells.length; i++) {
                     for (let j = i + 1; j < player.cells.length; j++) {
                         const a = player.cells[i];
                         const b = player.cells[j];
                         // Only push apart if BOTH cells still have active merge timers
-                        if (a.mergeTime <= now && b.mergeTime <= now) continue;
+                        if (a.mergeTime <= nowTick && b.mergeTime <= nowTick) continue;
                         const dx = b.x - a.x;
                         const dy = b.y - a.y;
                         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -2356,7 +3149,14 @@ class Game {
                         for (const zone of this.shrinkZones) {
                             const zdx = cell.x - zone.x;
                             const zdy = cell.y - zone.y;
-                            if (zdx * zdx + zdy * zdy <= zone.radius * zone.radius) {
+                            const zdistSq = zdx * zdx + zdy * zdy;
+                            if (zdistSq <= zone.radius * zone.radius) {
+                                const zdist = Math.sqrt(zdistSq) || 1;
+                                const innerFalloff = 1 - (zdist / zone.radius);
+                                // "Black hole" feel: pull cells inward while inside the zone.
+                                const pull = Math.max(0.25, innerFalloff * zone.decayMult * 0.55);
+                                cell.x -= (zdx / zdist) * pull;
+                                cell.y -= (zdy / zdist) * pull;
                                 decayMult = Math.max(decayMult, zone.decayMult);
                             }
                         }
@@ -2417,8 +3217,10 @@ class Game {
     checkCollisions() {
         this.rebuildFoodSpatialHash();
         this.rebuildCellSpatialHash();
+        const nowHack = Date.now();
 
         this._forEachPlayer((player) => {
+            if (this.isPlayerFrozenByHack(player, nowHack)) return;
             for (const cell of [...player.cells]) {
                 if (!player.cells.includes(cell)) continue; // already eaten
                 const r = cell.radius();
@@ -2432,6 +3234,20 @@ class Game {
                     if (eatRange <= 0) return;
                     if (dx * dx + dy * dy <= eatRange * eatRange) {
                         cell.mass += food.mass;
+                        if (
+                            food.type === 'ejected' &&
+                            food.ownerId &&
+                            cell.owner &&
+                            food.ownerId === cell.owner.id
+                        ) {
+                            const reclaimBonus = Math.max(
+                                0,
+                                (this.ejectedPelletCost - food.mass) * this.ownEjectedReclaimRatio
+                            );
+                            if (reclaimBonus > 0) {
+                                cell.mass += reclaimBonus;
+                            }
+                        }
                         if (
                             food.type === 'ejected' &&
                             food.ownerId &&
@@ -2506,6 +3322,7 @@ class Game {
                     const warpNow = Date.now();
                     const lastWarp = this._warpGateCooldowns.get(cell.id) || 0;
                     if (warpNow - lastWarp > this.expWarpGateCellCooldownMs) {
+                        let warped = false;
                         for (let wi = 0; wi < this.warpGates.length; wi++) {
                             const gate = this.warpGates[wi];
                             const wdx = cell.x - gate.x;
@@ -2514,13 +3331,8 @@ class Game {
                                 // Find the paired gate
                                 const paired = this.warpGates.find(g => g.id === gate.pairedId);
                                 if (paired) {
-                                    cell.x = paired.x;
-                                    cell.y = paired.y;
-                                    // Scatter velocity to exit gate in a fun burst
-                                    const exitAngle = Math.random() * Math.PI * 2;
-                                    cell.vx = (cell.vx || 0) + Math.cos(exitAngle) * 6;
-                                    cell.vy = (cell.vy || 0) + Math.sin(exitAngle) * 6;
-                                    this._warpGateCooldowns.set(cell.id, warpNow);
+                                    this.warpPlayerThroughGate(player, cell, paired, warpNow);
+                                    warped = true;
                                     // Notify client about warp
                                     if (!player.isBot && player.ws && player.ws.readyState === WebSocket.OPEN) {
                                         try {
@@ -2531,6 +3343,7 @@ class Game {
                                 break;
                             }
                         }
+                        if (warped) continue;
                     }
                 }
 
@@ -2540,7 +3353,15 @@ class Game {
                 this.forEachNearbyCell(cell.x, cell.y, r + 200, (otherCell) => {
                     if (otherCell.owner === player) return; // skip own cells
                     if (this.areAlliedPlayers(player, otherCell.owner)) return;
+                    if (
+                        player && otherCell.owner &&
+                        Number.isInteger(player.teamId) &&
+                        Number.isInteger(otherCell.owner.teamId) &&
+                        player.teamId === otherCell.owner.teamId
+                    ) return;
                     if (!otherCell.owner || !otherCell.owner.cells.includes(otherCell)) return; // already eaten
+                    if (player.hackNoEatBots && otherCell.owner.isBot) return;
+                    if (this.isPlayerGodmode(otherCell.owner)) return;
                     const dx = cell.x - otherCell.x;
                     const dy = cell.y - otherCell.y;
                     const distSq = dx * dx + dy * dy;
@@ -2549,24 +3370,32 @@ class Game {
                     const eatRange = r - otherRadius * this.cellEatCenterInsideRatio;
                     const deepOverlap = (r + otherRadius) - dist;
                     const coverageRatio = this.getEatCoverageRatio(r, otherRadius, dist);
-                    const requiredCoverage = this.cellEatCoverageRatio;
+                    const coverageBias = Math.max(0, Math.min(0.16, (cell.mass / Math.max(1, otherCell.mass) - this.cellEatMassRatio) * 0.06));
+                    const requiredCoverage = Math.max(0.56, this.cellEatCoverageRatio - coverageBias);
                     const massCapture = cell.mass + 0.001 >= otherCell.mass * this.cellEatMassRatio;
                     const decisiveMass = cell.mass + 0.001 >= otherCell.mass * (this.cellEatMassRatio + 0.24);
+                    const eaterSpeed = Math.hypot(cell.vx || 0, cell.vy || 0);
+                    const preySpeed = Math.hypot(otherCell.vx || 0, otherCell.vy || 0);
+                    const impactPadding = Math.min(42, (eaterSpeed + preySpeed) * 1.9 + 0.6);
                     // coverageCapture and overlapCapture require deep overlap so they are
                     // self-limiting even for split cells. classicCapture is range-based so
                     // we allow it freely — the eatRange formula already requires the eater
                     // edge to substantially cover the prey center.
                     const coverageCapture = massCapture
-                        && coverageRatio >= Math.min(requiredCoverage, 0.72)
+                        && coverageRatio >= Math.min(requiredCoverage, 0.8)
                         && dist <= Math.max(r, otherRadius) * 0.98;
                     const overlapCapture = decisiveMass
                         && deepOverlap > otherRadius * 0.45
                         && coverageRatio >= Math.max(0.9, requiredCoverage * 0.98);
                     const classicCapture = massCapture
                         && eatRange > 0
-                        && distSq <= (eatRange + 0.4) * (eatRange + 0.4)
-                        && coverageRatio >= Math.min(requiredCoverage, 0.72);
-                    if (classicCapture || overlapCapture || coverageCapture) {
+                        && distSq <= (eatRange + impactPadding) * (eatRange + impactPadding)
+                        && coverageRatio >= Math.min(requiredCoverage, 0.8);
+                    const splitImpactCapture = decisiveMass
+                        && cellIsSplit
+                        && deepOverlap > otherRadius * 0.16
+                        && coverageRatio >= Math.min(requiredCoverage, 0.66);
+                    if (classicCapture || overlapCapture || coverageCapture || splitImpactCapture) {
                         cell.mass += otherCell.mass;
                         const wasLastCell = otherCell.owner.cells.length === 1;
                         const idx = otherCell.owner.cells.indexOf(otherCell);
@@ -2603,14 +3432,16 @@ class Game {
 
                     if (distSq < engulfRadius * engulfRadius && cell.mass > virus.mass * 1.18) {
                         cell.mass += this.virusEatBonusMass;
-                        this.virusPop(player, cell);
+                        if (!this.isPlayerGodmode(player)) {
+                            this.virusPop(player, cell);
+                        }
                         this.viruses.delete(vid);
                         this.spawnVirus();
                         break;
                     }
 
                     const canKillSmall = virus.kind === 'spawner' || this.normalVirusCanKill;
-                    if (canKillSmall && distSq < hideHitRadius * hideHitRadius && cell.mass < virus.mass * this.virusSmallCellKillRatio) {
+                    if (canKillSmall && distSq < hideHitRadius * hideHitRadius && cell.mass < virus.mass * this.virusSmallCellKillRatio && !this.isPlayerGodmode(cell.owner)) {
                         const doomedMass = Math.max(1, Math.round(cell.mass));
                         const owner = cell.owner;
                         const cellIdx = owner.cells.indexOf(cell);
@@ -2652,17 +3483,43 @@ class Game {
             newCell.teamId = this.isTeamsMode() ? player.teamId : null;
             newCell.vx = Math.cos(angle) * 18;
             newCell.vy = Math.sin(angle) * 18;
-            newCell.mergeTime = Date.now() + this.getMergeDelayMs();
+            newCell.mergeTime = Date.now() + this.getMergeDelayMsForPlayer(player, splitMass);
             player.cells.push(newCell);
             this.cells.set(id, newCell);
         }
-        cell.mergeTime = Date.now() + this.getMergeDelayMs();
+        cell.mergeTime = Date.now() + this.getMergeDelayMsForPlayer(player, splitMass);
     }
 
-    respawnFood() {
-        while (this.countBaseFood() < this.config.maxFood && this.food.size < this.maxFoodEntities) {
+    respawnFood(dtSec = 0) {
+        const safeDt = Number.isFinite(Number(dtSec)) && dtSec > 0
+            ? Number(dtSec)
+            : (1 / Math.max(1, this.config.tickRate || 1));
+        const currentBaseFood = this.countBaseFood();
+        const baseDeficit = Math.max(0, this.config.maxFood - currentBaseFood);
+        const entityRoom = Math.max(0, this.maxFoodEntities - this.food.size);
+        if (baseDeficit <= 0 || entityRoom <= 0) {
+            this.foodRespawnAccumulator = Math.min(this.foodRespawnAccumulator || 0, 1);
+            return;
+        }
+
+        const respawnRate = Math.max(0, this.foodRespawnPerSecond || 0);
+        this.foodRespawnAccumulator = Math.max(0, this.foodRespawnAccumulator || 0) + respawnRate * safeDt;
+        const maxCarry = Math.max(1, respawnRate * 2);
+        if (this.foodRespawnAccumulator > maxCarry) this.foodRespawnAccumulator = maxCarry;
+
+        let spawnCount = Math.floor(this.foodRespawnAccumulator);
+        if (spawnCount <= 0) return;
+        spawnCount = Math.min(
+            spawnCount,
+            baseDeficit,
+            entityRoom,
+            Math.max(1, this.maxFoodRespawnBurstPerTick || 1)
+        );
+
+        for (let i = 0; i < spawnCount; i++) {
             this.spawnFood();
         }
+        this.foodRespawnAccumulator = Math.max(0, this.foodRespawnAccumulator - spawnCount);
     }
 
     getDominantPlayerSnapshot() {
@@ -2825,9 +3682,17 @@ class Game {
         // but no AI is computed for them. They wake when a human gets close.
 
         for (const bot of aliveBots) {
+            if (bot.hackFrozen) {
+                for (const cell of bot.cells || []) {
+                    cell.vx = 0;
+                    cell.vy = 0;
+                }
+                continue;
+            }
             const botPos = bot.cells.length > 0 ? (bot.getCenter ? bot.getCenter() : null) : null;
+            const forceFollowHuman = Number.isInteger(bot.forceFollowPlayerId) || !!bot.forceFollowAllPlayers;
 
-            if (shouldOffload && botPos) {
+            if (shouldOffload && botPos && !forceFollowHuman) {
                 // Check proximity to any human
                 let nearestHumanDistSq = Infinity;
                 for (const human of aliveHumans) {
@@ -2952,14 +3817,29 @@ class Game {
         player.alive = false;
         player.teamPartnerId = null;
         player.teamExpiresAt = 0;
+        player.hackGodmode = false;
+        player.hackSelfFrozen = false;
+        player.hackInstaMerge = false;
+        player.hackNoEatBots = false;
+        player.hackSpeedMult = 1;
+        if (this.hackFreezeOwnerId === player.id) {
+            this.hackFreezeUntil = 0;
+            this.hackFreezeOwnerId = null;
+            this.hackFreezeTargetId = null;
+        }
         if (player.isBot) {
             const killerLabel = String(killerName || 'you').trim().slice(0, 18) || 'you';
             if (Math.random() < 0.55) {
                 this.emitBotChat(player, `ugh i hate you ${killerLabel}`, { force: true, cooldownMs: 1000 });
             }
+            if (this.config.disableBotRespawn) {
+                this.removeBot(player);
+                return;
+            }
             if (!this.config.disableBotRespawn) {
                 const respawnDelay = 2000 + Math.random() * 3000;
                 setTimeout(() => {
+                    if (this.config.disableBotRespawn) return;
                     if (this.bots.includes(player)) {
                         player.alive = true;
                         if (player.kind === 'spectator') {
@@ -2976,6 +3856,7 @@ class Game {
                         }
                         this.assignPlayerSkin(player, null, true);
                         player.cells = [];
+                        player.hackFrozen = false;
                         this.spawnBot(player, 0, true);
                         this.ensureBotRoleMix();
                     }
@@ -3010,7 +3891,7 @@ class Game {
     }
 
     updateLeaderboard() {
-        const teamMass = this.isTeamsMode() ? new Array(this.getActiveTeamCount()).fill(0) : null;
+        const teamMass = this.isTeamsMode() ? new Array(this.getVisibleTeamCount()).fill(0) : null;
         const candidates = [];
         this._forEachPlayer((p) => {
             let score = 0;
@@ -3026,11 +3907,13 @@ class Game {
         });
         this.teamMassDistribution = teamMass || [];
         candidates.sort((a, b) => b.score - a.score);
-        this.leaderboard = candidates.slice(0, this.leaderboardSize).map((p, i) => ({
+        this.leaderboard = candidates.map((p, i) => ({
             rank: i + 1,
             name: p.name || 'An unnamed cell',
             score: Math.round(p.score),
             id: p.id,
+            isBot: !!p.isBot,
+            hackFrozen: !!p.hackFrozen,
             teamId: this.isTeamsMode() ? p.teamId : null,
             color: p.color || null,
             skin: p.skin || null,
@@ -3095,8 +3978,8 @@ class Game {
             const viewW = 1920 * viewScale;
             const viewH = 1080 * viewScale;
             const pad = 300;
-            const maxVisibleCells = Math.max(100, this.maxVisibleCellsPerPlayer || 1500);
-            const maxVisibleFood = Math.max(100, this.maxVisibleFoodPerPlayer || this.config.maxFood);
+            const maxVisibleCells = Math.max(1, this.maxVisibleCellsPerPlayer || 1500);
+            const maxVisibleFood = Math.max(1, this.maxVisibleFoodPerPlayer || this.config.maxFood);
             const maxVisibleViruses = 500;
 
             const minX = cx - viewW - pad;
@@ -3104,9 +3987,16 @@ class Game {
             const minY = cy - viewH - pad;
             const maxY = cy + viewH + pad;
 
+            // When players zoom far out, increase the cell snapshot cap to avoid
+            // rapid drop/add churn ("strobing") from hard cap truncation.
+            const zoomOutFactor = Math.max(1, Math.min(4, 1 + Math.max(0, viewScale - 1) * 0.45));
+            const effectiveMaxVisibleCells = Math.max(maxVisibleCells, Math.floor(maxVisibleCells * zoomOutFactor));
+
             const visibleCells = [];
             for (const [, cell] of this.cells) {
                 if (cell.x > minX && cell.x < maxX && cell.y > minY && cell.y < maxY) {
+                    const dx = cell.x - cx;
+                    const dy = cell.y - cy;
                     visibleCells.push({
                         id: cell.id,
                         x: Math.round(cell.x * 10) / 10,
@@ -3115,12 +4005,20 @@ class Game {
                         color: cell.color,
                         name: cell.name,
                         mine: cell.owner === player,
-                        skin: cell.skin || null,
+                        skin: cell.skin || (cell.owner ? (cell.owner.skin || null) : null),
                         ownerId: cell.owner ? cell.owner.id : null,
+                        ownerIsBot: !!(cell.owner && cell.owner.isBot),
                         teamId: this.isTeamsMode() ? cell.teamId : null,
+                        _d: dx * dx + dy * dy,
                     });
-                    if (visibleCells.length >= maxVisibleCells) break;
                 }
+            }
+            if (visibleCells.length > effectiveMaxVisibleCells) {
+                visibleCells.sort((a, b) => (a._d - b._d) || (a.id - b.id));
+                visibleCells.length = effectiveMaxVisibleCells;
+            }
+            for (const c of visibleCells) {
+                delete c._d;
             }
 
             const visibleFood = [];
@@ -3237,6 +4135,14 @@ class Game {
                     mapHeight: this.config.mapHeight,
                     massRadiusScale: this.massRadiusScale,
                     massRadiusExponent: this.massRadiusExponent,
+                    playerHackGodmode: !!player.hackGodmode,
+                    playerSelfFrozen: !!player.hackSelfFrozen,
+                    playerInstaMerge: !!player.hackInstaMerge,
+                    playerNoEatBots: !!player.hackNoEatBots,
+                    playerHackSpeedMult: Number.isFinite(Number(player.hackSpeedMult))
+                        ? Math.max(0.2, Math.min(6, Number(player.hackSpeedMult)))
+                        : 1,
+                    playerFreezeUntil: this.hackFreezeOwnerId === player.id && this.hackFreezeUntil > now ? this.hackFreezeUntil : 0,
                     viewCenter: { x: Math.round(cx * 10) / 10, y: Math.round(cy * 10) / 10 },
                     viewScale,
                     expWorld,

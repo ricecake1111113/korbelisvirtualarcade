@@ -1,57 +1,246 @@
-const CLASSIC_NAMES = [
-    'AgarMaster', 'CellFrenzy', 'Mitosis', 'GobbleKing', 'Blobfish', 'Amoeba', 'hella', 'jah pull off',
-    'Jellyblob', 'Cellotape', 'Muncher', 'Gulp', 'Wobble', 'Squishy', 'Candy', 'www.sites.google.com/site/korbelisvirtualarcade/',
-    'Plankton', 'Slurp', 'NomNom', 'Goliath', 'Pebble', 'Kraken', 'PETER GRIFFIN', 'IHATEAGARIO', 'smashingpumpkins',
-    'Bubbles', 'Chomp', 'Nucleus', 'Membrane', 'Proteus', 'Jelly', 'nadda', 'MATH', 'Juice wrld', 'Igotracksnow',
-    'Gloop', 'Titan', 'Morsel', 'Osmosis', 'Leviathan', 'Droplet', 'Agar.io', 'super8', 'team?', 'rhonda?',
-    'Cytoplasm', 'Gluttony', 'Nibbles', 'Drifter', 'Orbit', 'Flux', 'agar', 'cupid', 'INDIA', 'NETTSPEND?',
-    'VirusHugger', 'SplitLord', 'BaitNRun', 'LuckySpawn', 'mapControl', 'agar.io', 'motel', 'AURA', 'team?',
-    'SirEatsAlot', 'HungryHippo', 'TinyTerror', 'MacroMunch', 'SneakSplit', 'retep', '10', 'anderdingus', 'fatboy',
- 	   'chungus', 'bigchungus', 'okchungus',
-    	'skillissue', 'justlucky', 'nottrying', 'tryhard?',
-  	  'afk', 'afkbrb', 'lagging', 'lag?', 'ping999',
-   	 'realplayer', 'human', 'notabot', 'definitelynotabot',
-  	  'whoami', 'idk', 'whatever', 'meh',
-  	  'dontsplit', 'trustme', 'feedme', 'plsno',
-  	  'almost', 'so_close', 'again', 'retry',
-  	  'spectator', 'queuedwrong', 'wrongserver',
- 	   'alt', 'main', 'backup', 'throwaway',
- 	   'void', 'ghost', 'shadow', 'drift',
- 	   'lowkey', 'highkey', 'fr', 'frfr',
- 	   'nah', 'nahidwin', 'maybe', 'sure', 'Bot',
-	'bro', 'dude', 'man', 'guy', 'eat = gay',
- 	   'npc', 'sidecharacter', 'background',
- 	   'default', 'username', 'player',
- 	   'eatme', 'dont', 'stop', 'wait',
- 	   'tiny', 'big', 'bigger', 'small',
-  	  'cell', 'blob', 'mass', 'split',
- 	   'uhh', 'huh', 'what', 'why',
-];
+const path = require('path');
 
-const CHARACTER_NAMES = [
-    'Goku', 'Vegeta', 'Luffy', 'Zoro', 'Sasuke', 'Itachi', 'Levi', 'Mikasa',
-    'Gojo', 'Megumi', 'Naruto', 'Asta', 'Rukia', 'Ichigo', 'Denji', 'Power',
-    'Piccolo', 'Kratos', 'Geralt', 'Kirby', 'MewTwo', 'ZeroTwo', 'Toji', 'sonic',
-];
+const FALLBACK_NAME_POOLS = {
+    classic: ['AgarMaster', 'Blobfish', 'Muncher', 'Plankton', 'Gluttony', 'NomNom', 'CellFrenzy', 'TinyTerror'],
+    character: ['Goku', 'Vegeta', 'Luffy', 'Zoro', 'Naruto', 'Gojo', 'Kirby', 'Piccolo'],
+    multilingual: ['Sakura', 'Konnichiwa', 'Kosmos', 'Namaste', 'Delta', 'Aio', 'SenorBlob', 'Bonjour'],
+    symbol: ['???', '.....', '______', '[[[[[]]]]]', 'xX_Destroyer_Xx', 'ctrl+alt+del', 'packet_loss'],
+    throwback: ['DanTDM', 'AliA', 'Vanoss', 'slogoman', 'MrBeast', 'pewdiepie'],
+};
 
-const MULTILINGUAL_NAMES = [
-    '山田太郎', 'さくら', 'ドラゴン', '海賊王', 'こんにちは',
-    'Лиса', 'Волк', 'Космос', 'Призрак',
-    'عابر', 'سريع', 'سلام', 'نجمة', 'مرحبا',
-    'नमस्ते', 'बाज़', 'ध्रुव',
-    'Δέλτα', 'Αίολος', 'SeñorBlob', 'Français',
-];
+const FALLBACK_GENERATOR = {
+    baseNames: ['AgarMaster', 'NomNom', 'Gluttony', 'Muncher', 'Blobfish', 'Goku', 'Kirby', 'Drifter', 'TinyTerror'],
+    prefixes: ['xX', '[CLN]', 'TUT_', 'vV', 'Pro', 'Noob', 'OG', 'Bot_'],
+    suffixes: ['_bot', '_YT', 'xX', '_gg', '_tv', '_main', '_alt', '420'],
+    styles: ['none', 'fullwidth', 'circled', 'bold', 'script', 'fraktur', 'smallcaps'],
+    options: {
+        emptyNameChance: 0.13,
+        prefixChance: 0.38,
+        suffixChance: 0.46,
+        styleChance: 0.35,
+        numberSuffixChance: 0.25,
+        maxLength: 28,
+    },
+};
 
-const SYMBOL_NAMES = [
-    '( ͡° ͜ʖ ͡°)', '¯\\_(ツ)_/¯', '༼ つ ◕_◕ ༽つ', 'ಠ_ಠ', '✧･ﾟ: *✧･ﾟ:*','👀👀👀👀👀👀👀👀👀',
-    '⚡⚡⚡', '☯︎✦', '∞∞∞', '???', '.....', '______', '[[[[[]]]]]', '🏳️‍🌈🏳️‍🌈🏳️‍🌈',
-    'qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'lmao420', 'noob.exe', 'packet_loss',
-    'xX_Destroyer_Xx', 'ctrl+alt+del', '﷽﷽ ﷽ ﷽', 'MRBREAST',
-];
+function sanitizeNamePool(pool, fallback) {
+    if (!Array.isArray(pool)) return [...fallback];
+    const cleaned = pool
+        .map((n) => (typeof n === 'string' ? n.trim() : ''))
+        .filter((n) => n.length > 0)
+        .slice(0, 2000);
+    return cleaned.length > 0 ? cleaned : [...fallback];
+}
 
-const THROWBACK_NAMES = [
-    'SSundee', 'SkyDoes', 'DanTDM', 'AliA', 'pewdiepie', 'Vanoss', 'Wun Wun', 'slogoman', 'mrbeast', 'MrBeast',
-];
+function sanitizeChance(value, fallback) {
+    const v = Number(value);
+    if (!Number.isFinite(v)) return fallback;
+    return Math.max(0, Math.min(1, v));
+}
+
+function sanitizeMaxLength(value, fallback) {
+    const v = Math.floor(Number(value));
+    if (!Number.isFinite(v)) return fallback;
+    return Math.max(8, Math.min(64, v));
+}
+
+function codepointRun(start, count) {
+    let out = '';
+    for (let i = 0; i < count; i++) out += String.fromCodePoint(start + i);
+    return out;
+}
+
+function getBuiltinFontStyles() {
+    const circledDigits = `${String.fromCodePoint(0x24EA)}${codepointRun(0x2460, 9)}`;
+    const smallcapsMap = {
+        a: '\u1D00', b: '\u0299', c: '\u1D04', d: '\u1D05', e: '\u1D07', f: '\uA730', g: '\u0262', h: '\u029C',
+        i: '\u026A', j: '\u1D0A', k: '\u1D0B', l: '\u029F', m: '\u1D0D', n: '\u0274', o: '\u1D0F', p: '\u1D18',
+        q: '\u01EB', r: '\u0280', s: 's', t: '\u1D1B', u: '\u1D1C', v: '\u1D20', w: '\u1D21', x: 'x',
+        y: '\u028F', z: '\u1D22',
+    };
+    const smallcapsUpper = {};
+    for (const [k, v] of Object.entries(smallcapsMap)) smallcapsUpper[k.toUpperCase()] = v;
+
+    return {
+        fullwidth: {
+            uppercase: codepointRun(0xFF21, 26),
+            lowercase: codepointRun(0xFF41, 26),
+            digits: codepointRun(0xFF10, 10),
+        },
+        circled: {
+            uppercase: codepointRun(0x24B6, 26),
+            lowercase: codepointRun(0x24D0, 26),
+            digits: circledDigits,
+        },
+        bold: {
+            uppercase: codepointRun(0x1D400, 26),
+            lowercase: codepointRun(0x1D41A, 26),
+            digits: codepointRun(0x1D7CE, 10),
+        },
+        script: {
+            uppercase: codepointRun(0x1D4D0, 26),
+            lowercase: codepointRun(0x1D4EA, 26),
+            digits: '0123456789',
+        },
+        fraktur: {
+            uppercase: codepointRun(0x1D56C, 26),
+            lowercase: codepointRun(0x1D586, 26),
+            digits: codepointRun(0x1D7CE, 10),
+        },
+        smallcaps: {
+            charMap: { ...smallcapsMap, ...smallcapsUpper },
+        },
+    };
+}
+
+function sanitizeFontStyle(definition, fallback = null) {
+    if (!definition || typeof definition !== 'object') return fallback;
+    const uppercase = typeof definition.uppercase === 'string' ? definition.uppercase : '';
+    const lowercase = typeof definition.lowercase === 'string' ? definition.lowercase : '';
+    const digits = typeof definition.digits === 'string' ? definition.digits : '';
+    const charMapRaw = (definition.charMap && typeof definition.charMap === 'object') ? definition.charMap : {};
+    const charMap = {};
+    for (const [k, v] of Object.entries(charMapRaw)) {
+        if (typeof k !== 'string' || k.length === 0) continue;
+        if (typeof v !== 'string' || v.length === 0) continue;
+        charMap[k] = v;
+    }
+
+    const upperChars = Array.from(uppercase);
+    const lowerChars = Array.from(lowercase);
+    const digitChars = Array.from(digits);
+    const hasAlphabet = upperChars.length === 26 && lowerChars.length === 26;
+    const hasDigits = digitChars.length === 10;
+    const hasCharMap = Object.keys(charMap).length > 0;
+    if (!hasAlphabet && !hasDigits && !hasCharMap) return fallback;
+
+    return {
+        uppercase: hasAlphabet ? upperChars : (fallback ? fallback.uppercase : null),
+        lowercase: hasAlphabet ? lowerChars : (fallback ? fallback.lowercase : null),
+        digits: hasDigits ? digitChars : (fallback ? fallback.digits : null),
+        charMap: hasCharMap ? charMap : (fallback ? (fallback.charMap || null) : null),
+    };
+}
+
+function loadFontStyles() {
+    const builtins = getBuiltinFontStyles();
+    const fontsPath = path.join(__dirname, '..', 'fonts.json');
+    try {
+        // eslint-disable-next-line global-require, import/no-dynamic-require
+        const raw = require(fontsPath);
+        const stylesRaw = (raw && typeof raw === 'object' && raw.styles && typeof raw.styles === 'object')
+            ? raw.styles
+            : {};
+        const merged = { ...builtins };
+        for (const [nameRaw, def] of Object.entries(stylesRaw)) {
+            const name = `${nameRaw || ''}`.trim().toLowerCase();
+            if (!name || name === 'none') continue;
+            merged[name] = sanitizeFontStyle(def, merged[name] || null);
+        }
+        return merged;
+    } catch (err) {
+        return builtins;
+    }
+}
+
+function sanitizeStyleList(styles, fallback, allowedStyleKeys) {
+    const allowed = new Set(['none', ...allowedStyleKeys]);
+    const src = Array.isArray(styles) ? styles : fallback;
+    const cleaned = src
+        .map((s) => `${s || ''}`.trim().toLowerCase())
+        .filter((s) => allowed.has(s));
+    return cleaned.length > 0 ? Array.from(new Set(cleaned)) : [...fallback];
+}
+
+function mapAsciiCharWithStyle(ch, styleDef) {
+    const cp = ch.codePointAt(0);
+    const isUpper = cp >= 65 && cp <= 90;
+    const isLower = cp >= 97 && cp <= 122;
+    const isDigit = cp >= 48 && cp <= 57;
+
+    if (styleDef && styleDef.charMap && styleDef.charMap[ch]) return styleDef.charMap[ch];
+    if (isUpper && styleDef && Array.isArray(styleDef.uppercase) && styleDef.uppercase.length === 26) {
+        return styleDef.uppercase[cp - 65] || ch;
+    }
+    if (isLower && styleDef && Array.isArray(styleDef.lowercase) && styleDef.lowercase.length === 26) {
+        return styleDef.lowercase[cp - 97] || ch;
+    }
+    if (isDigit && styleDef && Array.isArray(styleDef.digits) && styleDef.digits.length === 10) {
+        return styleDef.digits[cp - 48] || ch;
+    }
+    return ch;
+}
+
+function stylizeName(text, style, fontStyleMap) {
+    if (!style || style === 'none' || typeof text !== 'string' || text.length === 0) return text;
+    const styleDef = fontStyleMap[style];
+    if (!styleDef) return text;
+    let out = '';
+    for (const ch of text) out += mapAsciiCharWithStyle(ch, styleDef);
+    return out;
+}
+
+function loadNameConfig(allowedStyleKeys = []) {
+    const namesPath = path.join(__dirname, '..', 'names.json');
+    try {
+        // eslint-disable-next-line global-require, import/no-dynamic-require
+        const raw = require(namesPath);
+        const pools = {
+            classic: sanitizeNamePool(raw.classic, FALLBACK_NAME_POOLS.classic),
+            character: sanitizeNamePool(raw.character, FALLBACK_NAME_POOLS.character),
+            multilingual: sanitizeNamePool(raw.multilingual, FALLBACK_NAME_POOLS.multilingual),
+            symbol: sanitizeNamePool(raw.symbol, FALLBACK_NAME_POOLS.symbol),
+            throwback: sanitizeNamePool(raw.throwback, FALLBACK_NAME_POOLS.throwback),
+        };
+        const fallbackBaseNames = Array.from(new Set([
+            ...pools.classic,
+            ...pools.character,
+            ...pools.throwback,
+        ]));
+        const generatorRaw = raw.generator || {};
+        const optionsRaw = generatorRaw.options || {};
+        return {
+            pools,
+            baseNames: sanitizeNamePool(
+                generatorRaw.baseNames || raw.baseNames,
+                fallbackBaseNames.length > 0 ? fallbackBaseNames : FALLBACK_GENERATOR.baseNames
+            ),
+            prefixes: sanitizeNamePool(
+                generatorRaw.prefixes || raw.prefixes,
+                FALLBACK_GENERATOR.prefixes
+            ),
+            suffixes: sanitizeNamePool(
+                generatorRaw.suffixes || raw.suffixes,
+                FALLBACK_GENERATOR.suffixes
+            ),
+            styles: sanitizeStyleList(
+                generatorRaw.styles || raw.styles,
+                FALLBACK_GENERATOR.styles,
+                allowedStyleKeys
+            ),
+            options: {
+                emptyNameChance: sanitizeChance(optionsRaw.emptyNameChance, FALLBACK_GENERATOR.options.emptyNameChance),
+                prefixChance: sanitizeChance(optionsRaw.prefixChance, FALLBACK_GENERATOR.options.prefixChance),
+                suffixChance: sanitizeChance(optionsRaw.suffixChance, FALLBACK_GENERATOR.options.suffixChance),
+                styleChance: sanitizeChance(optionsRaw.styleChance, FALLBACK_GENERATOR.options.styleChance),
+                numberSuffixChance: sanitizeChance(optionsRaw.numberSuffixChance, FALLBACK_GENERATOR.options.numberSuffixChance),
+                maxLength: sanitizeMaxLength(optionsRaw.maxLength, FALLBACK_GENERATOR.options.maxLength),
+            },
+        };
+    } catch (err) {
+        return {
+            pools: { ...FALLBACK_NAME_POOLS },
+            baseNames: [...FALLBACK_GENERATOR.baseNames],
+            prefixes: [...FALLBACK_GENERATOR.prefixes],
+            suffixes: [...FALLBACK_GENERATOR.suffixes],
+            styles: [...FALLBACK_GENERATOR.styles],
+            options: { ...FALLBACK_GENERATOR.options },
+        };
+    }
+}
+
+const FONT_STYLE_MAP = loadFontStyles();
+const NAME_CONFIG = loadNameConfig(Object.keys(FONT_STYLE_MAP));
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -149,19 +338,18 @@ class Bot {
         this.nextChatAt = 0;
         this.escapeTarget = null;
         this.escapeTargetUntil = 0;
+        this.foodFocus = null;
+        this.foodFocusUntil = 0;
         this.cornerIndex = Math.floor(Math.random() * 4);
         this.cornerCampUntil = 0;
-        this.cornerCampChance = 0.025 + Math.random() * 0.08;
+        this.cornerCampChance = 0.004 + Math.random() * 0.02;
+        this.edgeAffinity = 0.08 + Math.random() * 0.28;
+        this.lastChaseOwnerId = null;
         this.roamTarget = null;
         this.roamTargetRefreshAt = 0;
-        // Spread bots across the full map on construction — bias toward the outer 60%
-        // so they don't all converge on the center at spawn.
-        const spreadX = Math.random() < 0.5
-            ? game.config.mapWidth  * (0.06 + Math.random() * 0.38)   // left band
-            : game.config.mapWidth  * (0.56 + Math.random() * 0.38);  // right band
-        const spreadY = Math.random() < 0.5
-            ? game.config.mapHeight * (0.06 + Math.random() * 0.38)
-            : game.config.mapHeight * (0.56 + Math.random() * 0.38);
+        // Keep a broad spread, but avoid over-biasing edge lanes.
+        const spreadX = game.config.mapWidth * (0.18 + Math.random() * 0.64);
+        const spreadY = game.config.mapHeight * (0.18 + Math.random() * 0.64);
         this.homeAnchor = { x: spreadX, y: spreadY };
         this.homeAnchorRefreshAt = Date.now() + 12000 + Math.random() * 18000;
 
@@ -169,23 +357,38 @@ class Bot {
     }
 
     pickName() {
-        if (Math.random() < 0.13) return '';
+        const opts = NAME_CONFIG.options || FALLBACK_GENERATOR.options;
+        if (Math.random() < opts.emptyNameChance) return '';
 
-        const roll = Math.random();
-        let pool = CLASSIC_NAMES;
-        if (roll < 0.26) pool = CHARACTER_NAMES;
-        else if (roll < 0.48) pool = MULTILINGUAL_NAMES;
-        else if (roll < 0.74) pool = SYMBOL_NAMES;
-        else if (roll < 0.82) pool = THROWBACK_NAMES;
-
-        const base = pool[Math.floor(Math.random() * pool.length)] || '';
+        const basePool = NAME_CONFIG.baseNames && NAME_CONFIG.baseNames.length > 0
+            ? NAME_CONFIG.baseNames
+            : NAME_CONFIG.pools.classic;
+        const base = basePool[Math.floor(Math.random() * basePool.length)] || '';
         if (!base) return '';
 
+        const prefixPool = Array.isArray(NAME_CONFIG.prefixes) ? NAME_CONFIG.prefixes : [];
+        const suffixPool = Array.isArray(NAME_CONFIG.suffixes) ? NAME_CONFIG.suffixes : [];
+        const prefix = (prefixPool.length > 0 && Math.random() < opts.prefixChance)
+            ? prefixPool[Math.floor(Math.random() * prefixPool.length)]
+            : '';
+        const suffix = (suffixPool.length > 0 && Math.random() < opts.suffixChance)
+            ? suffixPool[Math.floor(Math.random() * suffixPool.length)]
+            : '';
+
+        let composed = `${prefix || ''}${base}${suffix || ''}`;
         const asciiOnly = /^[\w.\-+]+$/.test(base);
-        if (asciiOnly && Math.random() < 0.25) {
-            return `${base}${Math.floor(Math.random() * 90 + 10)}`;
+        if (asciiOnly && Math.random() < opts.numberSuffixChance) {
+            composed = `${composed}${Math.floor(Math.random() * 90 + 10)}`;
         }
-        return base;
+        const stylePool = Array.isArray(NAME_CONFIG.styles) ? NAME_CONFIG.styles : [];
+        if (stylePool.length > 0 && Math.random() < opts.styleChance) {
+            const style = stylePool[Math.floor(Math.random() * stylePool.length)];
+            composed = stylizeName(composed, style, FONT_STYLE_MAP);
+        }
+        if (composed.length > opts.maxLength) {
+            composed = composed.slice(0, opts.maxLength);
+        }
+        return composed.trim();
     }
 
     setRole(role, config) {
@@ -305,14 +508,63 @@ class Bot {
         };
     }
 
-    getBestSpectatorTarget(senseContext, myPos) {
+    getBestSpectatorTarget(senseContext, myPos, game = null) {
         const players = senseContext && senseContext.players ? senseContext.players : [];
+
+        // Hack-spawned feeder bots can hard-lock to a specific player.
+        if (Number.isInteger(this.forceFollowPlayerId)) {
+            for (const p of players) {
+                if (!p || !p.pos || p.id !== this.forceFollowPlayerId || p.mass <= 0) continue;
+                const dx = p.pos.x - myPos.x;
+                const dy = p.pos.y - myPos.y;
+                const distSq = dx * dx + dy * dy;
+                return {
+                    ...p,
+                    dist: Math.sqrt(distSq),
+                    distSq,
+                };
+            }
+            if (game && typeof game.resolvePlayerById === 'function') {
+                const hardTarget = game.resolvePlayerById(this.forceFollowPlayerId);
+                if (hardTarget && typeof game.getPlayerCenter === 'function') {
+                    let pos = game.getPlayerCenter(hardTarget);
+                    let mass = typeof game.getPlayerMass === 'function' ? game.getPlayerMass(hardTarget) : 0;
+                    // Support following spectating/dead human targets too, so feeder bots
+                    // don't stop racing when the target has no alive cells.
+                    if (!pos && hardTarget.spectating && hardTarget.spectateCenter) {
+                        pos = {
+                            x: Number(hardTarget.spectateCenter.x) || (game.config.mapWidth / 2),
+                            y: Number(hardTarget.spectateCenter.y) || (game.config.mapHeight / 2),
+                        };
+                        mass = Math.max(1, Number(mass) || 1);
+                    }
+                    if (pos && mass > 0) {
+                        const dx = pos.x - myPos.x;
+                        const dy = pos.y - myPos.y;
+                        const distSq = dx * dx + dy * dy;
+                        return {
+                            id: hardTarget.id,
+                            name: hardTarget.name || '',
+                            mass,
+                            pos,
+                            isHuman: !hardTarget.isBot,
+                            supportLoad: 0,
+                            teamId: hardTarget.teamId,
+                            dist: Math.sqrt(distSq),
+                            distSq,
+                        };
+                    }
+                }
+            }
+        }
+
         let best = null;
         let bestScore = -Infinity;
+        const forceFollowAllPlayers = !!this.forceFollowAllPlayers;
 
         for (const p of players) {
             if (!p || !p.pos || p.id === this.id || p.mass <= 0) continue;
-            if (p.isHuman && (p.supportLoad || 0) >= this.maxSupportersPerHuman && p.id !== this.recentBenefactorId) {
+            if (!forceFollowAllPlayers && p.isHuman && (p.supportLoad || 0) >= this.maxSupportersPerHuman && p.id !== this.recentBenefactorId) {
                 continue;
             }
             const dx = p.pos.x - myPos.x;
@@ -325,7 +577,9 @@ class Bot {
                 ? (this.prefersHumanSpectate ? 120 : -80)
                 : 30;
             const loadPenalty = (p.supportLoad || 0) * 140;
-            const score = p.mass * 1.25 - dist * 0.85 + humanBonus - loadPenalty;
+            const score = forceFollowAllPlayers
+                ? (p.mass * 0.95 - dist * 1.25 + (p.isHuman ? 80 : 20))
+                : (p.mass * 1.25 - dist * 0.85 + humanBonus - loadPenalty);
             if (score > bestScore) {
                 bestScore = score;
                 best = {
@@ -340,13 +594,23 @@ class Bot {
     }
 
     clampTargetWithinBounds(game) {
-        const margin = 250;
         const mw = game.config.mapWidth;
         const mh = game.config.mapHeight;
-        if (this.desiredTarget.x < margin) this.desiredTarget.x = margin + 200;
-        if (this.desiredTarget.x > mw - margin) this.desiredTarget.x = mw - margin - 200;
-        if (this.desiredTarget.y < margin) this.desiredTarget.y = margin + 200;
-        if (this.desiredTarget.y > mh - margin) this.desiredTarget.y = mh - margin - 200;
+        const maxRadius = (this.cells || []).reduce((mx, c) => {
+            if (!c || !Number.isFinite(Number(c.mass))) return mx;
+            return Math.max(mx, this.massToRadius(game, Math.max(1, Number(c.mass))));
+        }, 0);
+        // Keep targets comfortably inside the map so bots stop pressing boundaries.
+        const inset = Math.max(40, Math.min(220, maxRadius + 26));
+        this.desiredTarget.x = Math.max(inset, Math.min(mw - inset, this.desiredTarget.x));
+        this.desiredTarget.y = Math.max(inset, Math.min(mh - inset, this.desiredTarget.y));
+        // Clamp the live target too; if this drifts beyond bounds, bots can keep
+        // "pushing" into walls for several ticks even when desiredTarget is valid.
+        if (!this.target || !Number.isFinite(this.target.x) || !Number.isFinite(this.target.y)) {
+            this.target = { x: this.desiredTarget.x, y: this.desiredTarget.y };
+        }
+        this.target.x = Math.max(inset, Math.min(mw - inset, this.target.x));
+        this.target.y = Math.max(inset, Math.min(mh - inset, this.target.y));
     }
 
     refreshHomeAnchor(game, now) {
@@ -355,18 +619,13 @@ class Bot {
         }
         if (now < (this.homeAnchorRefreshAt || 0)) return;
         this.homeAnchorRefreshAt = now + 12000 + Math.random() * 18000;
-        // Bias anchors toward the map's outer zones to prevent center-clustering.
-        // 70% chance to pick a point in the outer 40% of each axis.
-        const pickAxis = (size) => Math.random() < 0.7
-            ? (Math.random() < 0.5
-                ? size * (0.05 + Math.random() * 0.35)
-                : size * (0.60 + Math.random() * 0.35))
-            : size * (0.20 + Math.random() * 0.60);
+        // Keep anchors mostly inside the playable interior so bots don't hug map edges.
+        const pickAxis = (size) => size * (0.14 + Math.random() * 0.72);
         this.homeAnchor.x = pickAxis(game.config.mapWidth);
         this.homeAnchor.y = pickAxis(game.config.mapHeight);
     }
 
-    getCornerPoint(game, index, inset = 120) {
+    getCornerPoint(game, index, inset = 56) {
         const xMax = game.config.mapWidth;
         const yMax = game.config.mapHeight;
         const i = ((index % 4) + 4) % 4;
@@ -377,38 +636,38 @@ class Bot {
     }
 
     maybeGetCornerCampTarget(game, now, myMass, dangerClose) {
-        const minCampMass = Math.max(90, game.config.startMass * 8.5);
-        if (myMass < minCampMass) {
+        const minCampMass = Math.max(40, game.config.startMass * 1.85);
+        // Don't corner-camp while split; it creates prolonged edge pinning.
+        if (myMass < minCampMass || (this.cells && this.cells.length > 1)) {
             this.cornerCampUntil = 0;
             return null;
         }
-        if (dangerClose && now >= (this.cornerCampUntil || 0)) {
-            const chance = this.cornerCampChance * (0.85 + this.sheepishness * 0.22);
+        const opportunisticCamp = !dangerClose && Math.random() < 0.0006;
+        if ((dangerClose || opportunisticCamp) && now >= (this.cornerCampUntil || 0)) {
+            const chance = this.cornerCampChance * (0.35 + this.sheepishness * 0.15);
             if (Math.random() < chance) {
-                this.cornerCampUntil = now + 14000 + Math.random() * 24000;
+                this.cornerCampUntil = now + 3500 + Math.random() * 7000;
                 this.cornerIndex = Math.floor(Math.random() * 4);
             }
         }
         if (now < (this.cornerCampUntil || 0)) {
-            return this.getCornerPoint(game, this.cornerIndex, 110 + Math.random() * 40);
+            const safeInset = Math.max(90, Math.min(260, this.massToRadius(game, Math.max(1, myMass)) + 72));
+            return this.getCornerPoint(game, this.cornerIndex, safeInset + Math.random() * 18);
         }
         return null;
     }
 
     getDistributedEdgeEscape(game, myPos, retreatUnitX, retreatUnitY, crowdRepulsion) {
-        const inset = 70 + Math.random() * 60;
-        const xEdge = retreatUnitX >= 0 ? (game.config.mapWidth - inset) : inset;
-        const yEdge = retreatUnitY >= 0 ? (game.config.mapHeight - inset) : inset;
-        const preferCorner = Math.abs(retreatUnitX) > 0.45 || Math.abs(retreatUnitY) > 0.45;
-        const cornerPoint = this.getCornerPoint(
-            game,
-            (this.cornerIndex + (this.retreatPolarity > 0 ? 1 : 3)) % 4,
-            inset
-        );
-        const blend = preferCorner ? 0.65 : 0.45;
+        // Intentionally avoid edge destinations: flee away from threat while pulling inward.
+        const centerX = game.config.mapWidth * 0.5;
+        const centerY = game.config.mapHeight * 0.5;
+        const awayDist = 420 + Math.random() * 260;
+        const inwardBlend = 0.62;
+        const roamBiasX = this.homeAnchor ? (this.homeAnchor.x - centerX) * 0.12 : 0;
+        const roamBiasY = this.homeAnchor ? (this.homeAnchor.y - centerY) * 0.12 : 0;
         return {
-            x: myPos.x * (1 - blend) + (xEdge + cornerPoint.x) * 0.5 * blend + crowdRepulsion.x * 160,
-            y: myPos.y * (1 - blend) + (yEdge + cornerPoint.y) * 0.5 * blend + crowdRepulsion.y * 160,
+            x: myPos.x + retreatUnitX * awayDist + (centerX - myPos.x) * inwardBlend + crowdRepulsion.x * 120 + roamBiasX,
+            y: myPos.y + retreatUnitY * awayDist + (centerY - myPos.y) * inwardBlend + crowdRepulsion.y * 120 + roamBiasY,
         };
     }
 
@@ -421,35 +680,28 @@ class Bot {
         );
         if (!shouldRefresh) return old;
 
-        const corners = [
-            this.getCornerPoint(game, 0, 200),
-            this.getCornerPoint(game, 1, 200),
-            this.getCornerPoint(game, 2, 200),
-            this.getCornerPoint(game, 3, 200),
-        ];
-        // Generate candidates biased toward the outer 40% of the map so bots spread out
-        const outerPoint = () => {
-            const onX = Math.random() < 0.5
-                ? game.config.mapWidth  * (0.05 + Math.random() * 0.35)
-                : game.config.mapWidth  * (0.60 + Math.random() * 0.35);
-            const onY = Math.random() < 0.5
-                ? game.config.mapHeight * (0.05 + Math.random() * 0.35)
-                : game.config.mapHeight * (0.60 + Math.random() * 0.35);
-            return { x: onX, y: onY };
-        };
-        const midPoint = () => ({
-            x: game.config.mapWidth  * (0.15 + Math.random() * 0.70),
-            y: game.config.mapHeight * (0.15 + Math.random() * 0.70),
+        const outerPoint = () => ({
+            x: game.config.mapWidth * (0.18 + Math.random() * 0.64),
+            y: game.config.mapHeight * (0.18 + Math.random() * 0.64),
         });
-        const candidates = [outerPoint(), outerPoint(), midPoint(), ...corners];
+        const midPoint = () => ({
+            x: game.config.mapWidth  * (0.26 + Math.random() * 0.48),
+            y: game.config.mapHeight * (0.26 + Math.random() * 0.48),
+        });
+        const anchorPoint = this.homeAnchor
+            ? { x: this.homeAnchor.x, y: this.homeAnchor.y }
+            : { x: game.config.mapWidth * 0.5, y: game.config.mapHeight * 0.5 };
+        const centerPoint = { x: game.config.mapWidth * 0.5, y: game.config.mapHeight * 0.5 };
+        const candidates = [outerPoint(), outerPoint(), midPoint(), midPoint(), anchorPoint, centerPoint];
 
         let best = candidates[0];
         let bestScore = -Infinity;
         for (const c of candidates) {
             const fromMe = Math.hypot(c.x - myPos.x, c.y - myPos.y);
             const threatDist = closestThreat ? Math.hypot(c.x - closestThreat.x, c.y - closestThreat.y) : 1000;
-            // Weight distance from self heavily so bots actually move across the map
-            const score = fromMe * 0.7 + threatDist * 0.8 + Math.random() * 220;
+            const edgeDist = Math.min(c.x, c.y, game.config.mapWidth - c.x, game.config.mapHeight - c.y);
+            const interiorBias = Math.min(220, edgeDist * 0.4);
+            const score = fromMe * 0.52 + threatDist * 0.86 + interiorBias + Math.random() * 120;
             if (score > bestScore) {
                 bestScore = score;
                 best = c;
@@ -457,7 +709,7 @@ class Bot {
         }
 
         this.roamTarget = best;
-        this.roamTargetRefreshAt = now + 6000 + Math.random() * 10000;
+        this.roamTargetRefreshAt = now + 4200 + Math.random() * 7200;
         return this.roamTarget;
     }
 
@@ -518,9 +770,12 @@ class Bot {
         const actionCooldownSec = (game.config.botSupportActionCooldownMs ?? 900) / 1000;
 
         if (this.role === 'spectator_support') {
-            const follow = this.getBestSpectatorTarget(senseContext, myPos);
+            const follow = this.getBestSpectatorTarget(senseContext, myPos, game);
             if (!follow) return false;
+            const forceFollow = !!this.forceFollowAllPlayers
+                || (Number.isInteger(this.forceFollowPlayerId) && follow.id === this.forceFollowPlayerId);
             if (
+                !forceFollow &&
                 game.isTeamsMode &&
                 game.isTeamsMode() &&
                 follow.teamId !== this.teamId &&
@@ -529,16 +784,28 @@ class Bot {
                 return false;
             }
 
-            const orbit = 120 + Math.sqrt(Math.max(1, follow.mass)) * 2;
-            const ang = Math.atan2(myPos.y - follow.pos.y, myPos.x - follow.pos.x) + (Math.random() - 0.5) * 0.5;
-            this.desiredTarget.x = follow.pos.x + Math.cos(ang) * orbit;
-            this.desiredTarget.y = follow.pos.y + Math.sin(ang) * orbit;
-            this.targetLerp = 0.12;
+            if (forceFollow) {
+                // Feeder-bot hack behavior: hard-path to owner, no orbiting.
+                this.desiredTarget.x = follow.pos.x;
+                this.desiredTarget.y = follow.pos.y;
+                this.target.x = follow.pos.x;
+                this.target.y = follow.pos.y;
+                // Make hack feeders sprint to their target.
+                this.targetLerp = 1;
+            } else {
+                const orbit = 120 + Math.sqrt(Math.max(1, follow.mass)) * 2;
+                const ang = Math.atan2(myPos.y - follow.pos.y, myPos.x - follow.pos.x) + (Math.random() - 0.5) * 0.5;
+                this.desiredTarget.x = follow.pos.x + Math.cos(ang) * orbit;
+                this.desiredTarget.y = follow.pos.y + Math.sin(ang) * orbit;
+                this.targetLerp = 0.12;
+            }
 
             const feedCooldown = (game.config.spectatorFeedCooldownMs ?? 2400) / 1000;
             const canFeed = this.supportCooldown <= 0 && myMass >= (game.config.spectatorFeedMinMass ?? 55);
-            const canSupportFollow = follow.isHuman ? game.canBotSupportHumanTarget(follow.id, myMass) : true;
-            if (canSupportFollow && canFeed && follow.dist < 420 && Math.random() < (game.config.spectatorFeedChance ?? 0.4)) {
+            const canSupportFollow = forceFollow
+                ? true
+                : (follow.isHuman ? game.canBotSupportHumanTarget(follow.id, myMass) : true);
+            if (canSupportFollow && canFeed && follow.dist < 420 && (forceFollow || Math.random() < (game.config.spectatorFeedChance ?? 0.4))) {
                 const shots = follow.isHuman ? 1 : (Math.random() < 0.45 ? 2 : 1);
                 const fed = game.ejectMassTowardTarget(this, follow.pos, shots);
                 if (fed > 0) this.supportCooldown = feedCooldown;
@@ -769,6 +1036,7 @@ class Bot {
         this.desiredTarget.x = nearest.pos.x;
         this.desiredTarget.y = nearest.pos.y;
         this.targetLerp = 1;
+        this.clampTargetWithinBounds(game);
 
         if (
             this.splitCooldown <= 0 &&
@@ -837,9 +1105,15 @@ class Bot {
         const dominantPlayerId = senseContext ? senseContext.dominantPlayerId : null;
         const dominantRatio = senseContext ? (senseContext.dominantRatio || 1) : 1;
         const ownerMassById = new Map();
+        const ownerLargestCellById = new Map();
         for (const p of sensedPlayers) {
             if (!p || p.id == null) continue;
             ownerMassById.set(p.id, Math.max(0, Number(p.mass) || 0));
+        }
+        for (const sensedCell of sensedCells) {
+            if (!sensedCell || !sensedCell.owner || sensedCell.owner.id == null) continue;
+            const prev = ownerLargestCellById.get(sensedCell.owner.id) || 0;
+            if (sensedCell.mass > prev) ownerLargestCellById.set(sensedCell.owner.id, sensedCell.mass);
         }
 
         let closestThreat = null;
@@ -850,34 +1124,43 @@ class Bot {
         let bestPrey = null;
         let bestPreyScore = -1;
         let largestEdiblePlayer = null;
+        let bestEdiblePlayerTarget = null;
+        let bestEdiblePlayerScore = -Infinity;
         const eatMassRatio = Math.max(1.05, game.cellEatMassRatio || 1.25);
         const threatMassRatio = eatMassRatio + 0.02;
         const greediness = Math.max(0.1, this.greediness || 1);
         const sheepishness = Math.max(0.1, this.sheepishness || 1);
-        const effectiveAggression = clamp(this.aggression * (0.82 + greediness * 0.22), 0.08, 1.7);
+        const effectiveAggression = clamp(this.aggression * (0.95 + greediness * 0.28), 0.1, 1.9);
         const effectiveCaution = clamp(this.caution * (0.82 + sheepishness * 0.24), 0.08, 1.8);
         const effectiveBoldness = clamp(this.boldness * (0.78 + greediness * 0.16), 0, 1.95);
         const myRadius = this.massToRadius(game, Math.max(1, myMass));
 
         for (const p of sensedPlayers) {
             if (!p || p.id === this.id || !p.pos || p.mass <= 0) continue;
-            if (game.isTeamsMode && game.isTeamsMode() && Number.isInteger(this.teamId) && Number.isInteger(p.teamId) && this.teamId === p.teamId) {
+            if (Number.isInteger(this.teamId) && Number.isInteger(p.teamId) && this.teamId === p.teamId) {
                 continue;
             }
             // Use largest blob mass for edibility check — we can only eat blobs we're big enough for
-            if (!(myLargestBlobMass > p.mass * eatMassRatio)) continue;
+            const largestEnemyCell = ownerLargestCellById.get(p.id) || p.mass;
+            if (!(myLargestBlobMass > largestEnemyCell * eatMassRatio)) continue;
             const dx = p.pos.x - myPos.x;
             const dy = p.pos.y - myPos.y;
             const distSq = dx * dx + dy * dy;
             if (distSq > scanRangeSq * 2.6) continue;
-            if (!largestEdiblePlayer || p.mass > largestEdiblePlayer.mass) {
-                largestEdiblePlayer = { id: p.id, mass: p.mass, distSq };
+            const dist = Math.sqrt(distSq);
+            const edibleScore = largestEnemyCell * 2.2 - dist * 0.75;
+            if (edibleScore > bestEdiblePlayerScore) {
+                bestEdiblePlayerScore = edibleScore;
+                bestEdiblePlayerTarget = { x: p.pos.x, y: p.pos.y, dist, mass: largestEnemyCell, id: p.id };
+            }
+            if (!largestEdiblePlayer || largestEnemyCell > largestEdiblePlayer.mass) {
+                largestEdiblePlayer = { id: p.id, mass: largestEnemyCell, distSq };
             }
         }
 
         for (const cell of sensedCells) {
             if (!cell || cell.owner === this) continue;
-            if (game.isTeamsMode && game.isTeamsMode() && cell.owner && Number.isInteger(this.teamId) && this.teamId === cell.owner.teamId) {
+            if (cell.owner && Number.isInteger(this.teamId) && Number.isInteger(cell.owner.teamId) && this.teamId === cell.owner.teamId) {
                 continue;
             }
             const dx = cell.x - myPos.x;
@@ -888,7 +1171,7 @@ class Bot {
 
             // Compare against myLargestBlobMass: a single enemy blob is a threat only if it
             // can eat one of our individual blobs, not just if it beats our total combined mass.
-            if (cell.mass > myLargestBlobMass * (threatMassRatio + 0.05)) {
+            if (cell.mass > myLargestBlobMass * Math.max(1.1, threatMassRatio)) {
                 const pressure = Math.max(0.05, (cell.mass / Math.max(1, myLargestBlobMass)) - threatMassRatio + 0.04);
                 const invDist = 1 / Math.max(18, dist);
                 threatVecX += (myPos.x - cell.x) * invDist * pressure;
@@ -905,14 +1188,15 @@ class Bot {
                 const consumeRange = Math.max(0, myRadius - preyRadius * (game.cellEatCenterInsideRatio || 0.35));
                 const approachGap = Math.max(0, dist - consumeRange);
                 // Bonus for prey that's already inside our eat range — kill it NOW
-                const fastEatBonus = Math.max(0, 320 - approachGap) * (0.5 + greediness * 0.6);
+                const fastEatBonus = Math.max(0, 420 - approachGap) * (0.72 + greediness * 0.9);
                 // Bonus for lone small shards that we can absorb quickly — always chase these greedily
-                const splitShardBonus = cell.mass <= myLargestBlobMass * 0.5 ? (90 + cell.mass * 1.8) * (0.6 + greediness * 0.8) : 0;
+                const splitShardBonus = cell.mass <= myLargestBlobMass * 0.5 ? (120 + cell.mass * 1.9) * (0.72 + greediness * 0.95) : 0;
                 const ownerCells = cell.owner && Array.isArray(cell.owner.cells) ? cell.owner.cells.length : 1;
                 // Big bonus for split-off shards — even from large players, each small cell is easy mass
                 const sneakShardBonus = ownerCells > 1 ? (55 + this.sneakiness * 55 + greediness * 40) : 0;
                 // Bonus for cells we can split-kill (half-mass > prey)
-                const halfCanKill = (myLargestBlobMass / 2) > cell.mass * (1.1 + this.splitThreshold * 0.15);
+                const strictEatRatio = Math.max(1.02, game.cellEatMassRatio || 1.22);
+                const halfCanKill = (myLargestBlobMass / 2) > cell.mass * strictEatRatio * 1.02;
                 const splitKillBonus = halfCanKill ? (55 + cell.mass * 0.9) * (0.6 + effectiveAggression * 0.7) : 0;
                 const ownerId = cell.owner && cell.owner.id != null ? cell.owner.id : null;
                 const ownerMass = ownerId != null ? (ownerMassById.get(ownerId) || cell.mass) : cell.mass;
@@ -925,13 +1209,27 @@ class Bot {
                     largestEdiblePlayer &&
                     ownerId === largestEdiblePlayer.id
                 ) ? (65 + Math.min(250, ownerMass * 0.46)) : 0;
+                const freeShardBonus = (ownerCells > 1 && cell.mass <= myLargestBlobMass * 0.45)
+                    ? (120 + this.opportunism * 70 + greediness * 60)
+                    : 0;
+                const finishBonus = (
+                    ownerId != null &&
+                    this.lastChaseOwnerId != null &&
+                    ownerId === this.lastChaseOwnerId
+                ) ? (160 + this.opportunism * 75 + greediness * 40) : 0;
+                // Edge trap bonus: prey near walls/corners has fewer escape vectors.
+                const preyEdgeDist = Math.min(cell.x, cell.y, game.config.mapWidth - cell.x, game.config.mapHeight - cell.y);
+                const edgeTrapBonus = Math.max(0, 180 - preyEdgeDist) * (0.22 + this.smartness * 0.22 + this.edgeAffinity * 0.58);
                 const score = (cell.mass * juicy) / (dist + 45)
                     + fastEatBonus
                     + splitShardBonus
                     + sneakShardBonus
                     + splitKillBonus
+                    + freeShardBonus
+                    + finishBonus
                     + largestEdibleBonus
-                    + leaderPressureBonus;
+                    + leaderPressureBonus
+                    + edgeTrapBonus;
                 if (score > bestPreyScore) {
                     bestPreyScore = score;
                     bestPrey = {
@@ -1003,6 +1301,8 @@ class Bot {
         // scattered all over the map, nearly all of which was outside scan range.
         let bestFood = null;
         let bestFoodScore = -1;
+        let remoteFoodHotspot = null;
+        let remoteFoodHotspotScore = -1;
         const isSmallBot = myMass <= 60;
         // Small bots scan wider for food; large bots use standard range
         const foodRange = isSmallBot ? scanRange * 1.4 : scanRange * 1.0;
@@ -1064,12 +1364,85 @@ class Bot {
             }
         }
 
+        // If local food is sparse, pick a broader hotspot so bots don't wander aimlessly.
+        if (game.forEachNearbyFood) {
+            const remoteFoodRange = Math.min(
+                Math.max(game.config.mapWidth, game.config.mapHeight),
+                foodRange * 2.35 + 420
+            );
+            game.forEachNearbyFood(myPos.x, myPos.y, remoteFoodRange, (food) => {
+                if (!food) return;
+                const dx = food.x - myPos.x;
+                const dy = food.y - myPos.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq < foodRange * foodRange) return;
+                if (distSq > remoteFoodRange * remoteFoodRange) return;
+                const dist = Math.sqrt(distSq);
+                const edgeDist = Math.min(food.x, food.y, game.config.mapWidth - food.x, game.config.mapHeight - food.y);
+                const interiorBonus = 1 + Math.min(0.22, edgeDist / 900);
+                let score = (food.mass / (dist + 80)) * interiorBonus;
+                if (food.type === 'ejected') score *= 2.3;
+                if (food.type === 'bounty') score *= 2.1;
+                if (score > remoteFoodHotspotScore) {
+                    remoteFoodHotspotScore = score;
+                    remoteFoodHotspot = { x: food.x, y: food.y };
+                }
+            });
+        } else {
+            for (const food of sensedFood) {
+                if (!food) continue;
+                const dx = food.x - myPos.x;
+                const dy = food.y - myPos.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq < foodRange * foodRange) continue;
+                if (distSq > scanRangeSq * 3.8) continue;
+                const dist = Math.sqrt(distSq);
+                const edgeDist = Math.min(food.x, food.y, game.config.mapWidth - food.x, game.config.mapHeight - food.y);
+                const interiorBonus = 1 + Math.min(0.22, edgeDist / 900);
+                let score = (food.mass / (dist + 80)) * interiorBonus;
+                if (food.type === 'ejected') score *= 2.3;
+                if (food.type === 'bounty') score *= 2.1;
+                if (score > remoteFoodHotspotScore) {
+                    remoteFoodHotspotScore = score;
+                    remoteFoodHotspot = { x: food.x, y: food.y };
+                }
+            }
+        }
+
+        const bestFoodDist = bestFood
+            ? Math.hypot(bestFood.x - myPos.x, bestFood.y - myPos.y)
+            : Infinity;
+        const foodFocusActive = this.foodFocus && this.foodFocusUntil > now;
+        const foodFocusDist = foodFocusActive
+            ? Math.hypot(this.foodFocus.x - myPos.x, this.foodFocus.y - myPos.y)
+            : Infinity;
+        if (foodFocusActive && foodFocusDist <= 44) {
+            this.foodFocus = null;
+            this.foodFocusUntil = 0;
+        }
+        const preyIsFarComparedToFood = !!(
+            bestPrey &&
+            bestFood &&
+            bestPrey.dist > Math.max(420, bestFoodDist * 1.45)
+        );
+        const shouldForceFoodFarm = !!(
+            bestFood &&
+            !closestThreat &&
+            (
+                isSmallBot ||
+                (myLargestBlobMass < 220 && bestFoodDist < 360) ||
+                preyIsFarComparedToFood ||
+                bestPreyScore < 6.5
+            )
+        );
+
         // ── Virus eating ────────────────────────────────────────────────────────────
-        // When small (below virusHideMass) and no threat is close, actively seek the
-        // nearest virus to eat it for mass. Priority: viruses < pellets < players.
+        // If we are large enough to actually eat a virus and not under pressure,
+        // keep it as a fallback growth target.
         let bestVirusEat = null;
         let bestVirusEatScore = -1;
-        const canEatVirus = myMass < this.virusHideMass && !closestThreat;
+        const canEatVirus = myLargestBlobMass > (game.virusBaseMass || game.config.virusBaseMass || 64) * 1.24
+            && (!closestThreat || closestThreat.mass < myLargestBlobMass * 1.12);
         if (canEatVirus) {
             for (const virus of sensedViruses) {
                 if (!virus) continue;
@@ -1078,8 +1451,8 @@ class Bot {
                 const distSq = dx * dx + dy * dy;
                 if (distSq > scanRangeSq * 1.2) continue;
                 const dist = Math.sqrt(distSq);
-                // Score: bigger viruses are more rewarding; prefer closer ones
-                const vScore = virus.mass / (dist + 80);
+                if (myLargestBlobMass <= virus.mass * 1.2) continue;
+                const vScore = virus.mass / (dist + 70);
                 if (vScore > bestVirusEatScore) {
                     bestVirusEatScore = vScore;
                     bestVirusEat = { x: virus.x, y: virus.y, mass: virus.mass };
@@ -1122,7 +1495,17 @@ class Bot {
         const dangerClose = !!(
             closestThreat &&
             !canInstantChomp &&
-            closestThreatDist < (340 + this.massToRadius(game, closestThreat.mass || 1) * ((3.7 + sheepishness * 0.9) / 6))
+            closestThreatDist < (430 + this.massToRadius(game, closestThreat.mass || 1) * ((3.9 + sheepishness * 1.1) / 5.8))
+        );
+        const imminentThreat = !!(
+            closestThreat &&
+            closestThreat.mass > myLargestBlobMass * (eatMassRatio + 0.04) &&
+            closestThreatDist < (520 + this.massToRadius(game, closestThreat.mass || 1) * 0.85)
+        );
+        const overwhelmingThreat = !!(
+            closestThreat &&
+            closestThreat.mass > myLargestBlobMass * 1.75 &&
+            closestThreatDist < (440 + this.massToRadius(game, closestThreat.mass || 1) * 0.7)
         );
         const trapFactor = virusTrapInfo.isTrapped
             ? (1.2 + Math.min(1.6, virusTrapInfo.pressure / 180))
@@ -1183,18 +1566,12 @@ class Bot {
             this.targetLerp = 0.18;
             this.retreatLockUntil = now + 1100 + Math.random() * 1200;
 
-            const bursts = Math.min(2, 1 + Math.floor(Math.random() * panicBurstMax));
-            for (let i = 0; i < bursts; i++) {
-                if (this.cells.length >= this.maxCellsCap) break;
-                if (this.cells.reduce((sum, c) => sum + c.mass, 0) < Math.max(35, game.config.minSplitMass * 1.1)) break;
-                game.splitPlayer(this);
-            }
-            this.splitCooldown = 2 + Math.random() * 3;
+            this.target = { x: this.desiredTarget.x, y: this.desiredTarget.y };
             this.clampTargetWithinBounds(game);
             return;
         }
 
-        if (dangerClose && hideVirus && Math.random() < this.hideUnderVirusChance) {
+        if ((dangerClose || imminentThreat || overwhelmingThreat) && hideVirus && Math.random() < this.hideUnderVirusChance) {
             const hideAngle = Math.atan2(hideVirus.y - closestThreat.y, hideVirus.x - closestThreat.x);
             const hideDist = myMass <= this.virusHideMass
                 ? hideVirus.radius * 0.55
@@ -1205,7 +1582,11 @@ class Bot {
             this.retreatLockUntil = now + 620 + Math.random() * 640;
             this.escapeTarget = { x: this.desiredTarget.x, y: this.desiredTarget.y };
             this.escapeTargetUntil = now + 820 + Math.random() * 760;
-        } else if (dangerClose && effectiveCaution > 0.05) {
+        } else if (
+            (dangerClose || imminentThreat || overwhelmingThreat) &&
+            effectiveCaution > 0.05 &&
+            (!closestThreat || closestThreat.mass > myLargestBlobMass * 1.55)
+        ) {
             if (this.retreatLockUntil > now) {
                 if (this.escapeTarget && this.escapeTargetUntil > now) {
                     this.desiredTarget.x = this.escapeTarget.x;
@@ -1227,7 +1608,7 @@ class Bot {
                 this.desiredTarget.y = baseEscape.y * (1 - blend) + edgeEscape.y * blend;
                 this.escapeTarget = { x: this.desiredTarget.x, y: this.desiredTarget.y };
                 this.escapeTargetUntil = now + 950 + Math.random() * 1400;
-                this.targetLerp = 0.13;
+                this.targetLerp = imminentThreat ? 0.17 : 0.12;
                 this.retreatLockUntil = now + 900 + Math.random() * 1200;
                 if (Math.random() < (0.08 + this.herdResistance * 0.06)) {
                     this.retreatPolarity *= -1;
@@ -1263,30 +1644,56 @@ class Bot {
             this.desiredTarget.x = benefactorPos.x + (Math.random() - 0.5) * 90;
             this.desiredTarget.y = benefactorPos.y + (Math.random() - 0.5) * 90;
             this.targetLerp = 0.08;
+        } else if (shouldForceFoodFarm) {
+            if (!foodFocusActive || !this.foodFocus || bestFoodDist < Math.min(190, foodFocusDist * 0.86)) {
+                this.foodFocus = { x: bestFood.x, y: bestFood.y };
+                this.foodFocusUntil = now + 950 + Math.random() * 800;
+            }
+            const focus = this.foodFocus || bestFood;
+            this.desiredTarget.x = focus.x;
+            this.desiredTarget.y = focus.y;
+            this.targetLerp = isSmallBot ? 0.2 : 0.14;
+            this.lastChaseOwnerId = null;
+
+            if (isSmallBot && this.splitCooldown <= 0
+                && myLargestBlobMass >= (game.config.minSplitMass || 36) * 2) {
+                const fdx = focus.x - myPos.x;
+                const fdy = focus.y - myPos.y;
+                const foodDist = Math.sqrt(fdx * fdx + fdy * fdy);
+                if (foodDist < 160 && bestFoodScore > 0.65 && Math.random() < 0.24 * (1 + this.greediness)) {
+                    game.splitPlayer(this);
+                    this.splitCooldown = 1.4 + Math.random() * 2.2;
+                }
+            }
         } else if (bestPrey) {
             // ── Hunt: if we can eat it, we chase it — always prefer real mass over food ──
             // Any edible cell is worth chasing — be greedy about real player mass
-            const preyWorthChasing = !isSmallBot || bestPreyScore >= bestFoodScore * 0.45;
+            const preyWorthChasing = true;
 
             if (preyWorthChasing) {
+                if (bestPrey.approachGap < 160) {
+                    this.desiredTarget.x = bestPrey.x;
+                    this.desiredTarget.y = bestPrey.y;
+                    this.targetLerp = 0.3;
+                }
                 // ── Pre-split approach: if we can kill with a split but prey is out of
                 // range, dash directly toward the prey so we enter split range fast.
                 const minSplitMassCheck = Math.max(game.config.minSplitMass || 36, 36);
                 const halfMassCheck = myLargestBlobMass / 2;
                 const myBlobRadiusCheck = this.massToRadius(game, myLargestBlobMass);
-                const splitReachCheck = myBlobRadiusCheck * 3.2 + 320;
-                const killRatioCheck = 1.02 + this.splitThreshold * 0.06;
+                const splitReachCheck = myBlobRadiusCheck * 3.2 + 360;
+                const killRatioCheck = Math.max(1.0, game.cellEatMassRatio || 1.18);
                 const canKillCheck = myLargestBlobMass >= minSplitMassCheck * 2
                     && halfMassCheck > bestPrey.mass * killRatioCheck
                     && this.splitCooldown <= 0;
-                const preyOutOfSplitRange = bestPrey.dist > splitReachCheck && bestPrey.dist < splitReachCheck * 2.5;
+                const preyOutOfSplitRange = bestPrey.dist > splitReachCheck && bestPrey.dist < splitReachCheck * 1.6;
                 const approachingForSplit = canKillCheck && preyOutOfSplitRange;
 
                 if (approachingForSplit) {
                     // Dash straight toward prey to get into split range quickly
                     this.desiredTarget.x = bestPrey.x;
                     this.desiredTarget.y = bestPrey.y;
-                    this.targetLerp = 0.22;
+                    this.targetLerp = 0.3;
                 } else {
                 const smartTarget = this.getSwerveTarget(game, myPos, bestPrey, closestThreat);
                 if (smartTarget) {
@@ -1301,9 +1708,9 @@ class Bot {
                     const preyToBotDx = myPos.x - bestPrey.x;
                     const preyToBotDy = myPos.y - bestPrey.y;
                     const preyToBotDist = Math.sqrt(preyToBotDx * preyToBotDx + preyToBotDy * preyToBotDy) || 1;
-                    const preyLeadDist = Math.min(120, preyToBotDist * 0.3);
-                    targetX += (preyToBotDx / preyToBotDist) * preyLeadDist * 8;
-                    targetY += (preyToBotDy / preyToBotDist) * preyLeadDist * 8;
+                    const preyLeadDist = Math.min(80, preyToBotDist * 0.14);
+                    targetX += (preyToBotDx / preyToBotDist) * preyLeadDist;
+                    targetY += (preyToBotDy / preyToBotDist) * preyLeadDist;
 
                     const preyOwnerCenter = bestPrey.owner ? game.getPlayerCenter(bestPrey.owner) : null;
                     if (preyOwnerCenter && bestPrey.ownerCells > 1 && this.sneakiness > 0.3) {
@@ -1316,9 +1723,10 @@ class Bot {
                     }
                     this.desiredTarget.x = targetX;
                     this.desiredTarget.y = targetY;
-                    this.targetLerp = 0.09 + effectiveAggression * 0.05;
+                    this.targetLerp = 0.22 + effectiveAggression * 0.11;
                 }
                 }
+                this.lastChaseOwnerId = bestPrey.owner && bestPrey.owner.id != null ? bestPrey.owner.id : null;
 
                 // ── Aggressive split logic ─────────────────────────────────────────
                 // Bots split freely whenever they have a kill shot. No random chance
@@ -1333,23 +1741,31 @@ class Bot {
                     const myBlobRadius = this.massToRadius(game, myLargestBlobMass);
                     // Split projectile travels roughly 2.5–3× the radius at launch speed.
                     // Use a generous reach so bots commit when prey is clearly reachable.
-                    const splitReach = myBlobRadius * 3.2 + 320;
+                    const splitReach = myBlobRadius * 3.05 + 290;
                     const inRange = bestPrey.dist < splitReach;
                     const notTooClose = bestPrey.dist > myBlobRadius * 0.25;
 
                     // Will our half-mass blob beat the prey after splitting?
                     // Very low ratio — just needs mass superiority.
-                    const killRatio = 1.02 + this.splitThreshold * 0.06;
-                    const canKill = halfMass > bestPrey.mass * killRatio;
+                    const killRatio = Math.max(1.08, game.cellEatMassRatio || 1.18);
+                    const strictKillMass = bestPrey.mass * killRatio;
+                    const riskySplitChance = clamp(game.config.botRiskySplitChance ?? 0.65, 0, 1);
+                    const riskySplitMassRatio = clamp(game.config.botRiskySplitMassRatio ?? 0.95, 0.7, 1.4);
+                    const riskyKillMass = strictKillMass * riskySplitMassRatio;
+                    const canStrictKill = halfMass > strictKillMass;
+                    const canRiskyKill = !canStrictKill
+                        && halfMass > riskyKillMass
+                        && bestPrey.dist < splitReach * 0.9
+                        && Math.random() < riskySplitChance;
+                    const canKill = canStrictKill || canRiskyKill;
 
                     // Only avoid splitting if a threat is extremely close (within 1.1× own radius)
                     // AND is significantly bigger than us. Don't let distant threats block kill shots.
                     const threatTooClose = closestThreat
-                        && closestThreatDist < myBlobRadius * 1.1
-                        && closestThreat.mass > myLargestBlobMass * 1.1;
-                    // If prey is VERY close and killable, ignore threats entirely — commit the split
-                    const preyIsRight = bestPrey.dist < splitReach * 0.5;
-                    const splitIsSafe = !threatTooClose || preyIsRight;
+                        && closestThreatDist < (myBlobRadius * 2.15 + 170)
+                        && closestThreat.mass > myLargestBlobMass * 1.35;
+                    const preyIsRight = bestPrey.dist < splitReach * 0.28;
+                    const splitIsSafe = !threatTooClose || (preyIsRight && closestThreatDist > myBlobRadius * 1.2);
 
                     if (canKill && inRange && notTooClose && splitIsSafe) {
                         // CRITICAL: aim target directly at prey so split projectile goes the right way.
@@ -1363,29 +1779,10 @@ class Bot {
                         this.target = { x: leadX, y: leadY };
                         this.desiredTarget.x = leadX;
                         this.desiredTarget.y = leadY;
-                        // Power-of-2 splitting: each round splits ALL current cells simultaneously.
-                        // Round 0: 1→2, Round 1: 2→4 (allowAll), Round 2: 4→8, etc.
-                        // First split: just one cell (the initial blob)
                         game.splitPlayer(this);
-                        // Chain-split: double all cells each round (allowAll = true)
-                        const maxRounds = Math.min(3, Math.floor(effectiveBoldness * 3)); // up to 3 more rounds → max 16
-                        for (let round = 0; round < maxRounds; round++) {
-                            if (this.cells.length >= this.maxCellsCap) break;
-                            const largestNow = this.cells.reduce((mx, c) => Math.max(mx, c.mass), 0);
-                            if (largestNow < minSplitMass * 2) break;
-                            if ((largestNow / 2) <= bestPrey.mass * killRatio) break;
-                            // Split all cells at once to maintain power-of-2 count
-                            game.splitPlayer(this, { allowAll: true });
-                        }
-                        this.splitCooldown = 1.8 + Math.random() * 2.5;
+                        this.splitCooldown = 1.1 + Math.random() * 1.7;
                     }
                 }
-            } else {
-                // Prey exists but food is much closer/better for tiny bot — eat food first
-                const offset = 28;
-                this.desiredTarget.x = bestFood.x + (Math.random() - 0.5) * offset;
-                this.desiredTarget.y = bestFood.y + (Math.random() - 0.5) * offset;
-                this.targetLerp = 0.06 + Math.random() * 0.04;
             }
 
             // ── Food-split: small bots blast through food clusters ─────────────────
@@ -1400,6 +1797,14 @@ class Bot {
                 }
             }
 
+        } else if (bestEdiblePlayerTarget) {
+            this.desiredTarget.x = bestEdiblePlayerTarget.x;
+            this.desiredTarget.y = bestEdiblePlayerTarget.y;
+            this.targetLerp = 0.14 + effectiveAggression * 0.06;
+        } else if (bestVirusEat && (!bestFood || bestFoodScore < 0.7)) {
+            this.desiredTarget.x = bestVirusEat.x + (Math.random() - 0.5) * 18;
+            this.desiredTarget.y = bestVirusEat.y + (Math.random() - 0.5) * 18;
+            this.targetLerp = 0.06;
         } else if (bestFood) {
             const offset = 28;
             this.desiredTarget.x = bestFood.x + (Math.random() - 0.5) * offset;
@@ -1418,10 +1823,15 @@ class Bot {
                 }
             }
         } else if (bestVirusEat) {
-            // Eat a virus only as a last resort (no food or prey nearby) — lowest priority
-            this.desiredTarget.x = bestVirusEat.x + (Math.random() - 0.5) * 20;
-            this.desiredTarget.y = bestVirusEat.y + (Math.random() - 0.5) * 20;
-            this.targetLerp = 0.05;
+            this.desiredTarget.x = bestVirusEat.x + (Math.random() - 0.5) * 18;
+            this.desiredTarget.y = bestVirusEat.y + (Math.random() - 0.5) * 18;
+            this.targetLerp = 0.06;
+        } else if (remoteFoodHotspot) {
+            this.foodFocus = { x: remoteFoodHotspot.x, y: remoteFoodHotspot.y };
+            this.foodFocusUntil = now + 1200 + Math.random() * 1300;
+            this.desiredTarget.x = remoteFoodHotspot.x + (Math.random() - 0.5) * 28;
+            this.desiredTarget.y = remoteFoodHotspot.y + (Math.random() - 0.5) * 28;
+            this.targetLerp = 0.085;
         } else {
             // ── Merge-awareness ───────────────────────────────────────────────────
             // If we're split into multiple cells and there's a prey that our MERGED
@@ -1490,6 +1900,36 @@ class Bot {
             }
         }
 
+        // Final anti-stuck pass: if we drift near map walls without urgent danger,
+        // force a short inward re-entry vector so bots don't camp/get pinned on edges.
+        const noUrgentThreat = !(hardDangerClose || dangerClose || imminentThreat || overwhelmingThreat);
+        const edgeInset = Math.max(64, Math.min(240, myRadius + 42));
+        const nearLeft = myPos.x < edgeInset;
+        const nearRight = myPos.x > game.config.mapWidth - edgeInset;
+        const nearTop = myPos.y < edgeInset;
+        const nearBottom = myPos.y > game.config.mapHeight - edgeInset;
+        if (noUrgentThreat && (nearLeft || nearRight || nearTop || nearBottom)) {
+            const inwardVecX = (nearLeft ? 1 : 0) + (nearRight ? -1 : 0);
+            const inwardVecY = (nearTop ? 1 : 0) + (nearBottom ? -1 : 0);
+            if (inwardVecX !== 0 || inwardVecY !== 0) {
+                const inwardLen = Math.sqrt(inwardVecX * inwardVecX + inwardVecY * inwardVecY) || 1;
+                const inwardUnitX = inwardVecX / inwardLen;
+                const inwardUnitY = inwardVecY / inwardLen;
+                const centerDx = game.config.mapWidth * 0.5 - myPos.x;
+                const centerDy = game.config.mapHeight * 0.5 - myPos.y;
+                const centerLen = Math.sqrt(centerDx * centerDx + centerDy * centerDy) || 1;
+                const centerUnitX = centerDx / centerLen;
+                const centerUnitY = centerDy / centerLen;
+                const pushDist = 260 + Math.min(240, myRadius * 1.9);
+                this.desiredTarget.x = myPos.x + inwardUnitX * pushDist + centerUnitX * pushDist * 0.55;
+                this.desiredTarget.y = myPos.y + inwardUnitY * pushDist + centerUnitY * pushDist * 0.55;
+                this.targetLerp = Math.max(this.targetLerp, 0.18);
+                this.cornerCampUntil = 0;
+                this.escapeTarget = { x: this.desiredTarget.x, y: this.desiredTarget.y };
+                this.escapeTargetUntil = now + 420 + Math.random() * 380;
+            }
+        }
+
         this.clampTargetWithinBounds(game);
     }
 
@@ -1508,3 +1948,6 @@ class Bot {
 }
 
 module.exports = Bot;
+
+
+

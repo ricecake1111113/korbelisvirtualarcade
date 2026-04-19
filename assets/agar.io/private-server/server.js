@@ -4,7 +4,10 @@ const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
 const Game = require('./game/Game');
-const gameConfig = require('./game.config');
+const gameConfigModule = require('./game.config');
+
+const gameConfig = { ...gameConfigModule };
+delete gameConfig.applyPerformanceBudget;
 
 const PORT = process.env.PORT || 3000;
 const SKINS_DIR = path.join(__dirname, 'skins');
@@ -15,6 +18,7 @@ const SETTINGS_SCHEMA = [
     { key: 'memoryBudgetMB', label: 'Memory Budget (MB)', description: 'Approximate memory budget used for automatic tuning caps.', type: 'number', min: 128, max: 8192, step: 32, group: 'Performance' },
     { key: 'foodGridCellSize', label: 'Food Grid Cell Size', description: 'Spatial hash bucket size for food collision checks.', type: 'number', min: 80, max: 300, step: 5, group: 'Performance' },
     { key: 'maxFood', label: 'Max Food', description: 'Target number of map food pellets.', type: 'number', min: 100, max: 24000, step: 50, group: 'World' },
+    { key: 'foodRespawnPerSecond', label: 'Food Respawn / Sec', description: 'Maximum base-food pellets refilled per second (prevents instant whole-map refill).', type: 'number', min: 5, max: 2000, step: 1, group: 'World' },
     { key: 'maxEjectedFood', label: 'Max Ejected Food', description: 'Maximum live ejected pellets before capping.', type: 'number', min: 100, max: 10000, step: 10, group: 'World' },
     { key: 'maxVisibleFoodPerPlayer', label: 'Visible Food Cap', description: 'Per-player cap for food entries sent each snapshot.', type: 'number', min: 100, max: 50000, step: 10, group: 'Performance' },
     { key: 'maxVisibleCellsPerPlayer', label: 'Visible Cells Cap', description: 'Per-player cap for cell entries sent each snapshot.', type: 'number', min: 100, max: 50000, step: 10, group: 'Performance' },
@@ -54,7 +58,8 @@ const SETTINGS_SCHEMA = [
     { key: 'massRadiusExponent', label: 'Mass Radius Exponent', description: 'How sharply size grows with mass (0.5 is classic sqrt). Lower = smoother growth.', type: 'number', min: 0.35, max: 0.65, step: 0.01, group: 'Gameplay' },
     { key: 'maxCells', label: 'Max Cells', description: 'Maximum cells a player can split into.', type: 'number', min: 2, max: 128, step: 1, group: 'Gameplay' },
     { key: 'minSplitMass', label: 'Min Split Mass', description: 'Minimum mass required to split.', type: 'number', min: 10, max: 500, step: 1, group: 'Gameplay' },
-    { key: 'mergeTime', label: 'Merge Time (s)', description: 'Seconds before own split cells can merge.', type: 'number', min: 1, max: 90, step: 1, group: 'Gameplay' },
+    { key: 'mergeTime', label: 'Merge Base Time (s)', description: 'Base seconds before own split cells can merge.', type: 'number', min: 0, max: 120, step: 0.5, group: 'Gameplay' },
+    { key: 'mergeMassFactor', label: 'Merge Mass Factor', description: 'Additional merge delay in seconds per 1 mass (Agar-like default: 0.0233).', type: 'number', min: 0, max: 0.08, step: 0.0001, group: 'Gameplay' },
     { key: 'instaMerge', label: 'Insta-Merge', description: 'When enabled, split cells can recombine almost immediately.', type: 'boolean', group: 'Gameplay' },
     { key: 'allowExperimentalInClassicModes', label: 'Allow Experimental Mechanics In FFA/Teams', description: 'When enabled, experimental pellets/viruses can appear in classic modes too.', type: 'boolean', group: 'Gameplay' },
     { key: 'cellEatMassRatio', label: 'Cell Eat Mass Ratio', description: 'Minimum mass advantage required to consume another player cell.', type: 'number', min: 1.05, max: 2.5, step: 0.01, group: 'Gameplay' },
@@ -68,6 +73,7 @@ const SETTINGS_SCHEMA = [
     { key: 'ejectedPelletMass', label: 'Ejected Pellet Mass', description: 'Mass value of W-ejected pellets.', type: 'number', min: 1, max: 20, step: 0.1, group: 'Gameplay' },
     { key: 'ejectedPelletCost', label: 'Ejected Pellet Cost', description: 'Mass cost paid by the cell when ejecting.', type: 'number', min: 2, max: 50, step: 0.1, group: 'Gameplay' },
     { key: 'botThinkInterval', label: 'Bot Think Interval (s)', description: 'How frequently bots run full AI thinking.', type: 'number', min: 0.08, max: 1.2, step: 0.01, group: 'Bots' },
+    { key: 'botBehaviorPreset', label: 'Bot Behavior Preset', description: 'High-level personality mix for bot aggression/opportunism (still compatible with manual scale tuning).', type: 'enum', options: ['balanced', 'opportunist', 'cautious', 'feral'], group: 'Bots' },
     { key: 'botSenseCellScanLimit', label: 'Bot Cell Sense Limit', description: 'Sample size for nearby cell awareness.', type: 'number', min: 120, max: 2200, step: 10, group: 'Bots' },
     { key: 'botSenseFoodSampleLimit', label: 'Bot Food Sense Limit', description: 'Sample size for nearby food awareness.', type: 'number', min: 40, max: 1200, step: 10, group: 'Bots' },
     { key: 'botSenseVirusScanLimit', label: 'Bot Virus Sense Limit', description: 'Sample size for nearby virus awareness.', type: 'number', min: 20, max: 500, step: 5, group: 'Bots' },
@@ -131,6 +137,9 @@ const SETTINGS_SCHEMA = [
     { key: 'bountyPelletIntervalMs', label: 'Bounty Interval (ms)', description: 'How often bounty pellets can spawn.', type: 'number', min: 1500, max: 30000, step: 100, group: 'Events' },
     { key: 'bountyPelletMass', label: 'Bounty Pellet Mass', description: 'Mass value of bounty pellets.', type: 'number', min: 0.1, max: 20, step: 0.1, group: 'Events' },
     { key: 'bountyLeaderMinMass', label: 'Bounty Leader Min Mass', description: 'Minimum leader mass before bounty pellets start spawning.', type: 'number', min: 40, max: 25000, step: 1, group: 'Events' },
+    { key: 'expGravityWellCount', label: 'Experimental Black Holes', description: 'How many gravity wells/black holes are maintained in experimental mode.', type: 'number', min: 0, max: 6, step: 1, group: 'Events' },
+    { key: 'expShrinkZoneCount', label: 'Experimental Shrink Zones', description: 'How many shrink/damage zones are maintained in experimental mode.', type: 'number', min: 0, max: 5, step: 1, group: 'Events' },
+    { key: 'expWarpGatePairs', label: 'Experimental Warp Pairs', description: 'How many active warp portal pairs are maintained in experimental mode.', type: 'number', min: 0, max: 3, step: 1, group: 'Events' },
     { key: 'botVirusWeaponChance', label: 'Virus Weapon Chance', description: 'Chance bots attempt to weaponize viruses against larger targets.', type: 'number', min: 0, max: 1, step: 0.01, group: 'Events' },
     { key: 'botVirusWeaponCooldownMs', label: 'Virus Weapon Cooldown (ms)', description: 'Cooldown between bot virus weapon attempts.', type: 'number', min: 100, max: 20000, step: 50, group: 'Events' },
     { key: 'botVirusWeaponMinMass', label: 'Virus Weapon Min Mass', description: 'Minimum bot mass to attempt virus weapon shots.', type: 'number', min: 20, max: 5000, step: 1, group: 'Events' },
@@ -188,11 +197,6 @@ function sanitizePatch(inputPatch, currentConfig) {
 
         let v = Number(rawValue);
         if (!Number.isFinite(v)) continue;
-
-        if (typeof schema.min === 'number') v = Math.max(schema.min, v);
-        if (typeof schema.max === 'number') v = Math.min(schema.max, v);
-
-        if (schema.step && schema.step >= 1) v = Math.round(v);
         patch[rawKey] = v;
     }
 
@@ -228,13 +232,22 @@ app.post('/api/config', (req, res) => {
     try {
         const current = game.getRuntimeConfig();
         const patch = sanitizePatch(req.body || {}, current);
-        game.updateRuntimeConfig(patch);
+        const merged = { ...current, ...patch };
+        const applied = {};
+        for (const [key, value] of Object.entries(merged)) {
+            if (current[key] !== value) {
+                applied[key] = value;
+            }
+        }
+        if (Object.keys(applied).length > 0) {
+            game.updateRuntimeConfig(applied);
+        }
         const runtime = game.getRuntimeConfig();
         res.json({
             ok: true,
             config: runtime,
             settings: enrichSchema(SETTINGS_SCHEMA, runtime, defaultsConfig),
-            applied: patch,
+            applied,
         });
     } catch (error) {
         res.status(400).json({ ok: false, error: error && error.message ? error.message : 'Failed to update config.' });

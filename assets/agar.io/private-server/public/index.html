@@ -890,28 +890,228 @@ body.menu-open #canvas {
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 70; display: none; }
 #hud.active { display: block; }
 .hud-card { position: absolute; background: var(--hud-bg); border: 1px solid var(--line); border-radius: 12px; color: var(--hud-text); backdrop-filter: blur(4px); }
-#leaderboard { top: 10px; right: 10px; width: 272px; max-width: 40vw; overflow-y: hidden; overflow-x: hidden; padding: 8px 10px; pointer-events: auto; touch-action: pan-y; transition: width 0.2s ease, opacity 0.2s ease, padding 0.2s ease; }
+#leaderboard { top: 10px; right: 10px; width: 272px; max-width: 40vw; max-height: 320px; overflow: hidden; padding: 8px 10px; pointer-events: auto; touch-action: pan-y; transition: width 0.2s ease, opacity 0.2s ease, padding 0.2s ease; display: flex; flex-direction: column; }
 #leaderboard.collapsed { width: 0; padding-left: 0; padding-right: 0; border-width: 0; opacity: 0; overflow: hidden; }
 .lb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
-.lb-header span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg); opacity: 0.85; }
+.lb-header span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--hud-text); opacity: 0.85; }
 .lb-total { font-size: 10px !important; font-weight: 600 !important; opacity: 0.5 !important; }
 .lb-sep { height: 1px; background: var(--line); margin: 3px 0; opacity: 0.5; }
-.lb-entry { display: flex; justify-content: space-between; align-items: center; gap: 5px; font-size: 13px; line-height: 1.35; padding: 2px 4px; border-radius: 5px; transition: background 0.1s; }
+.lb-entry { display: flex; justify-content: space-between; align-items: center; gap: 5px; font-size: 13px; line-height: 1.35; padding: 2px 4px; border-radius: 5px; transition: background 0.1s, transform 1.8s cubic-bezier(0.2,0.7,0.2,1); will-change: transform; }
 .lb-left { display: flex; align-items: center; gap: 5px; min-width: 0; flex: 1; overflow: hidden; }
-.lb-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-.lb-icon { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
-.lb-icon-dot { display: inline-block; }
+.lb-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.lb-icon-wrap { position: relative; width: 18px; height: 18px; flex-shrink: 0; }
+.lb-icon { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); box-sizing: border-box; }
+.lb-icon-dot { display: block; }
+.lb-icon-img {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.28);
+}
 .lb-rank { font-size: 11px; opacity: 0.6; font-weight: 700; flex-shrink: 0; min-width: 18px; }
-.lb-arrow { font-size: 9px; flex-shrink: 0; }
+.lb-arrow { font-size: 11px; line-height: 1; flex-shrink: 0; font-weight: 900; text-shadow: 0 0 6px rgba(255,255,255,0.28); }
 .lb-arrow.up { color: #4ddd7a; }
-.lb-arrow.down { color: #f06060; }
+.lb-arrow.down { color: #ff6e6e; }
 .lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.lb-name.team-tinted { font-weight: 700; text-shadow: 0 0 6px rgba(0,0,0,0.35); }
 .lb-score-val { font-size: 12px; font-weight: 700; opacity: 0.85; }
 .lb-team-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 0 0 1px rgba(0,0,0,0.24); flex-shrink: 0; }
-.lb-entry.me { color: var(--good); font-weight: 800; }
-.lb-entry.me .lb-name { font-weight: 800; }
+.lb-entry.me {
+  color: #4ee68d;
+  font-weight: 800;
+  background: linear-gradient(90deg, rgba(50,160,105,0.34) 0%, rgba(50,160,105,0.16) 100%);
+  border: 1px solid rgba(94,233,158,0.6);
+  box-shadow: inset 0 0 0 1px rgba(150,255,205,0.2), 0 0 10px rgba(48,182,112,0.22);
+}
+.lb-entry.me .lb-name { font-weight: 800; text-shadow: 0 0 8px rgba(78,230,141,0.35); }
+.lb-entry.me .lb-rank,
+.lb-entry.me .lb-score-val { opacity: 0.95; }
+.lb-list { overflow-y: auto; overflow-x: hidden; min-height: 0; scrollbar-width: thin; scrollbar-color: rgba(120,160,210,0.45) transparent; overflow-anchor: none; }
+.lb-pinned-wrap { margin-top: 2px; padding-bottom: 4px; }
+.lb-entry.lb-entry-pinned { background: rgba(22,52,88,0.88); transform: translateY(-2px); }
 .lb-entry.spectate-selected { background: rgba(32,146,234,0.22) !important; }
 .lb-entry[data-owner-id]:hover { background: rgba(255,255,255,0.11); cursor: pointer; }
+#leaderboard .lb-list::-webkit-scrollbar { width: 6px; }
+#leaderboard .lb-list::-webkit-scrollbar-track { background: transparent; }
+#leaderboard .lb-list::-webkit-scrollbar-thumb { background: rgba(120,160,210,0.45); border-radius: 4px; }
+#leaderboard .lb-list::-webkit-scrollbar-thumb:hover { background: rgba(140,184,235,0.62); }
+#hackMenu {
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  width: min(54vw, 460px);
+  padding: 2px 3px;
+  display: none;
+  pointer-events: auto;
+  user-select: none;
+}
+#hackMenu.show { display: block; }
+#hackMenu .hack-body {
+  display: block;
+}
+#hackMenu .hack-title {
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 800;
+  opacity: 0.9;
+  margin-bottom: 1px;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#hackMenu.dragging { opacity: 0.92; }
+#hackMenu .hack-collapse-indicator { font-size: 9px; opacity: 0.78; }
+#hackMenu.collapsed .hack-body { display: none; }
+#hackMenu .hack-row {
+  display: contents;
+}
+#hackMenu .hack-bot-controls { display: none; }
+#hackMenu.has-bot-selection .hack-row.hack-bot-controls { display: none; }
+#hackMenu.has-bot-selection .hack-note.hack-bot-controls { display: none; }
+#hackMenu .hack-legacy-controls { display: none !important; }
+#hackMenu .hack-row input {
+  min-width: 36px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.1);
+  color: var(--hud-text);
+  padding: 1px 2px;
+  font-size: 8px;
+  font-weight: 700;
+  grid-column: span 2;
+  height: 18px;
+}
+#hackMenu .hack-row select {
+  min-width: 36px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: rgba(12,23,45,0.94);
+  color: #d9e8ff;
+  padding: 1px 2px;
+  font-size: 8px;
+  font-weight: 700;
+  grid-column: span 2;
+  height: 18px;
+}
+#hackMenu .hack-row select option {
+  background: #122847;
+  color: #d9e8ff;
+}
+#hackMenu button {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.09);
+  color: var(--hud-text);
+  font-size: 7px;
+  font-weight: 800;
+  padding: 1px 2px;
+  cursor: pointer;
+  grid-column: span 2;
+  min-height: 18px;
+  white-space: nowrap;
+  line-height: 1.05;
+}
+#hackMenu button:hover { background: rgba(255,255,255,0.16); }
+#hackMenu button:disabled,
+#hackMenu input:disabled,
+#hackMenu select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+#hackMenu .hack-group {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 1px;
+  margin-bottom: 0;
+  min-width: 0;
+}
+#hackMenu .hack-group:last-child { margin-bottom: 0; }
+#hackMenu .hack-group-title {
+  font-size: 5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.9;
+  margin-bottom: 1px;
+  grid-column: 1 / -1;
+}
+#hackMenu .hack-group.other {
+  background: rgba(102,34,34,0.34);
+  border-color: rgba(210,108,108,0.36);
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 2px;
+  align-items: center;
+}
+#hackMenu #hackTeleportBtn.armed {
+  background: linear-gradient(180deg,#f2a93f,#cd7d21);
+  color: #fff;
+  border-color: rgba(255,255,255,0.25);
+}
+#hackMenu #hackGodmodeBtn.active {
+  background: linear-gradient(180deg,#58ce76,#2f9f4d);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackFreezeBtn.active {
+  background: linear-gradient(180deg,#56a8ef,#2d75c7);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackSelfFreezeBtn.active {
+  background: linear-gradient(180deg,#c475e8,#8d44bd);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackInstaMergeBtn.active {
+  background: linear-gradient(180deg,#f4b65f,#cb7c2a);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackNoEatBotsBtn.active {
+  background: linear-gradient(180deg,#68c4ff,#2f7db8);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackBotRespawnBtn.active {
+  background: linear-gradient(180deg,#dd6b6b,#b34343);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackBotDeleteBtn {
+  background: rgba(170,60,60,0.18);
+  border-color: rgba(238,96,96,0.45);
+}
+#hackMenu #hackBotSelectModeBtn.active,
+#hackMenu #hackBotDragModeBtn.active {
+  background: linear-gradient(180deg,#69a8ff,#356fbd);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackBotFreezeBtn.active {
+  background: linear-gradient(180deg,#d16cff,#8a44b8);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu #hackTargetAllBtn.active,
+#hackMenu #hackTargetSpecificBtn.active {
+  background: linear-gradient(180deg,#6bcfb3,#2f8f78);
+  color: #fff;
+  border-color: rgba(255,255,255,0.28);
+}
+#hackMenu .hack-note {
+  font-size: 5px;
+  opacity: 0.8;
+  line-height: 1.2;
+  margin-bottom: 0;
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
 #scoreDisplay { left: 50%; bottom: 20px; transform: translateX(-50%); padding: 9px 14px; font-size: 26px; font-weight: 800; }
 #minimap { position: absolute; right: 10px; bottom: 10px; width: 170px; height: 170px; border-radius: 10px; border: 1px solid var(--line); background: var(--hud-bg); }
 #fpsCounter { left: 10px; top: 10px; padding: 7px 10px; font-size: 12px; }
@@ -1183,19 +1383,23 @@ body.menu-open #canvas {
             <div class="quick-item"><label>Map Size <select id="quickMapPresetSelect"><option value="xs">Extra Small</option><option value="small">Small</option><option value="standard">Standard</option><option value="large">Large</option><option value="xl">Extra Large</option></select></label></div>
             <div class="quick-item"><label>Insta-Merge <input id="quickInstaMergeToggle" type="checkbox"></label></div>
             <div class="quick-item"><label>Decay Rate <input id="quickDecayRateInput" type="number" min="0" max="0.02" step="0.0001"></label></div>
-            <div class="quick-item"><label>Bot Spawn Mode <select id="quickBotSpawnSelect">
+            <div class="quick-item"><label>Bot Preset <select id="quickBotPresetSelect">
+              <option value="balanced">Balanced</option>
+              <option value="opportunist">Opportunist</option>
+              <option value="cautious">Cautious</option>
+              <option value="feral">Feral</option>
+            </select></label></div>
+            <div class="quick-item"><label>Bot Spawn/Respawn Mode <select id="quickBotSpawnSelect">
               <option value="varied">Varied</option>
               <option value="player_start">Player Start Mass</option>
               <option value="player_current">Player Current Mass</option>
             </select></label></div>
             <div class="quick-item"><label>Bots Only After Join <input id="quickDeferBotsToggle" type="checkbox"></label></div>
             <div class="quick-item"><label>Team Count <input id="quickTeamCountInput" type="number" min="2" max="12" step="1" oninput="renderQuickTeamColorSwatches()"></label></div>
+            <div class="quick-item"><label>Enable Hack Menu <input id="quickHackMenuToggle" type="checkbox"></label></div>
             <div class="quick-item quick-item-wide"><label>My Team Color
               <div id="quickTeamColorSwatches" class="quick-team-swatches"></div>
             </label></div>
-          </div>
-          <div class="quick-actions">
-            <button id="quickApplyBtn" type="button">Apply Quick Settings</button>
           </div>
         </div>
         <div id="settingsPanel">
@@ -1306,6 +1510,68 @@ body.menu-open #canvas {
 <div id="hud">
   <button id="leaderboardToggle" title="Hide/Show leaderboard">></button>
   <div id="leaderboard" class="hud-card"></div>
+  <div id="hackMenu" class="hud-card">
+    <div id="hackMenuHeader" class="hack-title">Hack Menu <span id="hackMenuCollapseIndicator" class="hack-collapse-indicator">[-]</span></div>
+    <div class="hack-body">
+      <div class="hack-group other">
+        <div class="hack-group-title">Controls</div>
+        <div class="hack-row">
+          <button id="hackTeleportBtn" type="button">Teleport</button>
+          <button id="hackGodmodeBtn" type="button">Godmode</button>
+          <input id="hackSpeedInput" type="number" min="0.2" max="6" step="0.05" value="1">
+          <button id="hackSetSpeedBtn" type="button">Set Speed</button>
+        </div>
+        <div class="hack-row">
+          <button id="hackSelfFreezeBtn" type="button">Freeze Self</button>
+          <button id="hackInstaMergeBtn" type="button">InstaMerge</button>
+          <button id="hackNoEatBotsBtn" type="button">No Eat Bots</button>
+        </div>
+        <div class="hack-row">
+          <button id="hackTargetAllBtn" type="button">Target All</button>
+          <button id="hackTargetSpecificBtn" type="button">Target Specific</button>
+        </div>
+        <div class="hack-row">
+          <select id="hackTeamTargetSelect"></select>
+          <button id="hackSetTeamBtn" type="button">Apply Color</button>
+          <button id="hackResetColorsBtn" type="button">Reset Colors</button>
+        </div>
+        <div class="hack-note" id="hackTargetLabel">Current Target: Specific (Me)</div>
+        <div class="hack-row">
+          <input id="hackFeederCountInput" type="number" min="1" max="20" step="1" value="3">
+          <button id="hackFeederBotsBtn" type="button">Feeder Bots</button>
+        </div>
+        <div class="hack-row">
+          <input id="hackTargetMassInput" type="number" min="-500000" max="500000" step="25" value="-250">
+          <button id="hackTargetMassBtn" type="button">Apply Mass</button>
+        </div>
+        <div class="hack-row">
+          <button id="hackFreezeBtn" type="button">Freeze Others</button>
+          <button id="hackBotRespawnBtn" type="button">Bot Respawn</button>
+          <button id="hackRestartMatchBtn" type="button">Force Restart</button>
+        </div>
+        <div class="hack-row">
+          <button id="hackBotSelectModeBtn" type="button">Clear Bot</button>
+          <button id="hackBotDragModeBtn" type="button">Drag Bot</button>
+        </div>
+        <div class="hack-row hack-bot-controls hack-legacy-controls">
+          <button id="hackBotFreezeBtn" type="button">Freeze Bot: Off</button>
+        </div>
+        <div class="hack-row hack-bot-controls hack-legacy-controls">
+          <input id="hackBotMassInput" type="number" min="10" step="25" value="250">
+          <button id="hackBotMassBtn" type="button">Set Bot Mass</button>
+        </div>
+        <div class="hack-row hack-bot-controls hack-legacy-controls">
+          <select id="hackBotTeamSelect"></select>
+          <button id="hackBotTeamBtn" type="button">Set Bot Team</button>
+        </div>
+        <div class="hack-row hack-bot-controls hack-legacy-controls">
+          <button id="hackBotDeleteBtn" type="button">Delete Selected Bot</button>
+        </div>
+        <div class="hack-note hack-bot-controls hack-legacy-controls" id="hackBotSelectedLabel">Selected Bot: none</div>
+        <div class="hack-note">Target Specific: click a cell or leaderboard name.</div>
+      </div>
+    </div>
+  </div>
   <div id="scoreDisplay" class="hud-card">Score: 0</div>
   <canvas id="minimap"></canvas>
   <button id="teamChartToggle" title="Hide/Show team chart">Hide Team Chart</button>
@@ -1328,27 +1594,32 @@ body.menu-open #canvas {
 
 <script>
 const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
 const minimapCanvas = document.getElementById('minimap');
-const minimapCtx = minimapCanvas.getContext('2d');
 const teamChartCanvas = document.getElementById('teamChart');
-const teamChartCtx = teamChartCanvas.getContext('2d');
+const isChromeOS = /\bCrOS\b/i.test(navigator.userAgent || '');
+const MAIN_CANVAS_DPR_CAP = isChromeOS ? 1.5 : 2.5;
+const HUD_CANVAS_DPR_CAP = isChromeOS ? 1.25 : 2;
+const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }) || canvas.getContext('2d');
+const minimapCtx = minimapCanvas.getContext('2d', { alpha: true, desynchronized: true }) || minimapCanvas.getContext('2d');
+const teamChartCtx = teamChartCanvas.getContext('2d', { alpha: true, desynchronized: true }) || teamChartCanvas.getContext('2d');
 const STORAGE_KEY = 'agario_private_stats_v4';
 const THEME_KEY = 'agario_theme_v2';
 const CLIENT_SETTINGS_KEY = 'agario_client_settings_v3';
+const SERVER_SETTINGS_KEY_PREFIX = 'agario_server_settings_v1';
 const clientSettingsDefaults = {
   fpsCap: 60,
   hideNames: false,
   hideMass: false,
   showOtherMass: false,
   hideSkins: false,
-  renderDistance: 0.72,
+  renderDistance: 0.58,
   gridSize: 18,
   showMinimap: true,
   showTeamChart: true,
   ownCellLerp: 0.56,
   globalLerp: 0.42,
   preferredTeamId: -1,
+  enableHackMenu: false,
 };
 const clientSettingsSchema = [
   { key: 'renderDistance', label: 'Render Distance', description: 'How far beyond screen edges to draw entities. Lower = better performance. Applies in spectate too.', type: 'number', min: 0.35, max: 1.6, step: 0.05, group: 'Client' },
@@ -1361,6 +1632,7 @@ const clientSettingsSchema = [
   { key: 'hideSkins', label: 'Hide Skins', description: 'Disable skin textures to save memory.', type: 'boolean', group: 'Client' },
   { key: 'showMinimap', label: 'Show Minimap', description: 'Display minimap overlay.', type: 'boolean', group: 'Client' },
   { key: 'showTeamChart', label: 'Show Team Chart', description: 'Display team pie + percentages in teams mode.', type: 'boolean', group: 'Client' },
+  { key: 'enableHackMenu', label: 'Enable Hack Menu', description: 'Show an in-game utility panel (add mass, feeder bots, teleport).', type: 'boolean', group: 'Client' },
 ];
 
 let ws = null;
@@ -1381,8 +1653,11 @@ let currentTeamCount = 3;
 let teamStats = [];
 let leaderboardCollapsed = false;
 let leaderRankByOwner = new Map();
+let leaderSkinByOwner = new Map();
 let botChatFeed = [];
 const seenChatIds = new Set();
+let lbLockedScrollTop = 0;
+let lbUserScrollLockUntil = 0;
 
 let leaderboard = [];
 let serverViewCenter = { x: 2500, y: 2500 };
@@ -1428,6 +1703,50 @@ let statsPanelOpen = false;
 let skinPanelVisible = true;
 let settingsSearchQuery = '';
 const inputHeld = new Set();
+const W_HOLD_EJECT_INTERVAL_MS = 200;
+let holdWEjectTimer = null;
+let hackTeleportArmed = false;
+let hackGodmodeEnabled = false;
+let hackFreezeActiveUntil = 0;
+let hackSelfFrozen = false;
+let hackInstaMerge = false;
+let hackNoEatBots = false;
+let hackSpeedMult = 1;
+let selectedHackBotId = null;
+let selectedHackBotName = null;
+let selectedHackBotFrozen = false;
+let hackBotSelectMode = false;
+let hackBotDragMode = false;
+let hackBotDragging = null;
+let hackBotDragLastSendAt = 0;
+let hackMenuHovered = false;
+let griefTargetMode = 'self';
+
+function stopHoldWEject() {
+  if (holdWEjectTimer) {
+    clearInterval(holdWEjectTimer);
+    holdWEjectTimer = null;
+  }
+}
+
+function startHoldWEject() {
+  if (!ws || ws.readyState !== WebSocket.OPEN || !alive) return;
+  ws.send(JSON.stringify({ type: 'eject' }));
+  if (holdWEjectTimer) return;
+  holdWEjectTimer = setInterval(() => {
+    if (!ws || ws.readyState !== WebSocket.OPEN || !alive || !inputHeld.has('KeyW')) {
+      stopHoldWEject();
+      return;
+    }
+    ws.send(JSON.stringify({ type: 'eject' }));
+  }, W_HOLD_EJECT_INTERVAL_MS);
+}
+let griefTargetPlayerId = null;
+let griefTargetName = 'Me';
+let griefTargetPickMode = false;
+let hackMenuCollapsed = false;
+let hackMenuDragged = false;
+let hackMenuDragState = null;
 
 // Client-side prediction for smooth local player movement
 let predictedPlayerCenter = { x: 2500, y: 2500 };
@@ -1531,19 +1850,19 @@ function renderChatFeed() {
 function clampClientSetting(key, value) {
   if (key === 'fpsCap') {
     const n = Math.round(Number(value) || 0);
-    return Math.max(0, Math.min(240, n));
+    return Math.max(0, n);
   }
   if (key === 'renderDistance') {
     const n = Number(value);
-    return Number.isFinite(n) ? Math.max(0.45, Math.min(1.6, n)) : clientSettingsDefaults.renderDistance;
+    return Number.isFinite(n) ? n : clientSettingsDefaults.renderDistance;
   }
   if (key === 'gridSize') {
     const n = Math.round(Number(value));
-    return Number.isFinite(n) ? Math.max(14, Math.min(64, n)) : clientSettingsDefaults.gridSize;
+    return Number.isFinite(n) ? Math.max(1, n) : clientSettingsDefaults.gridSize;
   }
   if (key === 'globalLerp' || key === 'ownCellLerp') {
     const n = Number(value);
-    return Number.isFinite(n) ? Math.max(0.1, Math.min(0.8, n)) : clientSettingsDefaults[key];
+    return Number.isFinite(n) ? n : clientSettingsDefaults[key];
   }
   if (typeof clientSettingsDefaults[key] === 'boolean') return !!value;
   return value;
@@ -1558,6 +1877,20 @@ function loadClientSettings() {
       if (parsed[key] === undefined) continue;
       clientSettings[key] = clampClientSetting(key, parsed[key]);
     }
+  } catch (e) {}
+}
+
+function applyChromeOsPerformanceDefaults() {
+  if (!isChromeOS) return;
+  try {
+    if (localStorage.getItem(CLIENT_SETTINGS_KEY)) return;
+    // One-time Chromebook defaults tuned for integrated GPUs.
+    clientSettings.fpsCap = 45;
+    clientSettings.renderDistance = 0.5;
+    clientSettings.gridSize = 24;
+    clientSettings.showTeamChart = false;
+    clientSettings.hideSkins = true;
+    saveClientSettings();
   } catch (e) {}
 }
 
@@ -1599,6 +1932,92 @@ function getServerSettingDefault(key, fallback) {
   const fromSchema = settingsSchema.find((s) => s.key === key);
   if (fromSchema && fromSchema.defaultValue !== undefined) return fromSchema.defaultValue;
   return fallback;
+}
+
+function getServerSettingsStorageKey() {
+  const scope = window.location.origin || window.location.host || 'local';
+  return `${SERVER_SETTINGS_KEY_PREFIX}:${scope}`;
+}
+
+function normalizeServerSettingValue(schema, rawValue) {
+  if (!schema) return undefined;
+  if (schema.type === 'boolean') return !!rawValue;
+  if (schema.type === 'enum') {
+    const v = typeof rawValue === 'string' ? rawValue : `${rawValue}`;
+    if (Array.isArray(schema.options) && schema.options.includes(v)) return v;
+    return undefined;
+  }
+  let v = Number(rawValue);
+  if (!Number.isFinite(v)) return undefined;
+  return v;
+}
+
+function collectPersistableServerSettings(config = runtimeConfig) {
+  const out = {};
+  for (const schema of settingsSchema || []) {
+    if (!schema || !schema.key) continue;
+    if (config[schema.key] === undefined) continue;
+    out[schema.key] = config[schema.key];
+  }
+  return out;
+}
+
+function saveServerSettingsToBrowser(config = runtimeConfig) {
+  try {
+    if (!Array.isArray(settingsSchema) || settingsSchema.length === 0) return;
+    const settings = collectPersistableServerSettings(config);
+    localStorage.setItem(getServerSettingsStorageKey(), JSON.stringify({
+      v: 1,
+      savedAt: Date.now(),
+      settings,
+    }));
+  } catch (e) {}
+}
+
+function clearSavedServerSettingsFromBrowser() {
+  try {
+    localStorage.removeItem(getServerSettingsStorageKey());
+  } catch (e) {}
+}
+
+function loadSavedServerSettingsFromBrowser() {
+  try {
+    const raw = localStorage.getItem(getServerSettingsStorageKey());
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && parsed.settings && typeof parsed.settings === 'object') {
+      return parsed.settings;
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function restoreServerSettingsFromBrowser() {
+  const saved = loadSavedServerSettingsFromBrowser();
+  if (!saved) return false;
+  if (!Array.isArray(settingsSchema) || settingsSchema.length === 0) return false;
+  const patch = {};
+  for (const schema of settingsSchema) {
+    if (!schema || !schema.key) continue;
+    if (!(schema.key in saved)) continue;
+    const normalized = normalizeServerSettingValue(schema, saved[schema.key]);
+    if (normalized === undefined) continue;
+    if (!presetValueMatches(runtimeConfig[schema.key], normalized)) {
+      patch[schema.key] = normalized;
+    }
+  }
+  if (Object.keys(patch).length === 0) return false;
+  const restored = await applySettingsPatch(patch, {
+    silent: true,
+    toastSuccess: false,
+    persist: false,
+    suppressNoopToast: true,
+  });
+  if (restored) {
+    // Save back normalized values returned by server sanitization.
+    saveServerSettingsToBrowser(runtimeConfig);
+  }
+  return restored;
 }
 
 const importantSettingOrder = [
@@ -1899,6 +2318,7 @@ function applyHudVisibility() {
   const showHud = alive || spectating;
   const leaderboardEl = document.getElementById('leaderboard');
   const leaderboardToggle = document.getElementById('leaderboardToggle');
+  const hackMenuEl = document.getElementById('hackMenu');
   const minimapEl = document.getElementById('minimap');
   const teamChartEl = document.getElementById('teamChart');
   const teamChartToggleEl = document.getElementById('teamChartToggle');
@@ -1912,10 +2332,47 @@ function applyHudVisibility() {
   teamChartToggleEl.style.display = showTeamUi ? 'block' : 'none';
   teamChartEl.style.display = (showTeamUi && clientSettings.showTeamChart) ? 'block' : 'none';
   scoreEl.style.display = (showHud && !spectating) ? 'block' : 'none';
+  const showHackMenu = showHud && !!clientSettings.enableHackMenu;
+  if (hackMenuEl) {
+    hackMenuEl.classList.toggle('show', showHackMenu);
+    if (!showHackMenu) {
+      if (hackTeleportArmed) setHackTeleportArmed(false);
+      setHackFreezeActiveUntil(0);
+      setHackGodmodeEnabled(false);
+      setHackSelfFrozen(false);
+      setHackInstaMergeEnabled(false);
+      setHackNoEatBots(false);
+      setHackSpeedMult(1);
+      setSelectedHackBot(null, null);
+      setHackBotSelectMode(false);
+      setHackBotDragMode(false);
+      setGriefTargetPickMode(false);
+      hackMenuHovered = false;
+      hackMenuDragState = null;
+      hackMenuEl.classList.remove('dragging');
+      resetHackMenuPosition();
+    }
+  }
   if (chatEl) chatEl.style.display = (showHud && !!runtimeConfig.enableBotChat) ? 'flex' : 'none';
   teamChartToggleEl.textContent = clientSettings.showTeamChart ? 'Hide Team Chart' : 'Show Team Chart';
+  setHackBotRespawnEnabled(!runtimeConfig.disableBotRespawn);
+  refreshGriefTargetUi();
+  updateHackMenuControlStates();
   updateSpectateInfoBar();
   updateHudLayout();
+}
+
+function resetHackMenuPosition() {
+  const hackMenuEl = document.getElementById('hackMenu');
+  if (!hackMenuEl) return;
+  hackMenuDragged = false;
+  hackMenuDragState = null;
+  hackMenuEl.classList.remove('dragging');
+  hackMenuEl.style.left = '50%';
+  hackMenuEl.style.top = '14px';
+  hackMenuEl.style.right = 'auto';
+  hackMenuEl.style.bottom = 'auto';
+  hackMenuEl.style.transform = 'translateX(-50%)';
 }
 
 function updateHudLayout() {
@@ -1923,6 +2380,7 @@ function updateHudLayout() {
   const toggleEl = document.getElementById('teamChartToggle');
   const chartEl = document.getElementById('teamChart');
   const scoreEl = document.getElementById('scoreDisplay');
+  const hackMenuEl = document.getElementById('hackMenu');
   if (!hudStatsEl || !toggleEl || !chartEl || !scoreEl) return;
 
   const statsTop = 50;
@@ -1933,7 +2391,100 @@ function updateHudLayout() {
   const reservedBottom = clientSettings.showMinimap ? 208 : 120;
   const maxChartHeight = Math.max(150, viewportHeight - (toggleTop + 38) - reservedBottom);
   chartEl.style.height = `${Math.min(320, maxChartHeight)}px`;
+  if (hackMenuEl) {
+    if (!hackMenuDragged) {
+      // Default start position is top-middle.
+      hackMenuEl.style.left = '50%';
+      hackMenuEl.style.top = '14px';
+      hackMenuEl.style.right = 'auto';
+      hackMenuEl.style.bottom = 'auto';
+      hackMenuEl.style.transform = 'translateX(-50%)';
+    } else {
+      hackMenuEl.style.transform = 'none';
+      clampHackMenuToViewport();
+    }
+  }
   scoreEl.style.bottom = clientSettings.showMinimap ? '22px' : '14px';
+}
+
+function clampHackMenuToViewport() {
+  const menu = document.getElementById('hackMenu');
+  if (!menu || !hackMenuDragged) return;
+  const rect = menu.getBoundingClientRect();
+  const maxLeft = Math.max(0, window.innerWidth - rect.width - 6);
+  const maxTop = Math.max(0, window.innerHeight - rect.height - 6);
+  const left = Math.max(6, Math.min(maxLeft, rect.left));
+  const top = Math.max(6, Math.min(maxTop, rect.top));
+  menu.style.left = `${Math.round(left)}px`;
+  menu.style.top = `${Math.round(top)}px`;
+  menu.style.right = 'auto';
+  menu.style.bottom = 'auto';
+}
+
+function beginHackMenuDrag(ev) {
+  const menu = document.getElementById('hackMenu');
+  const header = document.getElementById('hackMenuHeader');
+  if (!menu || !clientSettings.enableHackMenu || (!alive && !spectating)) return;
+  const rect = menu.getBoundingClientRect();
+  if (!hackMenuDragged) {
+    // Convert from centered transform coords into absolute drag coords.
+    menu.style.transform = 'none';
+    menu.style.left = `${Math.round(rect.left)}px`;
+    menu.style.top = `${Math.round(rect.top)}px`;
+    menu.style.right = 'auto';
+    menu.style.bottom = 'auto';
+  }
+  const dragRect = menu.getBoundingClientRect();
+  hackMenuDragState = {
+    pointerId: ev.pointerId,
+    startX: ev.clientX,
+    startY: ev.clientY,
+    originLeft: dragRect.left,
+    originTop: dragRect.top,
+    moved: false,
+  };
+  if (header && header.setPointerCapture) header.setPointerCapture(ev.pointerId);
+  menu.classList.add('dragging');
+  ev.preventDefault();
+}
+
+function moveHackMenuDrag(ev) {
+  if (!hackMenuDragState || hackMenuDragState.pointerId !== ev.pointerId) return;
+  const menu = document.getElementById('hackMenu');
+  if (!menu) return;
+  const dx = ev.clientX - hackMenuDragState.startX;
+  const dy = ev.clientY - hackMenuDragState.startY;
+  if (!hackMenuDragState.moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+    hackMenuDragState.moved = true;
+  }
+  if (!hackMenuDragState.moved) return;
+  hackMenuDragged = true;
+  const width = menu.offsetWidth || 220;
+  const height = menu.offsetHeight || 120;
+  const maxLeft = Math.max(6, window.innerWidth - width - 6);
+  const maxTop = Math.max(6, window.innerHeight - height - 6);
+  const left = Math.max(6, Math.min(maxLeft, hackMenuDragState.originLeft + dx));
+  const top = Math.max(6, Math.min(maxTop, hackMenuDragState.originTop + dy));
+  menu.style.left = `${Math.round(left)}px`;
+  menu.style.top = `${Math.round(top)}px`;
+  menu.style.right = 'auto';
+  menu.style.bottom = 'auto';
+  ev.preventDefault();
+}
+
+function endHackMenuDrag(ev) {
+  if (!hackMenuDragState || hackMenuDragState.pointerId !== ev.pointerId) return;
+  const moved = !!hackMenuDragState.moved;
+  const menu = document.getElementById('hackMenu');
+  const header = document.getElementById('hackMenuHeader');
+  if (menu) {
+    menu.classList.remove('dragging');
+    try { if (header && header.releasePointerCapture) header.releasePointerCapture(ev.pointerId); } catch (e) {}
+  }
+  hackMenuDragState = null;
+  if (!moved) {
+    setHackMenuCollapsed(!hackMenuCollapsed);
+  }
 }
 
 function loadStats() {
@@ -2158,10 +2709,10 @@ function setModeButtons(mode) {
 }
 
 function getRankMedal(rank) {
-  if (rank === 1) return '🥇';
-  if (rank === 2) return '🥈';
-  if (rank === 3) return '🥉';
-  if (rank === 4 || rank === 5) return '🏅';
+  if (rank === 1) return '\u{1F947}';
+  if (rank === 2) return '\u{1F948}';
+  if (rank === 3) return '\u{1F949}';
+  if (rank === 4 || rank === 5) return '\u{1F3C5}';
   return '';
 }
 
@@ -2260,7 +2811,7 @@ function recordRoundTelemetry(dtSec) {
 function resize() {
   viewportWidth = window.innerWidth;
   viewportHeight = window.innerHeight;
-  canvasDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2.5));
+  canvasDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, MAIN_CANVAS_DPR_CAP));
   canvas.width = Math.round(viewportWidth * canvasDpr);
   canvas.height = Math.round(viewportHeight * canvasDpr);
   canvas.style.width = `${viewportWidth}px`;
@@ -2523,22 +3074,32 @@ function renderSettings() {
 }
 
 const TEAM_COLORS_CLIENT = ['#cf5a5a','#4f73ce','#58ae67','#d7c953','#8a67d2','#d88a47','#8f5f42','#8c919a','#d885b1','#58c6da','#d8b347','#f1f3f6','#23262b'];
-const TEAM_NAMES_CLIENT = ['Red','Blue','Green','Yellow','Purple','Orange','Brown','Grey','Pink','Cyan','Gold','White','Black'];
+const TEAM_NAMES_CLIENT = ['Crimson','Azure','Emerald','Sun','Violet','Amber','Cocoa','Slate','Rose','Cyan','Gold','Ivory','Onyx'];
 
 function renderQuickTeamColorSwatches() {
   const container = document.getElementById('quickTeamColorSwatches');
   if (!container) return;
   container.innerHTML = '';
-  // Show exactly 12 swatches (the 12 game team colors), no rainbow/random swatch
   const activePref = Number(clientSettings.preferredTeamId ?? -1);
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < TEAM_COLORS_CLIENT.length; i++) {
     const color = TEAM_COLORS_CLIENT[i];
     const sw = document.createElement('div');
     sw.className = 'quick-team-swatch' + (activePref === i ? ' active' : '');
     sw.style.background = color;
     sw.title = TEAM_NAMES_CLIENT[i];
-    sw.addEventListener('click', () => { clientSettings.preferredTeamId = i; saveClientSettings(); renderQuickTeamColorSwatches(); });
+    sw.addEventListener('click', () => setPreferredTeam(i));
     container.appendChild(sw);
+  }
+}
+
+function setPreferredTeam(teamId) {
+  const pref = Math.floor(Number(teamId));
+  if (!Number.isInteger(pref) || pref < 0 || pref >= TEAM_COLORS_CLIENT.length) return;
+  clientSettings.preferredTeamId = pref;
+  saveClientSettings();
+  renderQuickTeamColorSwatches();
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'set_preferred_team', preferredTeamId: pref }));
   }
 }
 
@@ -2550,9 +3111,11 @@ function syncQuickCenterFromRuntime() {
   const mergeEl = document.getElementById('quickInstaMergeToggle');
   const mapEl = document.getElementById('quickMapPresetSelect');
   const decayEl = document.getElementById('quickDecayRateInput');
+  const presetEl = document.getElementById('quickBotPresetSelect');
   const spawnEl = document.getElementById('quickBotSpawnSelect');
   const deferEl = document.getElementById('quickDeferBotsToggle');
   const teamCountEl = document.getElementById('quickTeamCountInput');
+  const hackMenuEl = document.getElementById('quickHackMenuToggle');
   if (!botEl || !startEl || !foodEl || !virusEl || !mergeEl || !mapEl) return;
 
   botEl.value = Math.max(0, Math.round(Number(runtimeConfig.botCount) || 0));
@@ -2561,9 +3124,15 @@ function syncQuickCenterFromRuntime() {
   virusEl.value = Math.max(0, Math.round(Number(runtimeConfig.maxViruses) || 0));
   mergeEl.checked = !!runtimeConfig.instaMerge;
   if (decayEl) decayEl.value = Number(runtimeConfig.decayRate ?? 0.001).toFixed(4);
-  if (spawnEl && runtimeConfig.botSpawnMassMode) spawnEl.value = runtimeConfig.botSpawnMassMode;
+  if (presetEl) presetEl.value = runtimeConfig.botBehaviorPreset || 'feral';
+  if (spawnEl) {
+    const spawnMode = runtimeConfig.botSpawnMassMode || 'varied';
+    const respawnMode = runtimeConfig.botRespawnMassMode || spawnMode;
+    spawnEl.value = spawnMode === respawnMode ? spawnMode : respawnMode;
+  }
   if (deferEl) deferEl.checked = !!runtimeConfig.deferBotsUntilHumans;
   if (teamCountEl) teamCountEl.value = Math.max(2, Math.min(12, Number(runtimeConfig.teamCount) || 3));
+  if (hackMenuEl) hackMenuEl.checked = !!clientSettings.enableHackMenu;
 
   const w = Number(runtimeConfig.mapWidth) || 5000;
   const h = Number(runtimeConfig.mapHeight) || 5000;
@@ -2574,6 +3143,7 @@ function syncQuickCenterFromRuntime() {
   else mapEl.value = 'standard';
 
   renderQuickTeamColorSwatches();
+  updatePlayButtonLabel();
 }
 
 function collectQuickCenterPatch() {
@@ -2585,9 +3155,11 @@ function collectQuickCenterPatch() {
   const mergeEl = document.getElementById('quickInstaMergeToggle');
   const mapEl = document.getElementById('quickMapPresetSelect');
   const decayEl = document.getElementById('quickDecayRateInput');
+  const presetEl = document.getElementById('quickBotPresetSelect');
   const spawnEl = document.getElementById('quickBotSpawnSelect');
   const deferEl = document.getElementById('quickDeferBotsToggle');
   const teamCountEl = document.getElementById('quickTeamCountInput');
+  const hackMenuEl = document.getElementById('quickHackMenuToggle');
   if (!botEl || !startEl || !foodEl || !virusEl || !mergeEl || !mapEl) return patch;
 
   const botCount = Math.max(0, Math.round(Number(botEl.value) || 0));
@@ -2604,9 +3176,18 @@ function collectQuickCenterPatch() {
     const decay = Math.max(0, Math.min(0.02, Number(decayEl.value) || 0.001));
     if (Math.abs(decay - Number(runtimeConfig.decayRate ?? 0.001)) > 0.00001) patch.decayRate = decay;
   }
+  if (presetEl) {
+    const preset = String(presetEl.value || 'feral').toLowerCase();
+    if (preset !== String(runtimeConfig.botBehaviorPreset || 'feral').toLowerCase()) {
+      patch.botBehaviorPreset = preset;
+    }
+  }
   if (spawnEl) {
     const mode = spawnEl.value;
-    if (mode !== (runtimeConfig.botSpawnMassMode || 'varied')) patch.botSpawnMassMode = mode;
+    const spawnMode = runtimeConfig.botSpawnMassMode || 'varied';
+    const respawnMode = runtimeConfig.botRespawnMassMode || spawnMode;
+    if (mode !== spawnMode) patch.botSpawnMassMode = mode;
+    if (mode !== respawnMode) patch.botRespawnMassMode = mode;
   }
   if (deferEl) {
     const defer = !!deferEl.checked;
@@ -2622,7 +3203,58 @@ function collectQuickCenterPatch() {
   const targetMapSize = MAP_SIZES[mapPreset] || 5000;
   if (Number(runtimeConfig.mapWidth) !== targetMapSize) patch.mapWidth = targetMapSize;
   if (Number(runtimeConfig.mapHeight) !== targetMapSize) patch.mapHeight = targetMapSize;
+  const clientPatch = {};
+  if (hackMenuEl) {
+    const enabled = !!hackMenuEl.checked;
+    if (enabled !== !!clientSettings.enableHackMenu) clientPatch.enableHackMenu = enabled;
+  }
+  patch.__clientPatch = clientPatch;
   return patch;
+}
+
+function getPendingQuickCenterChanges() {
+  const pending = collectQuickCenterPatch();
+  const clientPatch = pending.__clientPatch || {};
+  delete pending.__clientPatch;
+  const hasServer = Object.keys(pending).length > 0;
+  const hasClient = Object.keys(clientPatch).length > 0;
+  return {
+    serverPatch: pending,
+    clientPatch,
+    hasServer,
+    hasClient,
+    hasAny: hasServer || hasClient,
+  };
+}
+
+function updatePlayButtonLabel() {
+  const playBtn = document.getElementById('playBtn');
+  if (!playBtn) return;
+  const pending = getPendingQuickCenterChanges();
+  playBtn.textContent = pending.hasAny ? 'Apply & Play' : 'Play';
+}
+
+function bindQuickCenterPlayLabelWatchers() {
+  const ids = [
+    'quickBotCountInput',
+    'quickStartMassInput',
+    'quickMaxFoodInput',
+    'quickMaxVirusesInput',
+    'quickMapPresetSelect',
+    'quickInstaMergeToggle',
+    'quickDecayRateInput',
+    'quickBotPresetSelect',
+    'quickBotSpawnSelect',
+    'quickDeferBotsToggle',
+    'quickTeamCountInput',
+    'quickHackMenuToggle',
+  ];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.addEventListener('input', updatePlayButtonLabel);
+    el.addEventListener('change', updatePlayButtonLabel);
+  }
 }
 
 // Store pre-preset snapshots for toggle-off
@@ -2810,10 +3442,17 @@ async function loadBootstrap(showMessage = false) {
   }
 }
 
-async function applySettingsPatch(patch) {
+async function applySettingsPatch(patch, options = {}) {
+  const opts = {
+    silent: false,
+    toastSuccess: true,
+    persist: true,
+    suppressNoopToast: false,
+    ...options,
+  };
   if (!patch || Object.keys(patch).length === 0) {
-    showToast('No setting changes to apply');
-    return;
+    if (!opts.suppressNoopToast) showToast('No setting changes to apply');
+    return false;
   }
   try {
     const res = await fetch('/api/config', {
@@ -2830,9 +3469,12 @@ async function applySettingsPatch(patch) {
     renderSettings();
     syncQuickCenterFromRuntime();
     applyHudVisibility();
-    showToast('Settings applied');
+    if (opts.persist) saveServerSettingsToBrowser(runtimeConfig);
+    if (opts.toastSuccess) showToast('Settings applied');
+    return true;
   } catch (e) {
-    showToast(`Failed to apply settings: ${e.message}`, 2600);
+    if (!opts.silent) showToast(`Failed to apply settings: ${e.message}`, 2600);
+    return false;
   }
 }
 
@@ -2848,6 +3490,7 @@ async function resetSettings() {
     renderSettings();
     syncQuickCenterFromRuntime();
     applyHudVisibility();
+    clearSavedServerSettingsFromBrowser();
     showToast('Defaults restored');
   } catch (e) {
     showToast(`Reset failed: ${e.message}`, 2600);
@@ -2866,8 +3509,10 @@ async function regenerateWorld() {
     renderSettings();
     syncQuickCenterFromRuntime();
     showToast('Match regenerated');
+    return true;
   } catch (e) {
     showToast(`Failed to regenerate: ${e.message}`, 2800);
+    return false;
   }
 }
 // ── Connection status helpers ──────────────────────────────────────────
@@ -2968,10 +3613,49 @@ function connect(overrideUrl) {
         setStatsPanelOpen(false);
         document.getElementById('deathScreen').classList.remove('show');
         document.getElementById('hud').classList.add('active');
+        setHackTeleportArmed(false);
+        setHackGodmodeEnabled(false);
+        setHackFreezeActiveUntil(0);
+        setHackSelfFrozen(false);
+        setHackInstaMergeEnabled(false);
+        setHackNoEatBots(false);
+        setHackSpeedMult(1);
+        setHackBotSelectMode(false);
+        setHackBotDragMode(false);
+        setGriefTargetPickMode(false);
+        setSelectedHackBot(null, null);
+        resetHackMenuPosition();
         applyHudVisibility();
         break;
+      case 'team_changed':
+        if (Number.isInteger(msg.preferredTeamId)) {
+          clientSettings.preferredTeamId = msg.preferredTeamId;
+          saveClientSettings();
+          renderQuickTeamColorSwatches();
+        }
+        currentTeamId = Number.isInteger(msg.teamId) ? msg.teamId : currentTeamId;
+        currentTeamCount = Number(msg.teamCount) || currentTeamCount;
+        break;
       case 'state':
-        leaderboard = msg.leaderboard;
+        leaderboard = Array.isArray(msg.leaderboard) ? msg.leaderboard : [];
+        {
+          const liveRank = new Map();
+          const liveSkin = new Map();
+          for (const entry of leaderboard) {
+            if (!entry || !Number.isFinite(Number(entry.id))) continue;
+            const ownerId = Number(entry.id);
+            if (Number.isFinite(Number(entry.rank))) {
+              liveRank.set(ownerId, Number(entry.rank));
+            }
+            if (entry.skin) {
+              liveSkin.set(ownerId, entry.skin);
+            }
+          }
+          // Keep in-world medals/skins in sync with live server rank data,
+          // independent from the 5s frozen leaderboard panel redraw cycle.
+          leaderRankByOwner = liveRank;
+          leaderSkinByOwner = liveSkin;
+        }
         teamStats = Array.isArray(msg.teamStats) ? msg.teamStats : [];
         if (msg.mode) setModeButtons(msg.mode);
         currentTeamId = Number.isInteger(msg.playerTeamId) ? msg.playerTeamId : currentTeamId;
@@ -2986,6 +3670,25 @@ function connect(overrideUrl) {
           spectating = msg.spectating;
           applyHudVisibility();
         }
+        if (typeof msg.playerHackGodmode === 'boolean') {
+          setHackGodmodeEnabled(msg.playerHackGodmode);
+        }
+        if (typeof msg.playerSelfFrozen === 'boolean') {
+          setHackSelfFrozen(msg.playerSelfFrozen);
+        }
+        if (typeof msg.playerInstaMerge === 'boolean') {
+          setHackInstaMergeEnabled(msg.playerInstaMerge);
+        }
+        if (typeof msg.playerNoEatBots === 'boolean') {
+          setHackNoEatBots(msg.playerNoEatBots);
+        }
+        if (Number.isFinite(Number(msg.playerHackSpeedMult))) {
+          setHackSpeedMult(msg.playerHackSpeedMult);
+        }
+        if (msg.playerFreezeUntil != null) {
+          setHackFreezeActiveUntil(Number(msg.playerFreezeUntil) || 0);
+        }
+        syncHackBotEditorSelection();
         updateInterpMap(cellMap, msg.cells, clientSettings.globalLerp);
         updateInterpMap(foodMap, msg.food, Math.min(0.75, clientSettings.globalLerp + 0.12));
         updateInterpMap(virusMap, msg.viruses, Math.min(0.75, clientSettings.globalLerp + 0.05));
@@ -3046,8 +3749,19 @@ function connect(overrideUrl) {
         break;
       case 'spectate_state':
         spectating = !!msg.enabled;
+        setHackTeleportArmed(false);
+        setHackGodmodeEnabled(false);
+        setHackFreezeActiveUntil(0);
+        setHackSelfFrozen(false);
+        setHackNoEatBots(false);
+        setHackSpeedMult(1);
+        setHackBotSelectMode(false);
+        setHackBotDragMode(false);
+        setGriefTargetPickMode(false);
         if (spectating) {
           alive = false;
+          stopHoldWEject();
+          inputHeld.delete('KeyW');
           document.getElementById('hud').classList.add('active');
           setMenuVisible(false);
         } else {
@@ -3072,6 +3786,19 @@ function connect(overrideUrl) {
       case 'death':
         alive = false;
         spectating = false;
+        stopHoldWEject();
+        inputHeld.delete('KeyW');
+        setHackTeleportArmed(false);
+        setHackGodmodeEnabled(false);
+        setHackFreezeActiveUntil(0);
+        setHackSelfFrozen(false);
+        setHackNoEatBots(false);
+        setHackSpeedMult(1);
+        setHackBotSelectMode(false);
+        setHackBotDragMode(false);
+        setGriefTargetPickMode(false);
+        setSelectedHackBot(null, null);
+        resetHackMenuPosition();
         // Reset prediction on death
         predictedPlayerCenter = { x: 2500, y: 2500 };
         predictedPlayerMass = 0;
@@ -3125,7 +3852,7 @@ function connect(overrideUrl) {
   };
   ws.onopen = () => {
     hideConnDialog();
-    setConnStatus('● Connected', 'green');
+    setConnStatus('* Connected', 'green');
     // Save the URL that worked (not localhost — no need)
     if (!isLocalHost() && _wsUrl && !new URLSearchParams(window.location.search).get('server')) {
       localStorage.setItem(CONN_URL_KEY, _wsUrl);
@@ -3133,13 +3860,15 @@ function connect(overrideUrl) {
     if (_connReconnectTimer) { clearTimeout(_connReconnectTimer); _connReconnectTimer = null; }
   };
   ws.onerror = () => {
-    setConnStatus('● Connection error', 'red');
+    setConnStatus('* Connection error', 'red');
   };
   ws.onclose = (evt) => {
     spectating = false;
+    stopHoldWEject();
+    inputHeld.delete('KeyW');
     applyHudVisibility();
     if (!alive) setMenuVisible(true);
-    setConnStatus('● Disconnected — reconnecting…', 'red');
+    setConnStatus('* Disconnected — reconnecting…', 'red');
     if (_connReconnectTimer) clearTimeout(_connReconnectTimer);
     _connReconnectTimer = setTimeout(() => connect(), 1800);
   };
@@ -3170,21 +3899,31 @@ function updateInterpMap(map, serverArr, lerpSpeed) {
       interp.type = item.type;
       interp.skin = item.skin || null;
       interp.ownerId = item.ownerId ?? null;
+      interp.ownerIsBot = !!item.ownerIsBot;
       interp.teamId = item.teamId ?? null;
       interp.kind = item.kind || null;
       interp.lerpSpeed = lerpSpeed;
+      interp.missingTicks = 0;
     } else {
       map.set(item.id, {
         x: item.x, y: item.y, mass: item.mass,
         tx: item.x, ty: item.y, tmass: item.mass,
         color: item.color, name: item.name, mine: item.mine,
         type: item.type, skin: item.skin || null, ownerId: item.ownerId ?? null,
+        ownerIsBot: !!item.ownerIsBot,
         teamId: item.teamId ?? null, kind: item.kind || null, lerpSpeed,
-        svx: 0, svy: 0, serverAt: now,
+        svx: 0, svy: 0, serverAt: now, missingTicks: 0,
       });
     }
   }
-  for (const [id] of map) if (!seen.has(id)) map.delete(id);
+  for (const [id, entity] of map) {
+    if (seen.has(id)) continue;
+    if (map === cellMap) {
+      entity.missingTicks = (entity.missingTicks || 0) + 1;
+      if (entity.missingTicks < 3) continue;
+    }
+    map.delete(id);
+  }
 }
 
 function interpEntities(map, dtSec) {
@@ -3195,7 +3934,7 @@ function interpEntities(map, dtSec) {
       const leadX = e.tx + (e.svx || 0) * ageSec;
       const leadY = e.ty + (e.svy || 0) * ageSec;
       // ownCellLerp: 0.1 (sluggish) .. 0.8 (snappy). Map to follow rate 8..34
-      const ownLerp = Math.max(0.1, Math.min(0.8, Number(clientSettings.ownCellLerp) || 0.56));
+      const ownLerp = Math.max(0.01, Number(clientSettings.ownCellLerp) || 0.56);
       const ownFollowRate = 8 + ownLerp * 32.5;
       const posFollow = 1 - Math.exp(-ownFollowRate * Math.max(0.001, dtSec));
       const massFollow = 1 - Math.exp(-(ownFollowRate * 0.65) * Math.max(0.001, dtSec));
@@ -3213,16 +3952,553 @@ function interpEntities(map, dtSec) {
   }
 }
 
-canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+function setHackTeleportArmed(armed) {
+  hackTeleportArmed = !!armed;
+  const btn = document.getElementById('hackTeleportBtn');
+  if (!btn) return;
+  btn.classList.toggle('armed', hackTeleportArmed);
+  btn.classList.toggle('active', hackTeleportArmed);
+  btn.textContent = 'Teleport';
+}
+
+function setHackGodmodeEnabled(enabled) {
+  hackGodmodeEnabled = !!enabled;
+  const btn = document.getElementById('hackGodmodeBtn');
+  if (!btn) return;
+  btn.classList.toggle('active', hackGodmodeEnabled);
+  btn.textContent = 'Godmode';
+}
+
+function setHackFreezeActiveUntil(ts) {
+  hackFreezeActiveUntil = Math.max(0, Number(ts) || 0);
+  const btn = document.getElementById('hackFreezeBtn');
+  if (!btn) return;
+  const active = hackFreezeActiveUntil > Date.now();
+  btn.classList.toggle('active', active);
+  btn.textContent = 'Freeze Others';
+}
+
+function setHackSelfFrozen(enabled) {
+  hackSelfFrozen = !!enabled;
+  const btn = document.getElementById('hackSelfFreezeBtn');
+  if (!btn) return;
+  btn.classList.toggle('active', hackSelfFrozen);
+  btn.textContent = 'Freeze Self';
+}
+
+function setHackInstaMergeEnabled(enabled) {
+  hackInstaMerge = !!enabled;
+  const btn = document.getElementById('hackInstaMergeBtn');
+  if (!btn) return;
+  btn.classList.toggle('active', hackInstaMerge);
+  btn.textContent = 'InstaMerge';
+}
+
+function setHackNoEatBots(enabled) {
+  hackNoEatBots = !!enabled;
+  const btn = document.getElementById('hackNoEatBotsBtn');
+  if (!btn) return;
+  btn.classList.toggle('active', hackNoEatBots);
+  btn.textContent = 'No Eat Bots';
+}
+
+function setHackSpeedMult(value) {
+  const parsed = Number(value);
+  const clamped = Math.max(0.2, Math.min(6, Number.isFinite(parsed) ? parsed : 1));
+  hackSpeedMult = clamped;
+  const input = document.getElementById('hackSpeedInput');
+  if (input && document.activeElement !== input) {
+    input.value = `${Math.round(clamped * 100) / 100}`;
+  }
+  const btn = document.getElementById('hackSetSpeedBtn');
+  if (btn) btn.classList.toggle('active', Math.abs(clamped - 1) > 0.001);
+}
+
+function setHackBotSelectMode(enabled) {
+  hackBotSelectMode = !!enabled;
+  const btn = document.getElementById('hackBotSelectModeBtn');
+  if (btn) {
+    btn.classList.toggle('active', selectedHackBotId != null);
+    btn.textContent = 'Clear Bot';
+  }
+  updateHackMenuControlStates();
+}
+
+function setHackBotDragMode(enabled) {
+  const next = !!enabled && selectedHackBotId != null;
+  hackBotDragMode = next;
+  hackBotDragging = null;
+  const btn = document.getElementById('hackBotDragModeBtn');
+  if (btn) {
+    btn.classList.toggle('active', hackBotDragMode);
+    btn.textContent = 'Drag Bot';
+  }
+  updateHackMenuControlStates();
+}
+
+function setHackBotFreezeState(enabled) {
+  selectedHackBotFrozen = !!enabled;
+  const btn = document.getElementById('hackBotFreezeBtn');
+  if (!btn) return;
+  btn.classList.toggle('active', selectedHackBotFrozen);
+  btn.textContent = 'Freeze Bot';
+}
+
+function refreshGriefTargetUi() {
+  const allBtn = document.getElementById('hackTargetAllBtn');
+  const specificBtn = document.getElementById('hackTargetSpecificBtn');
+  const label = document.getElementById('hackTargetLabel');
+  if (allBtn) allBtn.classList.toggle('active', griefTargetMode === 'all');
+  if (specificBtn) {
+    specificBtn.classList.toggle('active', griefTargetMode !== 'all');
+    specificBtn.textContent = 'Target Specific';
+  }
+  if (label) {
+    if (griefTargetMode === 'all') {
+      label.textContent = 'Current Target: Everyone';
+    } else if (griefTargetMode === 'player' && Number.isInteger(griefTargetPlayerId) && griefTargetPlayerId > 0) {
+      label.textContent = `Current Target: ${griefTargetName || `Player ${griefTargetPlayerId}`} (#${griefTargetPlayerId})`;
+    } else {
+      label.textContent = 'Current Target: Specific (Me)';
+    }
+  }
+}
+
+function setGriefTargetSelf() {
+  griefTargetMode = 'self';
+  griefTargetPlayerId = null;
+  griefTargetName = 'Me';
+  griefTargetPickMode = false;
+  refreshGriefTargetUi();
+}
+
+function setGriefTargetAll() {
+  griefTargetMode = 'all';
+  griefTargetPlayerId = null;
+  griefTargetName = 'Everyone';
+  griefTargetPickMode = false;
+  refreshGriefTargetUi();
+}
+
+function setGriefTargetPlayer(ownerId, name) {
+  const id = Math.round(Number(ownerId));
+  if (!Number.isInteger(id) || id <= 0) {
+    setGriefTargetSelf();
+    return;
+  }
+  if (playerId != null && id === playerId) {
+    setGriefTargetSelf();
+    return;
+  }
+  griefTargetMode = 'player';
+  griefTargetPlayerId = id;
+  griefTargetName = name || `Player ${id}`;
+  griefTargetPickMode = false;
+  refreshGriefTargetUi();
+}
+
+function setGriefTargetPickMode(enabled) {
+  griefTargetPickMode = false;
+  refreshGriefTargetUi();
+}
+
+function updateHackMenuControlStates() {
+  const selfDisabled = spectating || !alive;
+  const selfIds = [
+    'hackSpeedInput',
+    'hackSetSpeedBtn',
+    'hackTeleportBtn',
+    'hackGodmodeBtn',
+    'hackSelfFreezeBtn',
+    'hackInstaMergeBtn',
+    'hackNoEatBotsBtn',
+  ];
+  for (const id of selfIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.disabled = selfDisabled;
+  }
+  const freezeOthersBtn = document.getElementById('hackFreezeBtn');
+  if (freezeOthersBtn) freezeOthersBtn.disabled = !(alive || spectating);
+  const restartBtn = document.getElementById('hackRestartMatchBtn');
+  if (restartBtn) restartBtn.disabled = !(alive || spectating);
+
+  const hasBot = selectedHackBotId != null;
+  const canHackBots = (alive || spectating) && !!clientSettings.enableHackMenu;
+  const botIds = [
+    'hackBotMassInput',
+    'hackBotMassBtn',
+    'hackBotTeamSelect',
+    'hackBotTeamBtn',
+    'hackBotDeleteBtn',
+    'hackBotFreezeBtn',
+    'hackBotDragModeBtn',
+  ];
+  for (const id of botIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.disabled = !(canHackBots && hasBot);
+  }
+  const botSelectBtn = document.getElementById('hackBotSelectModeBtn');
+  if (botSelectBtn) botSelectBtn.disabled = !canHackBots;
+  const targetBtnIds = ['hackTargetAllBtn', 'hackTargetSpecificBtn'];
+  for (const id of targetBtnIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.disabled = !(alive || spectating);
+  }
+  const targetMassIds = ['hackTargetMassInput', 'hackTargetMassBtn'];
+  for (const id of targetMassIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.disabled = !(alive || spectating);
+  }
+  const targetTeamIds = ['hackTeamTargetSelect', 'hackSetTeamBtn', 'hackResetColorsBtn'];
+  for (const id of targetTeamIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.disabled = !(alive || spectating);
+  }
+}
+
+function syncHackBotEditorSelection() {
+  const menu = document.getElementById('hackMenu');
+  if (selectedHackBotId != null) {
+    const entry = (leaderboard || []).find((e) => e.id === selectedHackBotId && e.isBot);
+    if (!entry) {
+      selectedHackBotId = null;
+      selectedHackBotName = null;
+      selectedHackBotFrozen = false;
+    } else {
+      selectedHackBotName = entry.name || selectedHackBotName;
+      selectedHackBotFrozen = !!entry.hackFrozen;
+      const teamSel = document.getElementById('hackBotTeamSelect');
+      if (teamSel && Number.isInteger(entry.teamId)) {
+        if (document.activeElement !== teamSel) {
+          teamSel.value = String(entry.teamId);
+        }
+      }
+      const massInput = document.getElementById('hackBotMassInput');
+      if (massInput && Number.isFinite(Number(entry.score))) {
+        if (document.activeElement !== massInput) {
+          massInput.value = String(Math.max(10, Math.round(Number(entry.score))));
+        }
+      }
+    }
+  }
+  if (selectedHackBotId == null && hackBotDragMode) {
+    setHackBotDragMode(false);
+  }
+  setHackBotFreezeState(!!selectedHackBotFrozen);
+  if (menu) menu.classList.toggle('has-bot-selection', selectedHackBotId != null);
+  const label = document.getElementById('hackBotSelectedLabel');
+  if (label) {
+    label.textContent = selectedHackBotId == null
+      ? 'Selected Bot: none'
+      : `Selected Bot: ${selectedHackBotName || `Bot ${selectedHackBotId}`} (#${selectedHackBotId})`;
+  }
+  const clearBtn = document.getElementById('hackBotSelectModeBtn');
+  if (clearBtn) clearBtn.classList.toggle('active', selectedHackBotId != null);
+  updateHackMenuControlStates();
+}
+
+function setSelectedHackBot(ownerId, name) {
+  const id = Math.round(Number(ownerId));
+  if (!Number.isInteger(id) || id <= 0) {
+    selectedHackBotId = null;
+    selectedHackBotName = null;
+    syncHackBotEditorSelection();
+    return;
+  }
+  const lbEntry = (leaderboard || []).find((e) => e.id === id);
+  if (lbEntry && !lbEntry.isBot) {
+    selectedHackBotId = null;
+    selectedHackBotName = null;
+    syncHackBotEditorSelection();
+    return;
+  }
+  selectedHackBotId = id;
+  selectedHackBotName = name || `Bot ${id}`;
+  syncHackBotEditorSelection();
+}
+
+function renderHackBotTeamOptions() {
+  const select = document.getElementById('hackBotTeamSelect');
+  if (!select) return;
+  let html = '';
+  for (let i = 0; i < TEAM_COLORS_CLIENT.length; i++) {
+    const name = TEAM_NAMES_CLIENT[i] || `Team ${i + 1}`;
+    const color = (TEAM_COLORS_CLIENT[i] || '#9ab6e6').toUpperCase();
+    html += `<option value="${i}" style="color:${color};font-weight:700;">${escapeHtml(name)}</option>`;
+  }
+  select.innerHTML = html;
+  if (Number.isInteger(currentTeamId) && currentTeamId >= 0 && currentTeamId < TEAM_COLORS_CLIENT.length) {
+    select.value = String(currentTeamId);
+  }
+}
+
+function renderHackTargetTeamOptions() {
+  const select = document.getElementById('hackTeamTargetSelect');
+  if (!select) return;
+  let html = '';
+  for (let i = 0; i < TEAM_COLORS_CLIENT.length; i++) {
+    const name = TEAM_NAMES_CLIENT[i] || `Team ${i + 1}`;
+    const color = (TEAM_COLORS_CLIENT[i] || '#9ab6e6').toUpperCase();
+    html += `<option value="${i}" style="color:${color};font-weight:700;">${escapeHtml(name)}</option>`;
+  }
+  select.innerHTML = html;
+  if (Number.isInteger(currentTeamId) && currentTeamId >= 0 && currentTeamId < TEAM_COLORS_CLIENT.length) {
+    select.value = String(currentTeamId);
+  }
+}
+
+function setHackMenuCollapsed(collapsed) {
+  hackMenuCollapsed = !!collapsed;
+  const menu = document.getElementById('hackMenu');
+  const indicator = document.getElementById('hackMenuCollapseIndicator');
+  if (!menu) return;
+  menu.classList.toggle('collapsed', hackMenuCollapsed);
+  if (indicator) indicator.textContent = hackMenuCollapsed ? '[+]' : '[-]';
+}
+
+function setHackBotRespawnEnabled(enabled) {
+  const btn = document.getElementById('hackBotRespawnBtn');
+  if (!btn) return;
+  const on = !!enabled;
+  btn.textContent = 'Bot Respawn';
+  btn.classList.toggle('active', on);
+}
+
+async function sendHackToggleBotRespawn() {
+  const currentlyEnabled = !runtimeConfig.disableBotRespawn;
+  const nextEnabled = !currentlyEnabled;
+  await applySettingsPatch({ disableBotRespawn: !nextEnabled });
+  setHackBotRespawnEnabled(nextEnabled);
+}
+
+async function sendHackForceRestartMatch() {
+  if ((!alive && !spectating) || !clientSettings.enableHackMenu) return;
+  await regenerateWorld();
+}
+
+function sendHackToggleSelfFreeze() {
+  if (!alive || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const next = !hackSelfFrozen;
+  ws.send(JSON.stringify({ type: 'hack_toggle_self_freeze', enabled: next }));
+  setHackSelfFrozen(next);
+}
+
+function sendHackToggleNoEatBots() {
+  if (!alive || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const next = !hackNoEatBots;
+  ws.send(JSON.stringify({ type: 'hack_toggle_no_eat_bots', enabled: next }));
+  setHackNoEatBots(next);
+}
+
+function sendHackToggleInstaMerge() {
+  if (!alive || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const next = !hackInstaMerge;
+  ws.send(JSON.stringify({ type: 'hack_toggle_insta_merge', enabled: next }));
+  setHackInstaMergeEnabled(next);
+}
+
+function sendHackSetBotMass() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  if (selectedHackBotId == null) return;
+  const input = document.getElementById('hackBotMassInput');
+  const mass = Math.max(10, Math.round(Number(input && input.value) || 250));
+  ws.send(JSON.stringify({ type: 'hack_bot_set_mass', botId: selectedHackBotId, mass }));
+}
+
+function sendHackSetBotTeam() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  if (selectedHackBotId == null) return;
+  const select = document.getElementById('hackBotTeamSelect');
+  const teamId = Math.max(0, Math.min(TEAM_COLORS_CLIENT.length - 1, Math.round(Number(select && select.value) || 0)));
+  ws.send(JSON.stringify({ type: 'hack_bot_set_team', botId: selectedHackBotId, teamId }));
+}
+
+function sendHackSetTargetTeam() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const select = document.getElementById('hackTeamTargetSelect');
+  const teamId = Math.max(0, Math.min(TEAM_COLORS_CLIENT.length - 1, Math.round(Number(select && select.value) || 0)));
+  ws.send(JSON.stringify({
+    type: 'hack_set_color',
+    colorId: teamId,
+    targetMode: griefTargetMode,
+    targetId: griefTargetMode === 'player' ? griefTargetPlayerId : null,
+  }));
+}
+
+function sendHackResetColors() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({
+    type: 'hack_reset_colors',
+    targetMode: griefTargetMode,
+    targetId: griefTargetMode === 'player' ? griefTargetPlayerId : null,
+  }));
+}
+
+function sendHackDeleteBot() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  if (selectedHackBotId == null) return;
+  ws.send(JSON.stringify({ type: 'hack_bot_delete', botId: selectedHackBotId }));
+  setSelectedHackBot(null, null);
+}
+
+function sendHackSetSpeed() {
+  if (!alive || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const input = document.getElementById('hackSpeedInput');
+  const speedMult = Math.max(0.2, Math.min(6, Number(input && input.value)));
+  if (!Number.isFinite(speedMult)) return;
+  setHackSpeedMult(speedMult);
+  ws.send(JSON.stringify({ type: 'hack_set_speed', speedMult }));
+}
+
+function sendHackAdjustTargetMass() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const input = document.getElementById('hackTargetMassInput');
+  const amount = Math.max(-500000, Math.min(500000, Math.round(Number(input && input.value) || 0)));
+  if (!Number.isFinite(amount) || amount === 0) return;
+  ws.send(JSON.stringify({
+    type: 'hack_add_mass',
+    amount,
+    targetMode: griefTargetMode,
+    targetId: griefTargetMode === 'player' ? griefTargetPlayerId : null,
+  }));
+}
+
+function sendHackFeederBots() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const input = document.getElementById('hackFeederCountInput');
+  const count = Math.max(1, Math.min(20, Math.round(Number(input && input.value) || 3)));
+  ws.send(JSON.stringify({
+    type: 'hack_feeder_bots',
+    count,
+    targetMode: griefTargetMode,
+    targetId: griefTargetMode === 'player' ? griefTargetPlayerId : null,
+  }));
+}
+
+function sendHackToggleGodmode() {
+  if (!alive || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const next = !hackGodmodeEnabled;
+  ws.send(JSON.stringify({ type: 'hack_toggle_godmode', enabled: next }));
+  setHackGodmodeEnabled(next);
+}
+
+function sendHackFreezeOthers() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  const active = hackFreezeActiveUntil > Date.now();
+  const until = active ? 0 : (Date.now() + 86400000);
+  ws.send(JSON.stringify({
+    type: 'hack_freeze_others',
+    durationMs: 86400000,
+    targetMode: griefTargetMode,
+    targetId: griefTargetMode === 'player' ? griefTargetPlayerId : null,
+  }));
+  setHackFreezeActiveUntil(until);
+}
+
+function sendHackToggleBotFreeze() {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  if (selectedHackBotId == null) return;
+  const next = !selectedHackBotFrozen;
+  ws.send(JSON.stringify({ type: 'hack_bot_toggle_freeze', botId: selectedHackBotId, enabled: next }));
+  setHackBotFreezeState(next);
+}
+
+function sendHackMoveSelectedBot(worldX, worldY) {
+  if ((!alive && !spectating) || !ws || ws.readyState !== WebSocket.OPEN) return;
+  if (selectedHackBotId == null) return;
+  ws.send(JSON.stringify({ type: 'hack_bot_move', botId: selectedHackBotId, x: worldX, y: worldY }));
+}
+
+function eventToWorldPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left - canvas.width / 2 / canvasDpr) * cam.scale + cam.x,
+    y: (e.clientY - rect.top - canvas.height / 2 / canvasDpr) * cam.scale + cam.y,
+  };
+}
+
+function findBotCellAtWorldPos(wx, wy, preferredOwnerId = null) {
+  let best = null;
+  let bestDist = Infinity;
+  for (const [, c] of cellMap) {
+    if (!c || !c.ownerId || !c.ownerIsBot) continue;
+    if (preferredOwnerId != null && c.ownerId !== preferredOwnerId) continue;
+    const dx = c.x - wx;
+    const dy = c.y - wy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const r = radiusFromMass(c.mass);
+    if (dist <= r && dist < bestDist) {
+      bestDist = dist;
+      best = c;
+    }
+  }
+  return best;
+}
+
+canvas.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
 let canvasClickStartPos = null;
 canvas.addEventListener('mousedown', (e) => {
-  if (!spectating || e.button !== 0) return;
+  if (e.button !== 0) return;
+  if (hackBotDragMode && selectedHackBotId != null && clientSettings.enableHackMenu && (alive || spectating)) {
+    const world = eventToWorldPos(e);
+    const hit = findBotCellAtWorldPos(world.x, world.y, selectedHackBotId);
+    if (hit) {
+      hackBotDragging = { ownerId: hit.ownerId };
+      hackBotDragLastSendAt = 0;
+      sendHackMoveSelectedBot(world.x, world.y);
+      e.preventDefault();
+      return;
+    }
+  }
+  if (!spectating) return;
   spectateDragging = true;
   spectateDragLast.x = e.clientX;
   spectateDragLast.y = e.clientY;
   canvasClickStartPos = { x: e.clientX, y: e.clientY };
 });
 canvas.addEventListener('click', (e) => {
+  if (hackTeleportArmed && alive && !spectating && ws && ws.readyState === WebSocket.OPEN) {
+    const world = eventToWorldPos(e);
+    const wx = world.x;
+    const wy = world.y;
+    ws.send(JSON.stringify({ type: 'hack_teleport', x: wx, y: wy }));
+    return;
+  }
+  if (hackBotDragging) {
+    return;
+  }
+  const hackClickActive = (alive || spectating) && clientSettings.enableHackMenu;
+  if (hackClickActive) {
+    const world = eventToWorldPos(e);
+    let hitCell = null;
+    let bestDist = Infinity;
+    for (const [, c] of cellMap) {
+      if (!c || !c.ownerId) continue;
+      const dx = c.x - world.x;
+      const dy = c.y - world.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const r = radiusFromMass(c.mass);
+      if (dist <= r && dist < bestDist) {
+        bestDist = dist;
+        hitCell = c;
+      }
+    }
+    if (hitCell) {
+      if (hitCell.ownerIsBot) setSelectedHackBot(hitCell.ownerId, hitCell.name || `Bot ${hitCell.ownerId}`);
+      else setSelectedHackBot(null, null);
+      if (playerId != null && hitCell.ownerId === playerId) setGriefTargetSelf();
+      else setGriefTargetPlayer(hitCell.ownerId, hitCell.name || `Player ${hitCell.ownerId}`);
+      return;
+    }
+  }
   if (!spectating) return;
   // Check if this was actually a drag (not a click)
   if (canvasClickStartPos) {
@@ -3230,9 +4506,9 @@ canvas.addEventListener('click', (e) => {
     const dy = e.clientY - canvasClickStartPos.y;
     if (Math.sqrt(dx * dx + dy * dy) > 5) return; // was a drag
   }
-  const rect = canvas.getBoundingClientRect();
-  const wx = (e.clientX - rect.left - canvas.width / 2 / canvasDpr) * cam.scale + cam.x;
-  const wy = (e.clientY - rect.top - canvas.height / 2 / canvasDpr) * cam.scale + cam.y;
+  const world = eventToWorldPos(e);
+  const wx = world.x;
+  const wy = world.y;
   let best = null;
   let bestDist = Infinity;
   for (const [, c] of cellMap) {
@@ -3255,8 +4531,21 @@ canvas.addEventListener('click', (e) => {
 window.addEventListener('mouseup', () => {
   spectateDragging = false;
   canvasClickStartPos = null;
+  hackBotDragging = null;
 });
 window.addEventListener('mousemove', (e) => {
+  // Keep aim direction responsive even while hovering UI panels (cheat menu, settings, etc).
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  if (hackBotDragging) {
+    const now = performance.now();
+    if (now - hackBotDragLastSendAt >= 28) {
+      const world = eventToWorldPos(e);
+      sendHackMoveSelectedBot(world.x, world.y);
+      hackBotDragLastSendAt = now;
+    }
+    return;
+  }
   if (!spectating || !spectateDragging) return;
   const dx = e.clientX - spectateDragLast.x;
   const dy = e.clientY - spectateDragLast.y;
@@ -3323,17 +4612,76 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyW') {
     if (e.repeat || inputHeld.has('KeyW')) return;
     inputHeld.add('KeyW');
-    ws.send(JSON.stringify({ type: 'eject' }));
+    startHoldWEject();
   }
 });
 document.addEventListener('keyup', (e) => {
   if (e.code === 'Space') inputHeld.delete('Space');
-  if (e.code === 'KeyW') inputHeld.delete('KeyW');
+  if (e.code === 'KeyW') {
+    inputHeld.delete('KeyW');
+    stopHoldWEject();
+  }
 });
 
 document.getElementById('playBtn').addEventListener('click', spawn);
 document.getElementById('spectateBtn').addEventListener('click', () => setSpectating(true));
 document.getElementById('nickInput').addEventListener('keydown', (e) => { if (e.code === 'Enter') spawn(); });
+document.getElementById('hackSetSpeedBtn').addEventListener('click', sendHackSetSpeed);
+document.getElementById('hackFeederBotsBtn').addEventListener('click', sendHackFeederBots);
+document.getElementById('hackTargetMassBtn').addEventListener('click', sendHackAdjustTargetMass);
+document.getElementById('hackGodmodeBtn').addEventListener('click', sendHackToggleGodmode);
+document.getElementById('hackFreezeBtn').addEventListener('click', sendHackFreezeOthers);
+document.getElementById('hackSelfFreezeBtn').addEventListener('click', sendHackToggleSelfFreeze);
+document.getElementById('hackInstaMergeBtn').addEventListener('click', sendHackToggleInstaMerge);
+document.getElementById('hackNoEatBotsBtn').addEventListener('click', sendHackToggleNoEatBots);
+document.getElementById('hackBotRespawnBtn').addEventListener('click', sendHackToggleBotRespawn);
+document.getElementById('hackRestartMatchBtn').addEventListener('click', sendHackForceRestartMatch);
+document.getElementById('hackBotMassBtn').addEventListener('click', sendHackSetBotMass);
+document.getElementById('hackBotTeamBtn').addEventListener('click', sendHackSetBotTeam);
+document.getElementById('hackSetTeamBtn').addEventListener('click', sendHackSetTargetTeam);
+document.getElementById('hackResetColorsBtn').addEventListener('click', sendHackResetColors);
+document.getElementById('hackBotDeleteBtn').addEventListener('click', sendHackDeleteBot);
+document.getElementById('hackBotFreezeBtn').addEventListener('click', sendHackToggleBotFreeze);
+document.getElementById('hackBotSelectModeBtn').addEventListener('click', () => {
+  setSelectedHackBot(null, null);
+  setHackBotDragMode(false);
+});
+document.getElementById('hackBotDragModeBtn').addEventListener('click', () => {
+  if (selectedHackBotId == null) return;
+  setHackBotDragMode(!hackBotDragMode);
+});
+document.getElementById('hackTargetAllBtn').addEventListener('click', () => {
+  setGriefTargetAll();
+});
+document.getElementById('hackTargetSpecificBtn').addEventListener('click', () => {
+  setGriefTargetSelf();
+});
+document.getElementById('hackTeleportBtn').addEventListener('click', () => {
+  if (!alive || spectating || !clientSettings.enableHackMenu) return;
+  setHackTeleportArmed(!hackTeleportArmed);
+});
+{
+  const hackHeaderEl = document.getElementById('hackMenuHeader');
+  const hackMenuHoverEl = document.getElementById('hackMenu');
+  if (hackMenuHoverEl) {
+    const onEnter = () => { hackMenuHovered = true; };
+    const onLeave = () => { hackMenuHovered = false; };
+    hackMenuHoverEl.addEventListener('mouseenter', onEnter);
+    hackMenuHoverEl.addEventListener('mouseleave', onLeave);
+    hackMenuHoverEl.addEventListener('pointerenter', onEnter);
+    hackMenuHoverEl.addEventListener('pointerleave', onLeave);
+  }
+  if (hackHeaderEl) {
+    hackHeaderEl.addEventListener('pointerdown', beginHackMenuDrag);
+    hackHeaderEl.addEventListener('pointermove', moveHackMenuDrag);
+    hackHeaderEl.addEventListener('pointerup', endHackMenuDrag);
+    hackHeaderEl.addEventListener('pointercancel', endHackMenuDrag);
+  }
+}
+renderHackBotTeamOptions();
+renderHackTargetTeamOptions();
+syncHackBotEditorSelection();
+refreshGriefTargetUi();
 
 function returnToLobby(sendMsg = true) {
   if (sendMsg && ws && ws.readyState === WebSocket.OPEN && alive) {
@@ -3341,12 +4689,26 @@ function returnToLobby(sendMsg = true) {
   }
   alive = false;
   spectating = false;
+  stopHoldWEject();
+  inputHeld.delete('KeyW');
   score = 0;
   peakScoreThisMatch = 0;
   document.getElementById('hud').classList.remove('active');
   document.getElementById('deathScreen').classList.remove('show');
   applyHudVisibility();
   setMenuVisible(true);
+  setHackTeleportArmed(false);
+  setHackGodmodeEnabled(false);
+  setHackFreezeActiveUntil(0);
+  setHackSelfFrozen(false);
+  setHackInstaMergeEnabled(false);
+  setHackNoEatBots(false);
+  setHackSpeedMult(1);
+  setHackBotSelectMode(false);
+  setHackBotDragMode(false);
+  setGriefTargetPickMode(false);
+  setSelectedHackBot(null, null);
+  resetHackMenuPosition();
   document.getElementById('nickInput').focus();
 }
 
@@ -3364,6 +4726,18 @@ function setSpectating(enabled) {
     spectateCenter = { x: serverViewCenter.x, y: serverViewCenter.y };
     spectateScale = Math.max(1.6, serverViewScale || spectateScale);
     applyHudVisibility();
+    setHackTeleportArmed(false);
+    setHackGodmodeEnabled(false);
+    setHackFreezeActiveUntil(0);
+    setHackSelfFrozen(false);
+    setHackInstaMergeEnabled(false);
+    setHackNoEatBots(false);
+    setHackSpeedMult(1);
+    setHackBotSelectMode(false);
+    setHackBotDragMode(false);
+    setGriefTargetPickMode(false);
+    setSelectedHackBot(null, null);
+    resetHackMenuPosition();
     ws.send(JSON.stringify({ type: 'spectate', enabled: true, scale: spectateScale }));
     ws.send(JSON.stringify({ type: 'spectate_view', x: spectateCenter.x, y: spectateCenter.y, scale: spectateScale }));
   } else {
@@ -3372,6 +4746,18 @@ function setSpectating(enabled) {
       document.getElementById('hud').classList.remove('active');
     ws.send(JSON.stringify({ type: 'spectate', enabled: false }));
     applyHudVisibility();
+    setHackTeleportArmed(false);
+    setHackGodmodeEnabled(false);
+    setHackFreezeActiveUntil(0);
+    setHackSelfFrozen(false);
+    setHackInstaMergeEnabled(false);
+    setHackNoEatBots(false);
+    setHackSpeedMult(1);
+    setHackBotSelectMode(false);
+    setHackBotDragMode(false);
+    setGriefTargetPickMode(false);
+    setSelectedHackBot(null, null);
+    resetHackMenuPosition();
     setMenuVisible(true);
     setSkinPanelVisible(true);
     document.getElementById('nickInput').focus();
@@ -3469,15 +4855,6 @@ document.getElementById('skinsBtn').addEventListener('click', async () => {
 document.getElementById('skinSearchInput').addEventListener('input', () => {
   renderSkinPicker();
 });
-document.getElementById('quickApplyBtn').addEventListener('click', async () => {
-  const patch = collectQuickCenterPatch();
-  if (Object.keys(patch).length === 0) {
-    showToast('No quick-setting changes');
-    return;
-  }
-  await applySettingsPatch(patch);
-  await regenerateWorld();
-});
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const { serverPatch, clientPatch } = collectSettingsPatch();
   const changedClient = applyClientSettingsPatch(clientPatch);
@@ -3516,14 +4893,41 @@ document.getElementById('leaderboardToggle').addEventListener('click', () => {
   document.getElementById('leaderboardToggle').textContent = leaderboardCollapsed ? '<' : '>';
   document.getElementById('leaderboardToggle').style.right = leaderboardCollapsed ? '10px' : '280px';
 });
-document.getElementById('leaderboard').addEventListener('click', (ev) => {
+const leaderboardEl = document.getElementById('leaderboard');
+leaderboardEl.addEventListener('wheel', (ev) => {
+  const list = ev.target && ev.target.closest ? ev.target.closest('.lb-list') : null;
+  if (!list) return;
+  if (typeof ev.preventDefault === 'function') ev.preventDefault();
+  if (typeof ev.stopPropagation === 'function') ev.stopPropagation();
+  list.scrollTop += Number(ev.deltaY) || 0;
+  lbLockedScrollTop = list.scrollTop;
+  lbUserScrollLockUntil = performance.now() + 340;
+}, { passive: false });
+leaderboardEl.addEventListener('scroll', (ev) => {
+  const list = ev.target && ev.target.closest ? ev.target.closest('.lb-list') : null;
+  if (!list) return;
+  lbLockedScrollTop = list.scrollTop;
+  lbUserScrollLockUntil = performance.now() + 420;
+}, true);
+leaderboardEl.addEventListener('click', (ev) => {
   const entry = ev.target.closest('.lb-entry[data-owner-id]');
   if (!entry) return;
   const ownerId = parseInt(entry.dataset.ownerId);
   if (isNaN(ownerId)) return;
-  if (!spectating) return; // only follow while spectating
   const lbEntry = leaderboard ? leaderboard.find((e) => e.id === ownerId) : null;
-  setSpectateTarget(ownerId, lbEntry ? lbEntry.name : null);
+  const hackClickActive = (alive || spectating) && clientSettings.enableHackMenu;
+  if (hackClickActive && lbEntry) {
+    if (lbEntry.isBot) setSelectedHackBot(ownerId, lbEntry.name || `Bot ${ownerId}`);
+    else setSelectedHackBot(null, null);
+    if (playerId != null && ownerId === playerId) setGriefTargetSelf();
+    else setGriefTargetPlayer(ownerId, lbEntry.name || `Player ${ownerId}`);
+    if (spectating) setSpectateTarget(ownerId, lbEntry ? lbEntry.name : null);
+    return;
+  }
+  if (spectating) {
+    setSpectateTarget(ownerId, lbEntry ? lbEntry.name : null);
+    return;
+  }
 });
 document.getElementById('spectatePrevBtn').addEventListener('click', () => navigateSpectateTarget(-1));
 document.getElementById('spectateNextBtn').addEventListener('click', () => navigateSpectateTarget(1));
@@ -3553,11 +4957,25 @@ document.addEventListener('keydown', (e) => {
 });
 
 function spawn() {
+  return spawnWithPendingApply();
+}
+
+async function spawnWithPendingApply() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  const pending = getPendingQuickCenterChanges();
+  if (pending.hasClient) {
+    const changedClient = applyClientSettingsPatch(pending.clientPatch);
+    if (changedClient) renderSettings();
+  }
+  if (pending.hasServer) {
+    const applied = await applySettingsPatch(pending.serverPatch);
+    if (applied) await regenerateWorld();
+  }
+  updatePlayButtonLabel();
   if (spectating) {
     ws.send(JSON.stringify({ type: 'spectate', enabled: false }));
     spectating = false;
-    }
+  }
   const name = document.getElementById('nickInput').value.trim();
   const preferredSkin = sanitizeSkinName(selectedSkin);
   selectedSkin = preferredSkin;
@@ -3684,7 +5102,7 @@ function render(timestamp) {
   ctx.lineWidth = 14;
   ctx.strokeRect(0, 0, mapWidth, mapHeight);
 
-  const renderDistance = Math.max(0.45, Math.min(1.6, Number(clientSettings.renderDistance) || 1));
+  const renderDistance = Math.max(0.01, Number(clientSettings.renderDistance) || 1);
   const halfW = (viewportWidth * cam.scale * renderDistance) / 2 + 250;
   const halfH = (viewportHeight * cam.scale * renderDistance) / 2 + 250;
   const minRenderX = cam.x - halfW;
@@ -3924,7 +5342,7 @@ function render(timestamp) {
 }
 
 function drawGrid() {
-  const gridSize = Math.max(14, Math.min(64, Math.round(Number(clientSettings.gridSize) || 18)));
+  const gridSize = Math.max(1, Math.round(Number(clientSettings.gridSize) || 18));
   const style = getComputedStyle(document.body);
   ctx.fillStyle = style.getPropertyValue('--grid-bg').trim() || '#161f35';
   ctx.fillRect(0, 0, mapWidth, mapHeight);
@@ -3943,7 +5361,16 @@ function drawGrid() {
 function drawCell(x, y, r, color, name, mass, mine, skin, ownerId, teamId) {
   const rank = ownerId != null ? leaderRankByOwner.get(ownerId) : null;
   const medal = getRankMedal(rank || 0);
-  const skinName = clientSettings.hideSkins ? null : (skin || (mine ? appliedPlayerSkin : null));
+  let skinName = null;
+  if (!clientSettings.hideSkins) {
+    skinName = skin || null;
+    if (!skinName && ownerId != null) {
+      skinName = leaderSkinByOwner.get(ownerId) || null;
+    }
+    if (!skinName && mine) {
+      skinName = appliedPlayerSkin || null;
+    }
+  }
   const baseColor = color || '#7ea0d4';
   ctx.save();
   ctx.beginPath();
@@ -3975,10 +5402,23 @@ function drawCell(x, y, r, color, name, mass, mine, skin, ownerId, teamId) {
   ctx.stroke();
   ctx.restore();
 
+  if (selectedHackBotId != null && ownerId === selectedHackBotId) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, r + Math.max(4, r * 0.08), 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,232,120,0.95)';
+    ctx.lineWidth = Math.max(2, r * 0.06);
+    ctx.shadowColor = 'rgba(255,232,120,0.9)';
+    ctx.shadowBlur = Math.max(8, r * 0.25);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   const canShowName = !clientSettings.hideNames && !!name && r > 4.2;
   const allowMassForCell = mine || !!clientSettings.showOtherMass;
   const canShowMass = allowMassForCell && !clientSettings.hideMass && r > (mine ? 9 : 12) && (!canShowName || r >= 14);
-  if (canShowName || canShowMass) {
+  const canShowMedal = !!medal && r > 5.8;
+  if (canShowName || canShowMass || canShowMedal) {
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -4002,9 +5442,11 @@ function drawCell(x, y, r, color, name, mass, mine, skin, ownerId, teamId) {
       ctx.strokeText(Math.round(mass), x, massY);
       ctx.fillText(Math.round(mass), x, massY);
     }
-    if (canShowName && medal && r > 5.8) {
+    if (canShowMedal) {
       ctx.font = `700 ${Math.max(14, fontSize * 0.52)}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-      const medalY = y + fontSize * (r > 20 ? 0.9 : 0.45);
+      const medalY = canShowName
+        ? y + fontSize * (r > 20 ? 0.9 : 0.45)
+        : (canShowMass ? y + fontSize * 0.62 : y);
       ctx.strokeText(medal, x, medalY);
       ctx.fillText(medal, x, medalY);
     }
@@ -4090,109 +5532,191 @@ function drawVirus(v) {
 
 // Tracks previous ranks per player id for arrow indicators
 const lbPrevRank = new Map();
-// Throttle: only fully re-render every 1.8s; score updates happen every tick
-let lbLastFullRender = 0;
-const LB_FULL_RENDER_INTERVAL = 1800;
+const lbArrowState = new Map();
+const LB_SNAPSHOT_INTERVAL_MS = 5000;
+const LB_MOVE_ANIM_MS = 1800;
+let lbNextSnapshotAt = 0;
+let lbLastSnapshotSignature = '';
+
+function leaderboardSignature(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) return '';
+  return entries.map((e) => `${e.id}:${e.rank}:${e.score}`).join('|');
+}
 
 function updateLeaderboard() {
   const now = performance.now();
-  const entries = leaderboard || [];
+  const lbEl = document.getElementById('leaderboard');
+  const prevListEl = lbEl ? lbEl.querySelector('.lb-list') : null;
+  if (prevListEl) lbLockedScrollTop = prevListEl.scrollTop;
+  const prevScrollTop = Number.isFinite(lbLockedScrollTop)
+    ? lbLockedScrollTop
+    : (prevListEl ? prevListEl.scrollTop : 0);
+  const userScrollLocked = now < (lbUserScrollLockUntil || 0);
+  const liveEntries = leaderboard || [];
+  const liveSignature = leaderboardSignature(liveEntries);
 
-  // Build rank map
-  const newRankMap = new Map();
-  for (const e of entries) newRankMap.set(e.id, e.rank);
+  // Freeze-frame behavior: update the board every 5s.
+  if (now < lbNextSnapshotAt) {
+    updateSpectateInfoBar();
+    return;
+  }
+  lbNextSnapshotAt = now + LB_SNAPSHOT_INTERVAL_MS;
 
-  // Full re-render throttled to avoid jank
-  const doFullRender = (now - lbLastFullRender) >= LB_FULL_RENDER_INTERVAL;
-  if (doFullRender) {
-    lbLastFullRender = now;
-    const visible = entries.slice(0, 10);
-    let html = `<div class="lb-header"><span>Top ${Math.min(10, entries.length)}</span><span class="lb-total">${entries.length} players</span></div>`;
-    for (const e of visible) {
-      const isMe = e.id === playerId;
-      const isSelected = spectating && e.id === spectateTargetId;
-      const medal = getRankMedal(e.rank);
-      // Rank change arrow
-      const prevRank = lbPrevRank.get(e.id);
-      let arrow = '';
-      if (prevRank != null && prevRank !== e.rank) {
-        arrow = prevRank > e.rank
-          ? '<span class="lb-arrow up">▲</span>'
-          : '<span class="lb-arrow down">▼</span>';
-      }
-      // Icon: skin image or color circle
-      let iconHtml = '';
-      if (e.skin) {
-        iconHtml = `<img class="lb-icon" src="/skins/${encodeURIComponent(e.skin)}.webp" onerror="this.style.display='none'">`;
-      } else if (e.color) {
-        iconHtml = `<span class="lb-icon lb-icon-dot" style="background:${e.color}"></span>`;
-      } else {
-        iconHtml = `<span class="lb-icon lb-icon-dot" style="background:#7ba3cc"></span>`;
-      }
-      // Team badge (teams mode only)
-      let teamBadge = '';
-      if (currentMode === 'teams' && Number.isInteger(e.teamId)) {
-        const team = teamStats.find((t) => Number(t.teamId) === Number(e.teamId));
-        const teamColor = team && team.color ? team.color : '#9ab6e6';
-        teamBadge = `<span class="lb-team-dot" style="background:${teamColor};" title="Team ${e.teamId + 1}"></span>`;
-      }
-      const rankStr = medal ? medal : `${e.rank}.`;
-      html += `<div class="lb-entry${isMe ? ' me' : ''}${isSelected ? ' spectate-selected' : ''}" data-owner-id="${e.id}">`
-        + `<span class="lb-left">${iconHtml}<span class="lb-rank">${rankStr}</span>${arrow}<span class="lb-name">${escapeHtml(e.name)}</span></span>`
-        + `<span class="lb-right">${teamBadge}<span class="lb-score-val">${e.score}</span></span>`
-        + `</div>`;
-    }
-    // If player is beyond top 10, show their entry at the bottom
-    if (entries.length > 10) {
-      const myEntry = entries.find((e) => e.id === playerId && e.rank > 10);
-      if (myEntry) {
-        const prevRank = lbPrevRank.get(myEntry.id);
-        let arrow = '';
-        if (prevRank != null && prevRank !== myEntry.rank) {
-          arrow = prevRank > myEntry.rank ? '<span class="lb-arrow up">▲</span>' : '<span class="lb-arrow down">▼</span>';
-        }
-        let teamBadge = '';
-        if (currentMode === 'teams' && Number.isInteger(myEntry.teamId)) {
-          const team = teamStats.find((t) => Number(t.teamId) === Number(myEntry.teamId));
-          const teamColor = team && team.color ? team.color : '#9ab6e6';
-          teamBadge = `<span class="lb-team-dot" style="background:${teamColor};"></span>`;
-        }
-        const iconHtml = myEntry.skin
-          ? `<img class="lb-icon" src="/skins/${encodeURIComponent(myEntry.skin)}.webp" onerror="this.style.display='none'">`
-          : `<span class="lb-icon lb-icon-dot" style="background:${myEntry.color || '#7ba3cc'}"></span>`;
-        html += `<div class="lb-sep"></div><div class="lb-entry me" data-owner-id="${myEntry.id}">`
-          + `<span class="lb-left">${iconHtml}<span class="lb-rank">${myEntry.rank}.</span>${arrow}<span class="lb-name">${escapeHtml(myEntry.name)}</span></span>`
-          + `<span class="lb-right">${teamBadge}<span class="lb-score-val">${myEntry.score}</span></span>`
-          + `</div>`;
-      }
-    }
-    document.getElementById('leaderboard').innerHTML = html;
-    // Update previous ranks after render
-    for (const e of entries) lbPrevRank.set(e.id, e.rank);
-  } else {
-    // Fast score-only update: just patch score text nodes
-    const lbEl = document.getElementById('leaderboard');
-    const scoreEls = lbEl.querySelectorAll('.lb-score-val');
-    const visible = entries.slice(0, 10);
-    scoreEls.forEach((el, i) => {
-      const e = i < visible.length ? visible[i] : (entries.find((x) => x.id === playerId && x.rank > 10));
-      if (e) el.textContent = e.score;
+  // No changes in snapshot; keep board as-is.
+  if (liveSignature === lbLastSnapshotSignature && lbLastSnapshotSignature) {
+    updateSpectateInfoBar();
+    return;
+  }
+  lbLastSnapshotSignature = liveSignature;
+  const entries = liveEntries.map((e) => ({ ...e }));
+
+  // Compute rank-change arrows for this snapshot and keep them until next snapshot render.
+  lbArrowState.clear();
+  for (const e of entries) {
+    const prevRank = lbPrevRank.get(e.id);
+    if (prevRank == null || prevRank === e.rank) continue;
+    lbArrowState.set(e.id, prevRank > e.rank ? 'up' : 'down');
+  }
+
+  // Capture old Y positions for one-time migration animation (scroll list only).
+  const prevTopByOwner = new Map();
+  if (lbEl) {
+    lbEl.querySelectorAll('.lb-list .lb-entry[data-owner-id]').forEach((node) => {
+      const id = Number(node.dataset.ownerId);
+      if (!Number.isNaN(id)) prevTopByOwner.set(id, node.getBoundingClientRect().top);
     });
   }
 
-  leaderRankByOwner = newRankMap;
+  const myEntryOutsideTop10 = entries.find((e) => e.id === playerId && e.rank > 10) || null;
+
+  const renderEntryHtml = (e, pinned = false) => {
+    const isMe = e.id === playerId;
+    const isSpectateSelected = spectating && e.id === spectateTargetId;
+    const isHackSelected = (alive || spectating) && selectedHackBotId != null && e.id === selectedHackBotId;
+    const isSelected = isSpectateSelected || isHackSelected;
+    const medal = getRankMedal(e.rank);
+    const dir = lbArrowState.get(e.id);
+    const arrow = dir === 'up'
+      ? '<span class="lb-arrow up">&#9650;</span>'
+      : (dir === 'down' ? '<span class="lb-arrow down">&#9660;</span>' : '');
+    let teamColor = null;
+    let iconColor = e.color || '#7ba3cc';
+    if (currentMode === 'teams' && Number.isInteger(e.teamId)) {
+      const team = teamStats.find((t) => Number(t.teamId) === Number(e.teamId));
+      const teamColorRaw = team && team.color ? team.color : '';
+      if (/^#([0-9a-f]{3,8})$/i.test(teamColorRaw)) {
+        teamColor = teamColorRaw;
+        if (!e.color) iconColor = teamColorRaw;
+      }
+    }
+    const skinImg = (!clientSettings.hideSkins && e.skin)
+      ? `<img class="lb-icon lb-icon-img" src="/skins/${encodeURIComponent(e.skin)}" onerror="this.remove()">`
+      : '';
+    const iconHtml = `<span class="lb-icon-wrap"><span class="lb-icon lb-icon-dot" style="background:${iconColor}"></span>${skinImg}</span>`;
+    const rankStr = medal ? medal : `${e.rank}.`;
+    const nameClass = teamColor ? 'lb-name team-tinted' : 'lb-name';
+    const nameStyle = teamColor ? ` style="color:${teamColor};"` : '';
+    return `<div class="lb-entry${isMe ? ' me' : ''}${isSelected ? ' spectate-selected' : ''}${pinned ? ' lb-entry-pinned' : ''}" data-owner-id="${e.id}">`
+      + `<span class="lb-left"><span class="lb-rank">${rankStr}</span>${arrow}<span class="${nameClass}"${nameStyle}>${escapeHtml(e.name)}</span></span>`
+      + `<span class="lb-right">${iconHtml}<span class="lb-score-val">${e.score}</span></span>`
+      + `</div>`;
+  };
+
+  let listHtml = '';
+  for (const e of entries) {
+    listHtml += renderEntryHtml(e, false);
+  }
+  const pinnedHtml = myEntryOutsideTop10
+    ? `<div class="lb-pinned-wrap"><div class="lb-sep"></div>${renderEntryHtml(myEntryOutsideTop10, true)}</div>`
+    : '';
+  const html = `<div class="lb-header"><span>Leaderboard</span><span class="lb-total">${entries.length} players</span></div>`
+    + `<div class="lb-list">${listHtml}</div>`
+    + pinnedHtml;
+
+  if (lbEl) lbEl.innerHTML = html;
+  const nextListEl = lbEl ? lbEl.querySelector('.lb-list') : null;
+  if (nextListEl) {
+    nextListEl.scrollTop = prevScrollTop;
+    lbLockedScrollTop = nextListEl.scrollTop;
+  }
+
+  // Keep panel sized to first 10 rows; list scrolls, optional pinned row lives below it.
+  if (lbEl) {
+    const headerEl = lbEl.querySelector('.lb-header');
+    const listEl = lbEl.querySelector('.lb-list');
+    const rowEls = lbEl.querySelectorAll('.lb-list .lb-entry[data-owner-id]');
+    const pinnedWrapEl = lbEl.querySelector('.lb-pinned-wrap');
+    const visibleRows = Math.min(10, rowEls.length);
+    let rowsHeight = 0;
+    for (let i = 0; i < visibleRows; i++) rowsHeight += rowEls[i].offsetHeight;
+    const headerHeight = headerEl ? headerEl.offsetHeight : 0;
+    const pinnedHeight = pinnedWrapEl ? pinnedWrapEl.offsetHeight : 0;
+    const listHeight = Math.max(60, Math.round(rowsHeight));
+    const targetHeight = Math.max(110, Math.round(headerHeight + listHeight + pinnedHeight + 18));
+    lbEl.style.height = `${targetHeight}px`;
+    lbEl.style.maxHeight = `${targetHeight}px`;
+    if (listEl) {
+      listEl.style.height = `${listHeight}px`;
+      listEl.style.maxHeight = `${listHeight}px`;
+      listEl.scrollTop = prevScrollTop;
+      lbLockedScrollTop = listEl.scrollTop;
+      if (userScrollLocked) {
+        requestAnimationFrame(() => {
+          const liveList = document.getElementById('leaderboard')?.querySelector('.lb-list');
+          if (!liveList) return;
+          liveList.scrollTop = prevScrollTop;
+          lbLockedScrollTop = liveList.scrollTop;
+        });
+      }
+    }
+  }
+
+  // Animate moved rows by inverting old/new Y offset, then easing back once.
+  if (lbEl && prevTopByOwner.size > 0 && prevScrollTop <= 1 && !userScrollLocked) {
+    const moved = [];
+    lbEl.querySelectorAll('.lb-list .lb-entry[data-owner-id]').forEach((node) => {
+      const id = Number(node.dataset.ownerId);
+      if (Number.isNaN(id)) return;
+      const prevTop = prevTopByOwner.get(id);
+      if (prevTop == null) return;
+      const nextTop = node.getBoundingClientRect().top;
+      const dy = prevTop - nextTop;
+      if (Math.abs(dy) < 0.6) return;
+      node.style.transition = 'none';
+      node.style.transform = `translateY(${dy}px)`;
+      moved.push(node);
+    });
+    if (moved.length > 0) {
+      requestAnimationFrame(() => {
+        for (const node of moved) {
+          node.style.transition = `transform ${LB_MOVE_ANIM_MS}ms cubic-bezier(0.2,0.7,0.2,1)`;
+          node.style.transform = 'translateY(0)';
+        }
+      });
+    }
+  }
+
+  // Update previous ranks after render for next diff arrow.
+  lbPrevRank.clear();
+  for (const e of entries) lbPrevRank.set(e.id, e.rank);
+
   updateSpectateInfoBar();
 }
 
 function drawTeamChart() {
   if (currentMode !== 'teams' || !clientSettings.showTeamChart) return;
   const tc = teamChartCtx;
-  const ordered = [...teamStats].sort((a, b) => (b.mass || 0) - (a.mass || 0));
+  const ordered = [...teamStats]
+    .filter((t) => (Number(t && t.mass) || 0) > 0)
+    .sort((a, b) => (b.mass || 0) - (a.mass || 0));
   const entries = ordered.length;
+  if (entries <= 0) {
+    return;
+  }
   const cssW = 250;
   const maxCssH = Math.max(150, teamChartCanvas.clientHeight || 260);
   const cssH = Math.min(maxCssH, Math.max(178, 44 + entries * 20));
-  const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+  const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, HUD_CANVAS_DPR_CAP));
   teamChartCanvas.style.width = `${cssW}px`;
   teamChartCanvas.style.height = `${cssH}px`;
   const w = teamChartCanvas.width = Math.round(cssW * dpr);
@@ -4304,13 +5828,17 @@ function escapeHtml(text) {
 (async function init() {
   setMenuVisible(true);
   loadClientSettings();
+  applyChromeOsPerformanceDefaults();
   // setSkinPanelVisible must run after loadClientSettings so hideSkins is accurate
   setSkinPanelVisible(!clientSettings.hideSkins);
   loadTheme();
   loadStats();
   updateStatsUI();
   await loadBootstrap(false);
+  await restoreServerSettingsFromBrowser();
   applyHudVisibility();
+  bindQuickCenterPlayLabelWatchers();
+  updatePlayButtonLabel();
 
   // Wire up connection dialog buttons
   document.getElementById('connConnectBtn').addEventListener('click', () => {
@@ -4337,9 +5865,9 @@ function escapeHtml(text) {
   // Show connection dialog if needed, otherwise connect immediately
   if (needsConnectionDialog()) {
     showConnDialog();
-    setConnStatus('● Not connected', 'red');
+    setConnStatus('* Not connected', 'red');
   } else {
-    setConnStatus('● Connecting…', 'blue');
+    setConnStatus('* Connecting…', 'blue');
     connect();
   }
 
@@ -4349,4 +5877,6 @@ function escapeHtml(text) {
 </script>
 </body>
 </html>
+
+
 

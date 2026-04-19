@@ -6,6 +6,8 @@ const gameConfig = {
     allowExperimentalInClassicModes: false,
     teamCount: 3,
     maxFood: 2100,
+    foodRespawnPerSecond: 32,
+    maxFoodRespawnBurstPerTick: 3,
     maxViruses: 18,
     botCount: 42,
     deferBotsUntilHumans: false,
@@ -17,10 +19,11 @@ const gameConfig = {
     massRadiusExponent: 0.46,
     maxCells: 16,
     minSplitMass: 35,
-    mergeTime: 10,
-    cellEatMassRatio: 1.22,
-    cellEatCenterInsideRatio: 0.42,
-    cellEatCoverageRatio: 0.88,
+    mergeTime: 30,
+    mergeMassFactor: 0.0233,
+    cellEatMassRatio: 1.32,
+    cellEatCenterInsideRatio: 0.5,
+    cellEatCoverageRatio: 0.9,
     baseFoodMass: 0.34,
     goldenFoodChance: 0.014,
     goldenFoodMass: 2.2,
@@ -28,6 +31,7 @@ const gameConfig = {
     plasmaFoodMass: 1.45,
     ejectedPelletMass: 5.2,
     ejectedPelletCost: 11.6,
+    ownEjectedReclaimRatio: 1.0,
     mapWidth: 5000,
     mapHeight: 5000,
     leaderboardSize: 100,
@@ -42,31 +46,32 @@ const gameConfig = {
     maxVisibleCellsPerPlayer: 450,
 
     // Bot sleep/offload system — bots beyond botSleepDistance from all humans stop thinking
-    botSleepThreshold: 40,   // min alive bot count before sleep kicks in
+    botSleepThreshold: 80,   // min alive bot count before sleep kicks in
     botSleepDistance: 1400,  // distance from any human before a bot is eligible for sleep
     botSleepMs: 3000,        // minimum sleep duration per cycle (ms)
 
     // Bot behavior/perf knobs
-    botThinkInterval: 0.28,
+    botBehaviorPreset: 'feral',
+    botThinkInterval: 0.14,
     botMinSplitCells: 2,
     botMaxSplitCells: 16,
     botMergeMaxCellsCap: 3,
     botKamikazeMaxCellsCap: 16,
-    botSmartChance: 0.5,
+    botSmartChance: 0.9,
     botSwerveStrength: 0.7,
     botSwerveThreatBuffer: 180,
     botBoldnessBase: 0.45,
     botSmartnessScale: 1,
     botAffectionScale: 1,
-    botBoldnessScale: 1,
-    botGreedinessScale: 1,
-    botSheepishnessScale: 1,
-    botHumanityScale: 1,
-    botTrickinessScale: 1,
-    botOpportunismScale: 1,
+    botBoldnessScale: 2.35,
+    botGreedinessScale: 2.75,
+    botSheepishnessScale: 0.25,
+    botHumanityScale: 0.9,
+    botTrickinessScale: 1.8,
+    botOpportunismScale: 2.85,
     botHerdResistanceScale: 1,
     botBoldSplitBurstChance: 0.1,
-    botPanicRetreatChance: 0.18,
+    botPanicRetreatChance: 0.01,
     botPanicRetreatMinMass: 110,
     botPanicRetreatBurstMax: 4,
     botGullibleChance: 0.35,
@@ -78,7 +83,7 @@ const gameConfig = {
     spectatorFollowHumanChance: 0.45,
     botKamikazeMaxShare: 0.06,
     botMergeMaxShare: 0.08,
-    botRiskySplitChance: 0.18,
+    botRiskySplitChance: 0.92,
     botRiskySplitMassRatio: 0.95,
     botVirusHideMass: 160,
     botSenseCellScanLimit: 400,
@@ -105,18 +110,18 @@ const gameConfig = {
     botMergeSplitChance: 0.15,
     botSupportActionCooldownMs: 900,
     botTeamSeekIntervalMs: 2400,
-    botTeamAssignChance: 0.26,
+    botTeamAssignChance: 0.08,
     botTeamDurationMs: 26000,
     botTeamMaxDistance: 900,
     botTeamWithHumanChance: 0.16,
     botTeamFeedCooldownMs: 1200,
-    botTeamFeedChance: 0.62,
+    botTeamFeedChance: 0.22,
     botTeamFeedMinMass: 70,
     botTeamSplitCooldownMs: 9000,
-    botTeamSplitChance: 0.1,
+    botTeamSplitChance: 0.34,
     botTeamSplitMinMass: 180,
     crossTeamTeamingChance: 0.001,
-    enableBotTeaming: true,
+    enableBotTeaming: false,
     botTeamsStickUntilDeath: true,
     botCircleSpitChancePerTick: 0.00003,
     botCircleSpitCooldownMs: 26000,
@@ -152,7 +157,7 @@ const gameConfig = {
     spawnerPelletMass: 0.55,
     virusSmallCellKillRatio: 0.52,
     virusHideRatio: 0.9,
-    botVirusWeaponChance: 0.22,
+    botVirusWeaponChance: 0.36,
     botVirusWeaponCooldownMs: 2600,
     botVirusWeaponMinMass: 80,
     sacrificeToPlayerBots: false,
@@ -171,6 +176,7 @@ const requiredKeys = [
     'maxCells',
     'minSplitMass',
     'mergeTime',
+    'mergeMassFactor',
     'mapWidth',
     'mapHeight',
 ];
@@ -231,6 +237,22 @@ function applyPerformanceBudget(baseConfig) {
     const tickCap = memoryBudgetMB < 384 ? 30 : (memoryBudgetMB < 1024 ? 40 : 50);
 
     applyNote(tuned, notes, 'maxFood', clampInt(tuned.maxFood, 100, maxFoodCap));
+    applyNote(
+        tuned,
+        notes,
+        'foodRespawnPerSecond',
+        clampInt(
+            valueOr(tuned.foodRespawnPerSecond, Math.max(30, Math.round(tuned.maxFood * 0.05))),
+            5,
+            2000
+        )
+    );
+    applyNote(
+        tuned,
+        notes,
+        'maxFoodRespawnBurstPerTick',
+        clampInt(valueOr(tuned.maxFoodRespawnBurstPerTick, 3), 1, 40)
+    );
     applyNote(tuned, notes, 'botCount', clampInt(tuned.botCount, 0, botCap));
     applyNote(tuned, notes, 'deferBotsUntilHumans', !!tuned.deferBotsUntilHumans);
     applyNote(tuned, notes, 'maxViruses', clampInt(tuned.maxViruses, 0, virusCap));
@@ -286,6 +308,18 @@ function applyPerformanceBudget(baseConfig) {
     applyNote(tuned, notes, 'plasmaFoodMass', clamp(valueOr(tuned.plasmaFoodMass, 1.45), 0.1, 12));
     applyNote(tuned, notes, 'ejectedPelletMass', clamp(valueOr(tuned.ejectedPelletMass, 6), 1, 20));
     applyNote(tuned, notes, 'ejectedPelletCost', clamp(valueOr(tuned.ejectedPelletCost, 13), 2, 50));
+    applyNote(tuned, notes, 'mergeTime', clamp(valueOr(tuned.mergeTime, 30), 0, 120));
+    applyNote(tuned, notes, 'mergeMassFactor', clamp(valueOr(tuned.mergeMassFactor, 0.0233), 0, 0.08));
+    applyNote(tuned, notes, 'ownEjectedReclaimRatio', clamp(valueOr(tuned.ownEjectedReclaimRatio, 1), 0, 1.25));
+
+    const allowedBotBehaviorPresets = new Set(['balanced', 'opportunist', 'cautious', 'feral']);
+    const botBehaviorPreset = `${valueOr(tuned.botBehaviorPreset, 'feral')}`.toLowerCase();
+    applyNote(
+        tuned,
+        notes,
+        'botBehaviorPreset',
+        allowedBotBehaviorPresets.has(botBehaviorPreset) ? botBehaviorPreset : 'feral'
+    );
 
     applyNote(tuned, notes, 'botThinkInterval', clamp(valueOr(tuned.botThinkInterval, 0.24), 0.08, 0.8));
     applyNote(tuned, notes, 'spectatorBotCount', clampInt(tuned.spectatorBotCount || 0, 0, 500));
@@ -303,10 +337,10 @@ function applyPerformanceBudget(baseConfig) {
     applyNote(tuned, notes, 'botOpportunismScale', clamp(valueOr(tuned.botOpportunismScale, 1), 0.2, 3));
     applyNote(tuned, notes, 'botHerdResistanceScale', clamp(valueOr(tuned.botHerdResistanceScale, 1), 0.2, 3));
     applyNote(tuned, notes, 'botBoldSplitBurstChance', clamp(valueOr(tuned.botBoldSplitBurstChance, 0.1), 0, 1));
-    applyNote(tuned, notes, 'botPanicRetreatChance', clamp(valueOr(tuned.botPanicRetreatChance, 0.18), 0, 1));
+    applyNote(tuned, notes, 'botPanicRetreatChance', clamp(valueOr(tuned.botPanicRetreatChance, 0.04), 0, 1));
     applyNote(tuned, notes, 'botPanicRetreatMinMass', clampInt(valueOr(tuned.botPanicRetreatMinMass, 110), 20, 10000));
     applyNote(tuned, notes, 'botPanicRetreatBurstMax', clampInt(valueOr(tuned.botPanicRetreatBurstMax, 4), 1, 12));
-    applyNote(tuned, notes, 'botRiskySplitChance', clamp(valueOr(tuned.botRiskySplitChance, 0.18), 0, 1));
+    applyNote(tuned, notes, 'botRiskySplitChance', clamp(valueOr(tuned.botRiskySplitChance, 0.65), 0, 1));
     applyNote(tuned, notes, 'botRiskySplitMassRatio', clamp(valueOr(tuned.botRiskySplitMassRatio, 0.95), 0.7, 1.4));
     applyNote(tuned, notes, 'botGullibleChance', clamp(valueOr(tuned.botGullibleChance, 0.35), 0, 1));
     applyNote(tuned, notes, 'botGullibleTeamBonus', clamp(valueOr(tuned.botGullibleTeamBonus, 0.28), 0, 1));
@@ -461,4 +495,6 @@ function applyPerformanceBudget(baseConfig) {
     return tuned;
 }
 
-module.exports = applyPerformanceBudget(gameConfig);
+const tunedGameConfig = applyPerformanceBudget(gameConfig);
+module.exports = tunedGameConfig;
+module.exports.applyPerformanceBudget = applyPerformanceBudget;
