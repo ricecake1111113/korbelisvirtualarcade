@@ -750,6 +750,16 @@
     ]
   },
   {
+    "name": "Doki Doki Literature Club!",
+    "folder": "games/ddlc",
+    "section": "games",
+    "dateAdded": "2026-04-20",
+    "popularity": 84,
+    "tags": [
+      "game"
+    ]
+  },
+  {
     "name": "4th of July Baseball",
     "folder": "games/google-4th-of-july-baseball",
     "section": "games",
@@ -758,5 +768,173 @@
     "tags": [
       "game"
     ]
+  },
+  {
+    "name": "Five Nights at Freddy's",
+    "folder": "games/fnaf",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2014,
+    "genres": "Survival Horror / Point-and-Click",
+    "iconPath": "games/fnaf/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 92,
+    "tags": [
+      "game",
+      "horror",
+      "survival",
+      "point-and-click",
+      "strategy",
+      "fnaf"
+    ],
+    "description": "Five Nights at Freddy's is a survival horror game about working the night shift at Freddy Fazbear's Pizza. Watch the cameras, manage limited power, and keep the animatronic performers out of the office until morning."
+  },
+  {
+    "name": "Five Nights at Freddy's 2",
+    "folder": "games/fnaf-2",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2014,
+    "genres": "Survival Horror / Point-and-Click",
+    "iconPath": "games/fnaf-2/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 90,
+    "tags": [
+      "game",
+      "horror",
+      "survival",
+      "point-and-click",
+      "strategy",
+      "fnaf"
+    ],
+    "description": "Five Nights at Freddy's 2 returns to Freddy Fazbear's Pizza with new animatronics, older models, and a faster security setup. Use cameras, the flashlight, vents, music box, and Freddy mask to make it through each night."
+  },
+  {
+    "name": "Five Nights at Freddy's 3",
+    "folder": "games/fnaf-3",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2015,
+    "genres": "Survival Horror / Point-and-Click",
+    "iconPath": "games/fnaf-3/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 88,
+    "tags": [
+      "game",
+      "horror",
+      "survival",
+      "point-and-click",
+      "strategy",
+      "fnaf"
+    ],
+    "description": "Five Nights at Freddy's 3 is set inside Fazbear's Fright, a horror attraction built around the old Freddy Fazbear legends. Maintain failing camera, audio, and ventilation systems while surviving Springtrap and phantom scares."
+  },
+  {
+    "name": "Five Nights at Freddy's 4",
+    "folder": "games/fnaf-4",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2015,
+    "genres": "Survival Horror / Point-and-Click",
+    "iconPath": "games/fnaf-4/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 88,
+    "tags": [
+      "game",
+      "horror",
+      "survival",
+      "point-and-click",
+      "audio",
+      "fnaf"
+    ],
+    "description": "Five Nights at Freddy's 4 moves the series into a bedroom, where a child must survive nightmare versions of the animatronics. Listen carefully, check the doors, watch the closet, and hold out until 6 AM."
+  },
+  {
+    "name": "Five Nights at Freddy's: Sister Location",
+    "folder": "games/fnaf-sister-location",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2016,
+    "genres": "Survival Horror / Point-and-Click",
+    "iconPath": "games/fnaf-sister-location/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 89,
+    "tags": [
+      "game",
+      "horror",
+      "survival",
+      "point-and-click",
+      "adventure",
+      "fnaf"
+    ],
+    "description": "Five Nights at Freddy's: Sister Location follows a technician working below Circus Baby's Entertainment and Rental. Complete nightly tasks, move through the facility, and survive a cast of advanced animatronics."
+  },
+  {
+    "name": "Freddy Fazbear's Pizzeria Simulator",
+    "folder": "games/freddy-fazbears-pizzeria-simulator",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2017,
+    "genres": "Simulation / Survival Horror",
+    "iconPath": "games/freddy-fazbears-pizzeria-simulator/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 86,
+    "tags": [
+      "game",
+      "horror",
+      "simulation",
+      "management",
+      "strategy",
+      "fnaf"
+    ],
+    "description": "Freddy Fazbear's Pizzeria Simulator mixes restaurant management with survival horror. Design a pizzeria by day, then handle paperwork, salvage animatronics, and survive threats after closing."
+  },
+  {
+    "name": "Ultimate Custom Night",
+    "folder": "games/ultimate-custom-night",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2018,
+    "genres": "Survival Horror / Strategy",
+    "iconPath": "games/ultimate-custom-night/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 87,
+    "tags": [
+      "game",
+      "horror",
+      "survival",
+      "custom-night",
+      "strategy",
+      "fnaf"
+    ],
+    "description": "Ultimate Custom Night is a standalone custom-night challenge built from the Five Nights at Freddy's series. Choose animatronics, set their difficulty, and manage overlapping systems through one brutal night."
+  },
+  {
+    "name": "FNaF World",
+    "folder": "games/fnaf-world",
+    "section": "games",
+    "system": "HTML5",
+    "publisher": "Scott Cawthon",
+    "year": 2016,
+    "genres": "RPG / Adventure",
+    "iconPath": "games/fnaf-world/icon.png",
+    "dateAdded": "2026-04-26",
+    "popularity": 80,
+    "tags": [
+      "game",
+      "rpg",
+      "adventure",
+      "turn-based",
+      "party-based",
+      "fnaf"
+    ],
+    "description": "FNaF World is a role-playing spin-off where Five Nights at Freddy's characters form parties and explore a bright fantasy world. Battle enemies, unlock characters, and build teams with different abilities."
   }
 ]
